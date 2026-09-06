@@ -1,24 +1,13 @@
 {
   "version": "1.0.0",
-  "buildNumber": 8,
-  "commit": "62bfec4",
-  "branch": "claude/kako-live-app-bet2no",
-  "builtAt": "2026-09-05T17:56:36.729Z",
+  "buildNumber": 0,
+  "commit": "41d0377",
+  "branch": "main",
+  "builtAt": "2026-09-06T18:20:40.702Z",
   "changes": [
-    "revierte la subida de memoria de Gradle, que tumbaba el runner",
-    "publica también un ZIP listo para levantar el servidor en un PC",
-    "no recompilar la APK por cambios de solo documentación",
-    "dos caminos para tener backend, sin depender de mi acceso a su equipo",
-    "`npm start` deja el servidor listo e imprime la dirección para la app",
-    "cierra 10.3 y 3.7 en el plan, con los tiempos reales medidos",
-    "controles del anfitrión en el vídeo LiveKit (paso 3.6)",
-    "vídeo real con LiveKit en la sala (pasos 3.4, 3.5 y 3.7)",
-    "adaptador de streaming para LiveKit (pasos 3.2 y 3.3)",
-    "APK de pruebas por GitHub Actions, servidor configurable y Novedades",
-    "pruebas unitarias con Jest (paso 9.2 del plan)",
-    "historial de transmisiones en el perfil público (paso 9.7 del plan)",
-    "caché del ranking con vaciado al regalar (paso 9.5 del plan)",
-    "pantalla de editar perfil (paso 9.1 del plan)",
-    "plan de fases con estado por paso e instrucciones para la IA"
+    "La pantalla «Servidor» se abre sin haber iniciado sesión",
+    "Permite HTTP plano en las compilaciones de release",
+    "Ignora la carpeta apk/ con las compilaciones descargadas",
+    "Livora Stream: backend Node + app Expo"
   ]
 }

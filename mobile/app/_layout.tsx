@@ -22,12 +22,14 @@ export default function RootLayout() {
 
   // Guardia de navegación: mientras no haya sesión solo se puede estar en (auth)
   // o en los ajustes del servidor, a los que se llega desde la propia pantalla
-  // de login y que hacen falta justo cuando todavía no se puede entrar.
+  // de login y que hacen falta justo cuando todavía no se puede entrar. Se mira
+  // la ruta entera y no solo su primer tramo: según desde dónde se abra, el
+  // modal puede quedar anidado y con `segments[0]` se colaba la expulsión.
   useEffect(() => {
     if (status === 'loading') return;
 
-    const inAuthGroup = segments[0] === '(auth)';
-    const inServerSettings = segments[0] === 'server-settings';
+    const inAuthGroup = segments.includes('(auth)');
+    const inServerSettings = segments.includes('server-settings');
     if (status === 'anonymous' && !inAuthGroup && !inServerSettings) {
       router.replace('/(auth)/login');
     } else if (status === 'authenticated' && inAuthGroup) {

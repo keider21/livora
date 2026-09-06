@@ -16,8 +16,8 @@ export interface BuildInfo {
 
 export const buildInfo: BuildInfo = raw;
 
-export const RELEASES_URL = 'https://github.com/keider21/cecchi/releases';
-export const LATEST_APK_URL = `${RELEASES_URL}/latest/download/livora-stream.apk`;
+export const RELEASES_URL = 'https://github.com/keider21/livora/releases';
+export const LATEST_APK_URL = `${RELEASES_URL}/latest/download/livora.apk`;
 
 export const isCiBuild = buildInfo.buildNumber > 0;
 
