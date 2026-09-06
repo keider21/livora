@@ -44,14 +44,14 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
+      # Las expresiones de Actions no hacen aritmética: la suma va en el shell.
+      - name: Número de compilación
+        run: echo "BUILD_NUMBER=$((100 + ${{ github.run_number }}))" >> "$GITHUB_ENV"
+
       - name: Datos de la compilación
-        env:
-          BUILD_NUMBER: ${{ 100 + github.run_number }}
         run: node scripts/write-build-info.mjs
 
       - name: Generar proyecto nativo
-        env:
-          BUILD_NUMBER: ${{ 100 + github.run_number }}
         run: npx expo prebuild --platform android --no-install
 
       - name: Compilar APK
@@ -59,10 +59,10 @@ jobs:
         run: ./gradlew assembleRelease --no-daemon
 
       - name: Renombrar APK
-        run: mv android/app/build/outputs/apk/release/app-release.apk livora-${{ github.run_number }}.apk
+        run: mv android/app/build/outputs/apk/release/app-release.apk livora.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: livora-apk
-          path: mobile/livora-*.apk
+          name: livora-apk-${{ github.run_number }}
+          path: mobile/livora.apk
           if-no-files-found: error
