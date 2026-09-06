@@ -2,6 +2,10 @@ name: APK Android
 
 # Compila la APK de release y la deja como artefacto descargable.
 # Se puede lanzar a mano desde la pestaña Actions.
+# El versionCode sale de BUILD_NUMBER y Android nunca instala encima una
+# versión con número menor. Las APK del repositorio anterior llegaron a la 9,
+# así que se suma 100 al contador de este workflow para quedar siempre por
+# encima y que la actualización no exija desinstalar.
 on:
   workflow_dispatch:
   push:
@@ -42,12 +46,12 @@ jobs:
 
       - name: Datos de la compilación
         env:
-          BUILD_NUMBER: ${{ github.run_number }}
+          BUILD_NUMBER: ${{ 100 + github.run_number }}
         run: node scripts/write-build-info.mjs
 
       - name: Generar proyecto nativo
         env:
-          BUILD_NUMBER: ${{ github.run_number }}
+          BUILD_NUMBER: ${{ 100 + github.run_number }}
         run: npx expo prebuild --platform android --no-install
 
       - name: Compilar APK
