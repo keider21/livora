@@ -12,23 +12,23 @@
 | | |
 | --- | --- |
 | **Fase actual** | 10 — Pruebas en el teléfono. **La APK ya se publica sola.** |
-| **Paso actual** | **10.4 y 3.8**, ambos ⛔ en el usuario: instalar la APK y probar el vídeo real. Mientras tanto queda 9.3 (linter) |
-| **Última actualización** | 2026-09-05 |
-| **Rama** | `claude/kako-live-app-bet2no` en `keider21/cecchi` (el último commit lo dice `git log -1`) |
-| **Pull request** | [#1](https://github.com/keider21/cecchi/pull/1), abierto. Cada push a la rama lo actualiza; **no hace falta crear otro**. Su base es la rama del ERP porque el repositorio no tiene `main`. Fusionarlo es opcional: la APK se compila desde la rama |
+| **Paso actual** | **10.4** 🔄: la APK instalada no conectaba. Se encontraron y corrigieron dos fallos reales (10.8 y 10.9); falta que el usuario reinstale y entre. Luego 3.8 (vídeo real) |
+| **Última actualización** | 2026-09-06 |
+| **Rama** | `main` en `keider21/livora`, repositorio propio y público (el último commit lo dice `git log -1`) |
+| **Pull request** | Ninguno: se trabaja directo sobre `main` en el repositorio nuevo. El anterior ([keider21/cecchi#1](https://github.com/keider21/cecchi/pull/1)) queda histórico |
 | **Salud** | 52 pruebas en verde (27 servidor + 25 móvil) · TypeScript limpio en `server/` y `mobile/` · empaqueta para Android · `expo prebuild` acepta los plugins de LiveKit |
 
-**Pendiente del usuario:** la app instalada dice «no se pudo conectar con el
-servidor» porque no hay ningún backend en marcha al que llegue el teléfono. Dos
-salidas, ambas preparadas: arrancarlo en su PC (10.6, un doble clic) o
-publicarlo en Render (10.7, un Blueprint ya escrito). La segunda es mejor y
-definitiva, pero exige que el usuario cree la cuenta.
+**Lo último:** el usuario instaló la APK y no conectaba. No era el backend
+apagado, eran dos fallos de la app, ya corregidos (10.8 y 10.9): el guardia de
+navegación expulsaba la pantalla «Servidor» antes de poder escribir la IP, y la
+compilación de release bloqueaba todo el HTTP plano. Falta reinstalar la APK
+nueva y arrancar el backend con `iniciar-servidor.bat` (10.6).
 
-**Lo que la IA no puede hacer:** esta sesión corre en un contenedor en la nube,
-sin acceso al equipo del usuario ni capacidad de crear cuentas en servicios de
-terceros. Ni el permiso del usuario cambia eso: no existe la conexión. Todo lo
-que dependa de su máquina o de sus credenciales queda ⛔ y hay que dejárselo
-listo para un solo clic, no intentarlo.
+**Lo que la IA no puede hacer:** desde 2026-09-06 la sesión corre en el propio
+equipo del usuario, así que ya puede compilar, instalar dependencias y arrancar
+el servidor local. Lo que sigue fuera de su alcance son las cuentas de terceros
+(Render, Google Play) y lo que ocurre físicamente en el teléfono: eso queda ⛔ y
+hay que dejárselo listo para un solo clic, no intentarlo.
 
 ---
 
@@ -236,13 +236,15 @@ cuenta de Expo, y vea dentro de la app qué cambió.
 
 | Paso | Estado | Notas |
 | --- | --- | --- |
-| 10.1 Servidor configurable en la app: pantalla «Servidor» con probar conexión, guardado persistente y reconexión del socket | ✅ | `mobile/app/server-settings.tsx`, `src/settings/server-url.ts`. Sin esto una APK descargada apunta a `localhost` y no sirve. **Verificación:** pruebas «servidor guardado» y «checkServer» (7) |
+| 10.1 Servidor configurable en la app: pantalla «Servidor» con probar conexión, guardado persistente y reconexión del socket | ⚠️ | `mobile/app/server-settings.tsx`, `src/settings/server-url.ts`. Sin esto una APK descargada apunta a `localhost` y no sirve. **Verificación:** pruebas «servidor guardado» y «checkServer» (7). **Falta:** la pantalla existía pero era inalcanzable sin sesión, justo cuando hace falta; lo cierra 10.8 |
 | 10.2 Datos de compilación y pantalla «Novedades», que se abre sola una vez tras cada build nueva y enlaza a la última APK | ✅ | `scripts/write-build-info.mjs` → `src/generated/build-info.json`; `app.config.js` fija `versionCode` = número de build para que Android acepte la actualización |
 | 10.3 Workflow de GitHub Actions: pruebas de los dos paquetes → `expo prebuild` → Gradle → Release con `livora-stream.apk` | ✅ | `.github/workflows/livora-android.yml`. **Verificación:** run 2 en verde y Release `livora-build-2` con el archivo subido (149 MB), confirmado por API. **Falta:** la APK lleva los binarios de WebRTC de todas las arquitecturas; separarlas por ABI la bajaría a ~50 MB |
-| 10.4 El usuario instala la APK, configura el servidor con la IP de su equipo y entra con `luna` / `livora123` | ⛔ | **Bloqueo:** lo hace el usuario. El repo es privado: el navegador del teléfono debe tener sesión en GitHub |
+| 10.4 El usuario instala la APK, configura el servidor con la IP de su equipo y entra con `luna` / `livora123` | 🔄 | Primer intento (2026-09-06) fallido: no por el backend, sino por 10.8 y 10.9, ya corregidos. El repo `keider21/livora` es público, así que el enlace del Release se descarga sin sesión en GitHub. **Pendiente:** reinstalar la APK nueva y entrar |
 | 10.5 Guía «Probar en el teléfono» en el README | ✅ | Descargar, permitir la instalación, configurar servidor, qué hacer si no conecta |
 | 10.6 `npm start` que prepara todo e imprime la dirección para la app | ✅ | `scripts/start-server.mjs` y `iniciar-servidor.bat` para doble clic en Windows. **Verificación:** arranca el servidor y `/health`, login y salas responden |
 | 10.7 Despliegue público del backend en Render (plan gratuito) | ⛔ | `render.yaml` listo y validado. **Bloqueo:** el usuario debe crear la cuenta y aplicar el Blueprint; la IA no puede crear cuentas de terceros. Al tener la URL, fijarla como `EXPO_PUBLIC_API_URL` en el workflow y recompilar: la app dejaría de necesitar configuración |
+| 10.8 La pantalla «Servidor» se puede abrir sin haber iniciado sesión | ✅ | El guardia de navegación de `mobile/app/_layout.tsx` mandaba a login todo lo que estuviera fuera de `(auth)`, así que el modal se cerraba solo al abrirlo desde el botón de ajustes. Ahora `server-settings` está exento. **Verificación:** 25 pruebas móviles y `tsc` en verde; el usuario llega a escribir la IP |
+| 10.9 La APK de release admite HTTP plano hacia la red local | ✅ | `mobile/plugins/with-cleartext-traffic.js`, registrado en `app.json`. Expo solo pone `usesCleartextTraffic` en el manifiesto de debug, y desde Android 9 el resto del tráfico sin cifrar se descarta: la APK instalada no podía hablar con `http://IP:4000` ni con la IP correcta. **Verificación:** `expo prebuild` genera el manifiesto con `usesCleartextTraffic="true"` |
 
 **Falta en la fase:** la APK va firmada con la clave de depuración que genera
 `expo prebuild`; sirve para probar e instalar actualizaciones encima, no para

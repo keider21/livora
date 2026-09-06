@@ -20,12 +20,15 @@ export default function RootLayout() {
     void loadServerUrl().then(() => restore());
   }, [restore]);
 
-  // Guardia de navegación: mientras no haya sesión solo se puede estar en (auth).
+  // Guardia de navegación: mientras no haya sesión solo se puede estar en (auth)
+  // o en los ajustes del servidor, a los que se llega desde la propia pantalla
+  // de login y que hacen falta justo cuando todavía no se puede entrar.
   useEffect(() => {
     if (status === 'loading') return;
 
     const inAuthGroup = segments[0] === '(auth)';
-    if (status === 'anonymous' && !inAuthGroup) {
+    const inServerSettings = segments[0] === 'server-settings';
+    if (status === 'anonymous' && !inAuthGroup && !inServerSettings) {
       router.replace('/(auth)/login');
     } else if (status === 'authenticated' && inAuthGroup) {
       router.replace('/(tabs)');
