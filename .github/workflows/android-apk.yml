@@ -1,0 +1,55 @@
+name: APK Android
+
+# Compila la APK de release y la deja como artefacto descargable.
+# Se puede lanzar a mano desde la pestaña Actions.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/android-apk.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Generar proyecto nativo
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Compilar APK
+        working-directory: mobile/android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Renombrar APK
+        run: mv android/app/build/outputs/apk/release/app-release.apk livora-${{ github.run_number }}.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: livora-apk
+          path: mobile/livora-*.apk
+          if-no-files-found: error

@@ -1,0 +1,50 @@
+# Despliegue del backend de Livora Stream en Render (plan gratuito).
+#
+# Con esto el servidor vive en internet y la app funciona desde cualquier sitio,
+# también con datos móviles, sin depender de que haya un PC encendido.
+#
+# Cómo usarlo:
+#   1. Crea una cuenta en https://render.com y conéctala a GitHub.
+#   2. New → Blueprint → elige el repositorio keider21/cecchi
+#      y la rama claude/kako-live-app-bet2no.
+#   3. Render lee este archivo y crea el servicio solo. Apply.
+#   4. Cuando termine, copia la URL que te dé (algo como
+#      https://livora-api.onrender.com) y pásamela: la dejo fija en la app
+#      para que no haya que configurar nada nunca más.
+#
+# Aviso del plan gratuito: el servicio se duerme tras 15 minutos sin uso y la
+# primera petición después tarda ~30 s en despertarlo. Para probar es
+# suficiente.
+
+services:
+  - type: web
+    name: livora-api
+    runtime: node
+    plan: free
+    region: oregon
+    branch: claude/kako-live-app-bet2no
+
+    # --include=dev es necesario: TypeScript y tsx son dependencias de
+    # desarrollo y hacen falta para compilar y para sembrar la base.
+    buildCommand: cd livora-stream/server && npm ci --include=dev && npx prisma generate && npm run build
+
+    # La base SQLite se recrea en cada despliegue (el disco del plan gratuito
+    # es efímero), así que se siembra al arrancar para que siempre haya salas
+    # y cuentas de prueba.
+    startCommand: cd livora-stream/server && npx prisma db push --skip-generate && npm run seed && npm start
+
+    healthCheckPath: /health
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:./dev.db
+      # Render genera un secreto aleatorio y no lo guarda en el repositorio.
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: "*"
+      # El vídeo sigue simulado hasta que haya un servidor LiveKit accesible.
+      - key: STREAM_PROVIDER
+        value: mock

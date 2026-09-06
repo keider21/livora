@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "Livora Stream",
+    "slug": "livora",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.livora.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#00E676",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.livora.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "scheme": "livora",
+    "backgroundColor": "#050A07",
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-router",
+      [
+        "@livekit/react-native-expo-plugin",
+        {
+          "android": {
+            "audioType": "communication"
+          }
+        }
+      ],
+      [
+        "@config-plugins/react-native-webrtc",
+        {
+          "cameraPermission": "Livora Stream usa la cámara para transmitir en directo",
+          "microphonePermission": "Livora Stream usa el micrófono para transmitir en directo"
+        }
+      ]
+    ],
+    "extra": {
+      "router": {}
+    }
+  }
+}

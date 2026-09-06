@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-label="Livora Stream">
+  <defs>
+    <linearGradient id="livora" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00E676"/>
+      <stop offset="1" stop-color="#A8FF3E"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="230.4" fill="url(#livora)"/>
+  <path d="M 328.5 225.28 L 463.26 225.28 L 463.26 674.74 L 695.5 674.74 L 695.5 798.72 L 328.5 798.72 Z" fill="#04160D" fill-rule="nonzero"/>
+</svg>

@@ -1,0 +1,146 @@
+// Esquema de datos de Livora Stream.
+// SQLite en desarrollo: no soporta enums nativos, por eso los campos de tipo
+// usan String con constantes definidas en src/lib/constants.ts.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+  displayName  String
+  avatarUrl    String?
+  bio          String?
+  country      String?
+  gender       String   @default("unspecified") // male | female | unspecified
+  birthDate    DateTime?
+
+  // Progresión y economía
+  level    Int @default(1)
+  xp       Int @default(0)
+  coins    Int @default(0) // moneda que se compra y se gasta
+  diamonds Int @default(0) // moneda que se recibe por regalos y se convierte
+
+  isHost   Boolean @default(false)
+  isBanned Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rooms          Room[]
+  messages       Message[]
+  giftsSent      GiftSend[]     @relation("GiftSender")
+  giftsReceived  GiftSend[]     @relation("GiftReceiver")
+  transactions   Transaction[]
+  following      Follow[]       @relation("Follower")
+  followers      Follow[]       @relation("Following")
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+}
+
+model Room {
+  id       String  @id @default(cuid())
+  hostId   String
+  title    String
+  coverUrl String?
+  category String  @default("chat") // chat | music | dance | game | talent
+  status   String  @default("live") // live | ended
+
+  // Identificador del canal en el proveedor de streaming (Agora/LiveKit/mock)
+  channel String @unique
+
+  viewerCount    Int @default(0)
+  peakViewers    Int @default(0)
+  totalDiamonds  Int @default(0)
+  totalLikes     Int @default(0)
+
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+
+  host     User       @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  messages Message[]
+  gifts    GiftSend[]
+
+  @@index([status, startedAt])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  roomId    String
+  userId    String?
+  type      String   @default("text") // text | gift | join | system
+  body      String
+  createdAt DateTime @default(now())
+
+  room Room  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([roomId, createdAt])
+}
+
+model Gift {
+  id         String  @id @default(cuid())
+  code       String  @unique
+  name       String
+  emoji      String
+  priceCoins Int
+  tier       String  @default("basic") // basic | rare | epic | legendary
+  animation  String  @default("float") // float | burst | fullscreen
+  isActive   Boolean @default(true)
+
+  sends GiftSend[]
+}
+
+model GiftSend {
+  id             String   @id @default(cuid())
+  giftId         String
+  roomId         String
+  senderId       String
+  receiverId     String
+  quantity       Int      @default(1)
+  coinsSpent     Int
+  diamondsEarned Int
+  createdAt      DateTime @default(now())
+
+  gift     Gift @relation(fields: [giftId], references: [id])
+  room     Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender   User @relation("GiftSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("GiftReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, createdAt])
+  @@index([receiverId])
+}
+
+model Transaction {
+  id           String   @id @default(cuid())
+  userId       String
+  type         String   // topup | gift_sent | gift_received | exchange
+  currency     String   // coins | diamonds
+  amount       Int      // positivo suma, negativo resta
+  balanceAfter Int
+  reference    String?
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
