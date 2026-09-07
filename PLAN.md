@@ -11,20 +11,17 @@
 
 | | |
 | --- | --- |
-| **Fase actual** | 10 — Pruebas en el teléfono. **La APK ya se publica sola.** |
-| **Paso actual** | **10.4** 🔄: el teléfono tenía una APK más nueva por `versionCode` y rechazaba las correcciones sin avisar (10.12). Falta instalar la build 105 y comprobar 10.8 y 10.9 |
+| **Fase actual** | 3 — Vídeo real con LiveKit. La APK ya se instala y funciona en el teléfono |
+| **Paso actual** | **3.8** 🔄: vídeo real con LiveKit. La Fase 10 queda cerrada salvo 10.7 (Render, ⛔) |
 | **Última actualización** | 2026-09-06 |
 | **Rama** | `main` en `keider21/livora`, repositorio propio y público (el último commit lo dice `git log -1`) |
 | **Pull request** | Ninguno: se trabaja directo sobre `main` en el repositorio nuevo. El anterior ([keider21/cecchi#1](https://github.com/keider21/cecchi/pull/1)) queda histórico |
 | **Salud** | 52 pruebas en verde (27 servidor + 25 móvil) · TypeScript limpio en `server/` y `mobile/` · empaqueta para Android · `expo prebuild` acepta los plugins de LiveKit |
 
-**Lo último:** resuelto el misterio de por qué los arreglos no servían de nada.
-El teléfono nunca llegó a instalarlos: conservaba la build 9 del repositorio
-anterior y Android rechaza instalar una `versionCode` menor, así que las APK 1,
-3 y 4 fallaban en silencio (10.12, ya corregido con el desplazamiento de 100).
-**Al volver:** comprobar que el login dice «build 105» o superior; solo entonces
-tiene sentido juzgar si 10.8 (botón de ajustes) y 10.9 (HTTP plano) funcionan.
-El backend local responde en `http://192.168.5.186:4000`.
+**Lo último:** la APK funciona en el teléfono (build 106, 2026-09-06). Cerrada
+la Fase 10 salvo el despliegue público (10.7, ⛔ en el usuario). El backend local
+responde en `http://192.168.5.186:4000`. Siguiente paso real: **3.8**, la prueba
+de vídeo con LiveKit, que necesita un `livekit-server` en el equipo.
 
 **Lo que la IA no puede hacer:** desde 2026-09-06 la sesión corre en el propio
 equipo del usuario, así que ya puede compilar, instalar dependencias y arrancar
@@ -238,14 +235,14 @@ cuenta de Expo, y vea dentro de la app qué cambió.
 
 | Paso | Estado | Notas |
 | --- | --- | --- |
-| 10.1 Servidor configurable en la app: pantalla «Servidor» con probar conexión, guardado persistente y reconexión del socket | ⚠️ | `mobile/app/server-settings.tsx`, `src/settings/server-url.ts`. Sin esto una APK descargada apunta a `localhost` y no sirve. **Verificación:** pruebas «servidor guardado» y «checkServer» (7). **Falta:** la pantalla existía pero era inalcanzable sin sesión, justo cuando hace falta; lo cierra 10.8 |
+| 10.1 Servidor configurable en la app: pantalla «Servidor» con probar conexión, guardado persistente y reconexión del socket | ⚠️ | `mobile/app/server-settings.tsx`, `src/settings/server-url.ts`. Sin esto una APK descargada apunta a `localhost` y no sirve. **Verificación:** pruebas «servidor guardado» y «checkServer» (7), y el usuario configuró la IP desde el teléfono con la build 106 |
 | 10.2 Datos de compilación y pantalla «Novedades», que se abre sola una vez tras cada build nueva y enlaza a la última APK | ✅ | `scripts/write-build-info.mjs` → `src/generated/build-info.json`; `app.config.js` fija `versionCode` = número de build para que Android acepte la actualización |
 | 10.3 Workflow de GitHub Actions: pruebas de los dos paquetes → `expo prebuild` → Gradle → Release con `livora-stream.apk` | ✅ | `.github/workflows/livora-android.yml`. **Verificación:** run 2 en verde y Release `livora-build-2` con el archivo subido (149 MB), confirmado por API. **Falta:** la APK lleva los binarios de WebRTC de todas las arquitecturas; separarlas por ABI la bajaría a ~50 MB |
-| 10.4 El usuario instala la APK, configura el servidor con la IP de su equipo y entra con `luna` / `livora123` | 🔄 | Primer intento (2026-09-06) fallido: no por el backend, sino por 10.8 y 10.9, ya corregidos. El repo `keider21/livora` es público, así que el enlace del Release se descarga sin sesión en GitHub. **Pendiente:** reinstalar la APK nueva y entrar |
+| 10.4 El usuario instala la APK, configura el servidor con la IP de su equipo y entra con `luna` / `livora123` | ✅ | Confirmado por el usuario el 2026-09-06 con la build 106. Costó tres intentos fallidos por 10.8, 10.9 y sobre todo 10.12 |
 | 10.5 Guía «Probar en el teléfono» en el README | ✅ | Descargar, permitir la instalación, configurar servidor, qué hacer si no conecta |
 | 10.6 `npm start` que prepara todo e imprime la dirección para la app | ✅ | `scripts/start-server.mjs` y `iniciar-servidor.bat` para doble clic en Windows. **Verificación:** arranca el servidor y `/health`, login y salas responden |
 | 10.7 Despliegue público del backend en Render (plan gratuito) | ⛔ | `render.yaml` listo y validado. **Bloqueo:** el usuario debe crear la cuenta y aplicar el Blueprint; la IA no puede crear cuentas de terceros. Al tener la URL, fijarla como `EXPO_PUBLIC_API_URL` en el workflow y recompilar: la app dejaría de necesitar configuración |
-| 10.8 La pantalla «Servidor» se puede abrir sin haber iniciado sesión | ⚠️ | El guardia de navegación de `mobile/app/_layout.tsx` mandaba a login todo lo que estuviera fuera de `(auth)`, así que el modal se cerraba solo al abrirlo desde el botón de ajustes. Se exime `server-settings`. **Falta:** confirmarlo en el teléfono. El usuario seguía con la build 9 del repositorio anterior, así que este arreglo nunca llegó a ejecutarse ahí (ver 10.12) |
+| 10.8 La pantalla «Servidor» se puede abrir sin haber iniciado sesión | ✅ | El guardia de navegación de `mobile/app/_layout.tsx` mandaba a login todo lo que estuviera fuera de `(auth)`, así que el modal se cerraba solo al abrirlo desde el botón de ajustes. Se exime `server-settings`. **Verificación:** el usuario abrió la pantalla y guardó la IP con la build 106. Hasta entonces el arreglo nunca se ejecutó en el teléfono por 10.12 |
 | 10.9 La APK de release admite HTTP plano hacia la red local | ✅ | `mobile/plugins/with-cleartext-traffic.js`, registrado en `app.json`. Expo solo pone `usesCleartextTraffic` en el manifiesto de debug, y desde Android 9 el resto del tráfico sin cifrar se descarta: la APK instalada no podía hablar con `http://IP:4000` ni con la IP correcta. **Verificación:** `expo prebuild` genera el manifiesto con `usesCleartextTraffic="true"` |
 | 10.10 Cada APK se puede identificar a simple vista y el guardia mira la ruta entera | ✅ | El login ya imprimía `versionLabel()`, pero el workflow nunca ejecutaba `write-build-info.mjs`: todas las compilaciones decían «build 8», heredado del repositorio anterior, y eran indistinguibles. Ahora el workflow lo ejecuta con `fetch-depth: 0` y el número de build coincide con el run de Actions. Además el guardia usa `segments.includes(...)` en vez de `segments[0]`, por si el modal queda anidado. **Verificación:** `tsc` y 25 pruebas en verde; el número del login debe coincidir con el del Release |
 | 10.11 Enlaces de descarga dentro de la app apuntando al repositorio actual | ✅ | `RELEASES_URL` y `LATEST_APK_URL` de `mobile/src/build-info.ts` seguían en `keider21/cecchi`, privado. Ahora apuntan a `keider21/livora` y al asset `livora.apk` de la última Release |

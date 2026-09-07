@@ -1,10 +1,13 @@
 {
   "version": "1.0.0",
-  "buildNumber": 0,
-  "commit": "41d0377",
+  "buildNumber": 106,
+  "commit": "841c9b7",
   "branch": "main",
-  "builtAt": "2026-09-06T18:20:40.702Z",
+  "builtAt": "2026-09-06T18:39:48.442Z",
   "changes": [
+    "Calcula el número de compilación en el shell",
+    "Las APK nuevas vuelven a instalarse encima de las viejas",
+    "Cada APK dice qué build es, y el guardia mira la ruta entera",
     "La pantalla «Servidor» se abre sin haber iniciado sesión",
     "Permite HTTP plano en las compilaciones de release",
     "Ignora la carpeta apk/ con las compilaciones descargadas",
