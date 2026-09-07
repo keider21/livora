@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Animated, Dimensions, Easing, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Image } from 'expo-image';
 import type { GiftEvent } from '../realtime/events';
+import { giftArt } from './gift-art';
 import { colors, radius, spacing } from '../theme';
 
 /**
@@ -40,6 +42,7 @@ const TEMAS: Record<string, { principal: string; brillo: string; particula: stri
   'fan-bracelet': { principal: '#FF6EC7', brillo: 'rgba(255,110,199,0.5)', particula: '💗' },
   'fan-jacket': { principal: '#FF6EC7', brillo: 'rgba(255,110,199,0.5)', particula: '💗' },
   'fan-throne': { principal: '#FFD24A', brillo: 'rgba(255,210,74,0.55)', particula: '👑' },
+  'lion-imperial': { principal: '#FFC53D', brillo: 'rgba(255,197,61,0.6)', particula: '✨' },
 };
 
 const TEMA_POR_DEFECTO = { principal: colors.coin, brillo: 'rgba(255,210,74,0.55)', particula: '✨' };
@@ -50,6 +53,8 @@ export function GiftAura({ event, onDone }: { event: GiftEvent; onDone: () => vo
   const orbit = useRef(new Animated.Value(0)).current;
 
   const tema = TEMAS[event.gift.code] ?? TEMA_POR_DEFECTO;
+  // Los regalos con ilustración la dibujan en grande; el resto, su emoji.
+  const arte = giftArt(event.gift.image);
 
   const rayos = useMemo(() => Array.from({ length: RAYOS }, (_, i) => (i / RAYOS) * 360), []);
   const particulas = useMemo(
@@ -213,9 +218,9 @@ export function GiftAura({ event, onDone }: { event: GiftEvent; onDone: () => vo
       </Animated.View>
 
       {/* 6 · la figura entra con rebote y flota */}
-      <Animated.Text
+      <Animated.View
         style={[
-          styles.figura,
+          styles.figuraCaja,
           {
             opacity: figura,
             transform: [
@@ -244,8 +249,12 @@ export function GiftAura({ event, onDone }: { event: GiftEvent; onDone: () => vo
           },
         ]}
       >
-        {event.gift.emoji}
-      </Animated.Text>
+        {arte ? (
+          <Image source={arte} style={styles.ilustracion} contentFit="contain" />
+        ) : (
+          <Text style={styles.figura}>{event.gift.emoji}</Text>
+        )}
+      </Animated.View>
 
       {/* 7 · banda de luz que barre la pantalla */}
       <Animated.View
@@ -319,7 +328,10 @@ const styles = StyleSheet.create({
   halo: { position: 'absolute', width: HALO, height: HALO, borderRadius: HALO / 2, overflow: 'hidden' },
   onda: { position: 'absolute', width: 180, height: 180, borderRadius: 90, borderWidth: 2 },
   particula: { position: 'absolute', fontSize: 22 },
+  figuraCaja: { alignItems: 'center', justifyContent: 'center' },
   figura: { fontSize: 120 },
+  // Grande pero sin llegar al borde: las ondas y las partículas se ven detrás.
+  ilustracion: { width: ANCHO * 0.82, height: ANCHO * 0.82 },
   barrido: { position: 'absolute', width: ANCHO * 0.5, height: ALTO * 1.6 },
   placaContenedor: { position: 'absolute', bottom: '22%' },
   placa: {

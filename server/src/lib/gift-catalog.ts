@@ -42,31 +42,35 @@ const PREMIOS_ALTOS = '2:900,5:85,20:14,100:1';
 
 export const GIFT_CATALOG = [
   // 0,18 × 4,25 = 0,77
-  { code: 'rose', name: 'Rosa', emoji: '🌹', priceCoins: 10, tier: 'basic', animation: 'float', luckyChance: 0.18, luckyMultipliers: PREMIOS_BAJOS, minFanLevel: 0 },
+  { code: 'rose', name: 'Rosa', emoji: '🌹', priceCoins: 10, image: null, tier: 'basic', animation: 'float', luckyChance: 0.18, luckyMultipliers: PREMIOS_BAJOS, minFanLevel: 0 },
   // 0,17 × 4,25 = 0,72
-  { code: 'heart', name: 'Corazón', emoji: '💖', priceCoins: 25, tier: 'basic', animation: 'float', luckyChance: 0.17, luckyMultipliers: PREMIOS_BAJOS, minFanLevel: 0 },
+  { code: 'heart', name: 'Corazón', emoji: '💖', priceCoins: 25, image: null, tier: 'basic', animation: 'float', luckyChance: 0.17, luckyMultipliers: PREMIOS_BAJOS, minFanLevel: 0 },
   // 0,16 × 4,25 = 0,68
-  { code: 'beer', name: 'Cerveza', emoji: '🍺', priceCoins: 50, tier: 'basic', animation: 'float', luckyChance: 0.16, luckyMultipliers: PREMIOS_BAJOS, minFanLevel: 0 },
+  { code: 'beer', name: 'Cerveza', emoji: '🍺', priceCoins: 50, image: null, tier: 'basic', animation: 'float', luckyChance: 0.16, luckyMultipliers: PREMIOS_BAJOS, minFanLevel: 0 },
   // 0,20 × 3,43 = 0,69
-  { code: 'crown', name: 'Corona', emoji: '👑', priceCoins: 199, tier: 'rare', animation: 'burst', luckyChance: 0.2, luckyMultipliers: PREMIOS_MEDIOS, minFanLevel: 0 },
+  { code: 'crown', name: 'Corona', emoji: '👑', priceCoins: 199, image: null, tier: 'rare', animation: 'burst', luckyChance: 0.2, luckyMultipliers: PREMIOS_MEDIOS, minFanLevel: 0 },
   // 0,19 × 3,43 = 0,65
-  { code: 'fireworks', name: 'Fuegos artificiales', emoji: '🎆', priceCoins: 499, tier: 'rare', animation: 'burst', luckyChance: 0.19, luckyMultipliers: PREMIOS_MEDIOS, minFanLevel: 0 },
+  { code: 'fireworks', name: 'Fuegos artificiales', emoji: '🎆', priceCoins: 499, image: null, tier: 'rare', animation: 'burst', luckyChance: 0.19, luckyMultipliers: PREMIOS_MEDIOS, minFanLevel: 0 },
   // 0,25 × 2,60 = 0,65
-  { code: 'ferrari', name: 'Deportivo', emoji: '🏎️', priceCoins: 1299, tier: 'epic', animation: 'fullscreen', luckyChance: 0.25, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
+  { code: 'ferrari', name: 'Deportivo', emoji: '🏎️', priceCoins: 1299, image: null, tier: 'epic', animation: 'fullscreen', luckyChance: 0.25, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
   // 0,24 × 2,60 = 0,62
-  { code: 'yacht', name: 'Yate', emoji: '🛥️', priceCoins: 2999, tier: 'epic', animation: 'fullscreen', luckyChance: 0.24, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
+  { code: 'yacht', name: 'Yate', emoji: '🛥️', priceCoins: 2999, image: null, tier: 'epic', animation: 'fullscreen', luckyChance: 0.24, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
   // 0,22 × 2,60 = 0,57
-  { code: 'castle', name: 'Castillo', emoji: '🏰', priceCoins: 9999, tier: 'legendary', animation: 'fullscreen', luckyChance: 0.22, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
+  { code: 'castle', name: 'Castillo', emoji: '🏰', priceCoins: 9999, image: null, tier: 'legendary', animation: 'fullscreen', luckyChance: 0.22, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
 
   // Exclusivos: sin premio, solo espectáculo, y el 75% en diamantes para quien
   // los recibe. Se envían de uno en uno.
-  { code: 'phoenix', name: 'Fénix', emoji: '🦅', priceCoins: 25_000, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 0 },
-  { code: 'galaxy', name: 'Galaxia', emoji: '🌌', priceCoins: 60_000, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 0 },
-  { code: 'dragon', name: 'Dragón', emoji: '🐉', priceCoins: 150_000, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 0 },
+  //
+  // Los que llevan `image` se dibujan con esa ilustración en vez de un emoji;
+  // la app las tiene empaquetadas en `mobile/assets/gifts/`.
+  { code: 'lion-imperial', name: 'León Imperial', emoji: '🦁', image: 'lion-imperial', priceCoins: 10_000, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 0 },
+  { code: 'phoenix', name: 'Fénix', emoji: '🦅', priceCoins: 25_000, image: null, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 0 },
+  { code: 'galaxy', name: 'Galaxia', emoji: '🌌', priceCoins: 60_000, image: null, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 0 },
+  { code: 'dragon', name: 'Dragón', emoji: '🐉', priceCoins: 150_000, image: null, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 0 },
 
   // Club de fans: se desbloquean por lo gastado con ese anfitrión, así que solo
   // los ve quien ya lleva tiempo con él. Como los exclusivos, dejan el 75%.
-  { code: 'fan-bracelet', name: 'Pulsera de fan', emoji: '📿', priceCoins: 500, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 1 },
-  { code: 'fan-jacket', name: 'Chaqueta del club', emoji: '🧥', priceCoins: 5_000, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 3 },
-  { code: 'fan-throne', name: 'Trono del club', emoji: '🪑', priceCoins: 40_000, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 5 },
+  { code: 'fan-bracelet', name: 'Pulsera de fan', emoji: '📿', priceCoins: 500, image: null, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 1 },
+  { code: 'fan-jacket', name: 'Chaqueta del club', emoji: '🧥', priceCoins: 5_000, image: null, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 3 },
+  { code: 'fan-throne', name: 'Trono del club', emoji: '🪑', priceCoins: 40_000, image: null, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 5 },
 ];

@@ -3,7 +3,9 @@ import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, Vi
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Gift } from '../api/types';
+import { Image } from 'expo-image';
 import { Avatar, Button } from './ui';
+import { giftArt } from './gift-art';
 import { colors, radius, spacing, tierColors, typography } from '../theme';
 
 const QUANTITIES = [1, 5, 10, 50];
@@ -188,7 +190,11 @@ export function GiftPicker({
                   cerrado && styles.giftLocked,
                 ]}
               >
-                <Text style={styles.emoji}>{item.emoji}</Text>
+                {giftArt(item.image) ? (
+                  <Image source={giftArt(item.image)!} style={styles.giftArt} contentFit="contain" />
+                ) : (
+                  <Text style={styles.emoji}>{item.emoji}</Text>
+                )}
                 <Text style={styles.giftName} numberOfLines={1}>
                   {item.name}
                 </Text>
@@ -350,6 +356,7 @@ const styles = StyleSheet.create({
   giftSelected: { backgroundColor: 'rgba(0,230,118,0.16)' },
   giftLocked: { opacity: 0.45 },
   emoji: { fontSize: 26 },
+  giftArt: { width: 34, height: 34 },
   giftName: { color: colors.text, fontSize: 10, fontWeight: '600' },
   price: { fontSize: 10, fontWeight: '700' },
   lucky: { position: 'absolute', top: 2, right: 4, fontSize: 11 },

@@ -47,7 +47,7 @@ export interface GiftEvent {
   /** Cuántas unidades del envío salieron premiadas. */
   luckyWins: number;
   createdAt: string;
-  gift: { code: string; name: string; emoji: string; tier: string; animation: string };
+  gift: { code: string; name: string; emoji: string; image: string | null; tier: string; animation: string };
   sender: { id: string; username: string; displayName: string; avatarUrl: string | null };
   /** A quién se lo enviaron: el anfitrión o un invitado de la tira. */
   recipient: { id: string; username: string; displayName: string; avatarUrl: string | null };

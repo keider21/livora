@@ -64,6 +64,8 @@ export interface Gift {
   luckyMultipliers: string;
   /** Nivel de club de fans necesario. 0 lo puede enviar cualquiera. */
   minFanLevel: number;
+  /** Nombre de la ilustración empaquetada, si la tiene; si no, se usa el emoji. */
+  image: string | null;
 }
 
 export interface Wallet {

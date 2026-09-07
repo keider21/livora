@@ -144,6 +144,10 @@ model Gift {
   /// enviarlo. 0 significa que lo puede enviar cualquiera.
   minFanLevel Int @default(0)
 
+  /// Nombre de la ilustración que dibuja la app en vez del emoji, si la tiene.
+  /// Los archivos van empaquetados en `mobile/assets/gifts/`.
+  image String?
+
   sends GiftSend[]
 }
 
