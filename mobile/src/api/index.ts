@@ -91,9 +91,11 @@ export const rooms = {
 };
 
 export const gifts = {
-  catalog: () => apiRequest<{ gifts: Gift[] }>('/api/gifts'),
+  /** Con `roomId` la respuesta trae el nivel de club de fans con ese anfitrión. */
+  catalog: (roomId?: string) =>
+    apiRequest<{ gifts: Gift[]; fanLevel: number }>(`/api/gifts${roomId ? `?roomId=${roomId}` : ''}`),
   /** Sin `recipientId` el regalo va al anfitrión; con él, a un invitado. */
-  send: (body: { roomId: string; giftCode: string; quantity?: number; recipientId?: string }) =>
+  send: (body: { roomId: string; giftCode: string; quantity?: number; recipientIds?: string[] }) =>
     apiRequest<{ giftSend: GiftEvent; wallet: Wallet }>('/api/gifts/send', { method: 'POST', body }),
 };
 

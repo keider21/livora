@@ -16,8 +16,16 @@ const CATEGORY_LABELS: Record<string, string> = {
 export function RoomCard({ room, onPress }: { room: Room; onPress: () => void }) {
   return (
     <Pressable style={styles.card} onPress={onPress}>
-      {room.coverUrl ? (
-        <Image source={{ uri: room.coverUrl }} style={StyleSheet.absoluteFill} contentFit="cover" />
+      {/* Portada de la transmisión; si no hay, la foto del anfitrión, que es
+          lo que la gente reconoce. El degradado queda solo para quien no tiene
+          ni una ni otra: antes salía siempre y las tarjetas parecían vacías. */}
+      {room.coverUrl || room.host.avatarUrl ? (
+        <Image
+          source={{ uri: room.coverUrl ?? room.host.avatarUrl! }}
+          style={StyleSheet.absoluteFill}
+          contentFit="cover"
+          transition={200}
+        />
       ) : (
         <LinearGradient
           colors={coverGradient(room.id)}

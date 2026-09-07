@@ -54,15 +54,15 @@ describe('regalos con destinatario', () => {
     await gifts.send({ roomId: 'sala-1', giftCode: 'rose', quantity: 2 });
     const body = JSON.parse(lastCall().body as string);
     expect(body).toEqual({ roomId: 'sala-1', giftCode: 'rose', quantity: 2 });
-    expect(body).not.toHaveProperty('recipientId');
+    expect(body).not.toHaveProperty('recipientIds');
   });
 
-  it('con destinatario lo incluye', async () => {
-    await gifts.send({ roomId: 'sala-1', giftCode: 'rose', recipientId: 'invitado-3' });
+  it('con destinatarios los incluye, y admiten varios a la vez', async () => {
+    await gifts.send({ roomId: 'sala-1', giftCode: 'rose', recipientIds: ['invitado-3', 'yo-1'] });
     expect(JSON.parse(lastCall().body as string)).toEqual({
       roomId: 'sala-1',
       giftCode: 'rose',
-      recipientId: 'invitado-3',
+      recipientIds: ['invitado-3', 'yo-1'],
     });
   });
 });

@@ -62,6 +62,8 @@ export interface Gift {
   luckyChance: number;
   /** Multiplicadores posibles sobre lo gastado, separados por coma. */
   luckyMultipliers: string;
+  /** Nivel de club de fans necesario. 0 lo puede enviar cualquiera. */
+  minFanLevel: number;
 }
 
 export interface Wallet {

@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -10,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { ApiError, gifts as giftsApi, rooms as roomsApi, users as usersApi } from '../../src/api';
@@ -38,9 +36,12 @@ import { ChatOverlay } from '../../src/components/chat-overlay';
 import { GiftAnimation } from '../../src/components/gift-animation';
 import { GiftAura } from '../../src/components/gift-aura';
 import { GiftBurst } from '../../src/components/gift-burst';
-import { GiftPicker } from '../../src/components/gift-picker';
+import { GiftPicker, type GiftTarget } from '../../src/components/gift-picker';
+import { QuickGift } from '../../src/components/quick-gift';
 import { SeatRequests } from '../../src/components/seat-requests';
 import { SeatStrip } from '../../src/components/seat-strip';
+import { FloatingHeart, type HeartSpec } from '../../src/components/floating-hearts';
+import { useKeyboardHeight } from '../../src/components/use-keyboard-height';
 import { Avatar, Loader } from '../../src/components/ui';
 import { colors, formatCount, radius, scrim, spacing } from '../../src/theme';
 
@@ -69,8 +70,21 @@ export default function RoomScreen() {
   const [seats, setSeats] = useState<SeatInfo[]>([]);
   const [pendingSeats, setPendingSeats] = useState<SeatInfo[]>([]);
   const [requestsOpen, setRequestsOpen] = useState(false);
-  /** A quién va el próximo regalo. Vacío significa «al anfitrión». */
-  const [giftTarget, setGiftTarget] = useState<string | null>(null);
+  /** A quiénes va el próximo regalo. Vacío significa «al anfitrión». */
+  const [giftTargets, setGiftTargets] = useState<string[]>([]);
+  /** Con el candado echado la caja no se cierra al enviar. */
+  const [giftLocked, setGiftLocked] = useState(false);
+  /** Nivel de club de fans con este anfitrión. */
+  const [fanLevel, setFanLevel] = useState(0);
+  /** Último regalo enviado, para poder repetirlo desde la pantalla. */
+  const [lastGift, setLastGift] = useState<{ gift: Gift; quantity: number } | null>(null);
+
+  const insets = useSafeAreaInsets();
+  const keyboard = useKeyboardHeight();
+  /** Corazones flotando ahora mismo, y opción de esconder el chat. */
+  const [hearts, setHearts] = useState<HeartSpec[]>([]);
+  const [chatHidden, setChatHidden] = useState(false);
+  const heartId = useRef(0);
 
   // Los regalos entran en cola para que dos seguidos no se pisen en pantalla.
   const giftQueue = useRef<GiftEvent[]>([]);
@@ -108,8 +122,11 @@ export default function RoomScreen() {
           joinRoomChannel(id);
         }
 
-        const catalog = await giftsApi.catalog();
-        if (!cancelled) setGiftCatalog(catalog.gifts);
+        const catalog = await giftsApi.catalog(id);
+        if (!cancelled) {
+          setGiftCatalog(catalog.gifts);
+          setFanLevel(catalog.fanLevel);
+        }
 
         const strip = await roomsApi.seats(id);
         if (!cancelled) {
@@ -224,16 +241,53 @@ export default function RoomScreen() {
     if (!id) return;
     setSendingGift(true);
     try {
-      // Sin destinatario elegido el servidor se lo da al anfitrión.
-      await giftsApi.send({ roomId: id, giftCode, quantity, ...(giftTarget ? { recipientId: giftTarget } : {}) });
+      // Sin destinatarios elegidos el servidor se lo da al anfitrión.
+      await giftsApi.send({
+        roomId: id,
+        giftCode,
+        quantity,
+        ...(giftTargets.length ? { recipientIds: giftTargets } : {}),
+      });
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      setPickerOpen(false);
+
+      const enviado = giftCatalog.find((gift) => gift.code === giftCode);
+      if (enviado) setLastGift({ gift: enviado, quantity });
+
+      // Con el candado echado la caja se queda abierta para seguir enviando;
+      // sin él se cierra y aparece el botón de repetir sobre la pantalla.
+      if (!giftLocked) setPickerOpen(false);
     } catch (error) {
       Alert.alert('No se pudo enviar', error instanceof ApiError ? error.message : 'Inténtalo de nuevo');
     } finally {
       setSendingGift(false);
     }
   }
+
+  /**
+   * Los participantes que pueden recibir un regalo: uno mismo el primero, luego
+   * el anfitrión y después los invitados de la tira.
+   */
+  const giftTargetList: GiftTarget[] = room
+    ? [
+        ...(user && user.id !== room.host.id
+          ? [{ id: user.id, displayName: user.displayName, avatarUrl: user.avatarUrl, label: 'Tú' }]
+          : []),
+        {
+          id: room.host.id,
+          displayName: room.host.displayName,
+          avatarUrl: room.host.avatarUrl,
+          label: user?.id === room.host.id ? 'Tú (anfitrión)' : 'Anfitrión',
+        },
+        ...seats
+          .filter((seat) => seat.userId !== user?.id)
+          .map((seat) => ({
+            id: seat.userId,
+            displayName: seat.user.displayName,
+            avatarUrl: seat.user.avatarUrl,
+            label: seat.user.displayName,
+          })),
+      ]
+    : [];
 
   /** Pedir subir, o bajarse si ya se está arriba. */
   async function toggleSeat() {
@@ -259,19 +313,36 @@ export default function RoomScreen() {
       } else {
         await roomsApi.removeSeat(id, userId);
         // Si bajaba al destinatario del regalo, vuelve a apuntar al anfitrión.
-        setGiftTarget((current) => (current === userId ? null : current));
+        setGiftTargets((current) => current.filter((target) => target !== userId));
       }
     } catch (error) {
       Alert.alert('No se pudo', error instanceof ApiError ? error.message : 'Inténtalo de nuevo');
     }
   }
 
-  function tapLike() {
+  /**
+   * Un toque en cualquier parte del vídeo suma un like y suelta un corazón
+   * donde se tocó, como en las apps del sector. El contador de arriba sube al
+   * momento sin esperar al servidor: el socket lo corregirá si hace falta.
+   */
+  function tapLike(x?: number, y?: number) {
     if (!id) return;
     setLikes((current) => current + 1);
     likeRoom(id);
     void Haptics.selectionAsync();
+
+    if (x !== undefined && y !== undefined) {
+      heartId.current += 1;
+      const nuevo = { id: heartId.current, x, y };
+      // Se limita a 30 a la vez: con toques muy rápidos, dibujarlos todos
+      // hunde los fotogramas y no se nota la diferencia.
+      setHearts((current) => [...current, nuevo].slice(-30));
+    }
   }
+
+  const removeHeart = useCallback((heartKey: number) => {
+    setHearts((current) => current.filter((heart) => heart.id !== heartKey));
+  }, []);
 
   async function endBroadcast() {
     if (!id) return;
@@ -329,6 +400,18 @@ export default function RoomScreen() {
         </View>
       )}
 
+      {/* Capa que recoge los toques sobre el vídeo para los corazones. Va
+          debajo de los controles, así que no les roba las pulsaciones. */}
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={(event) => tapLike(event.nativeEvent.locationX, event.nativeEvent.locationY)}
+        disabled={room.status !== 'live'}
+      />
+
+      {hearts.map((heart) => (
+        <FloatingHeart key={heart.id} heart={heart} onDone={removeHeart} />
+      ))}
+
       {/* Los exclusivos no explotan: llenan la pantalla con su aura. */}
       {currentGift ? (
         currentGift.gift.animation === 'aura' ? (
@@ -341,13 +424,22 @@ export default function RoomScreen() {
       <SafeAreaView style={styles.overlay} pointerEvents="box-none">
         <View style={styles.topBar}>
           <View style={styles.hostChip}>
-            <Avatar uri={room.host.avatarUrl} name={room.host.displayName} size={34} ring />
-            <View style={styles.hostInfo}>
-              <Text style={styles.hostName} numberOfLines={1}>
-                {room.host.displayName}
-              </Text>
-              <Text style={styles.hostMeta}>💎 {formatCount(room.totalDiamonds)}</Text>
-            </View>
+            {/* Tocar al anfitrión abre su perfil: nivel, biografía y directos. */}
+            <Pressable
+              onPress={() => router.push(`/user/${room.host.username}`)}
+              style={styles.hostTap}
+              accessibilityLabel={`Ver el perfil de ${room.host.displayName}`}
+            >
+              <Avatar uri={room.host.avatarUrl} name={room.host.displayName} size={34} ring />
+              <View style={styles.hostInfo}>
+                <Text style={styles.hostName} numberOfLines={1}>
+                  {room.host.displayName}
+                </Text>
+                <Text style={styles.hostMeta}>
+                  💎 {formatCount(room.totalDiamonds)} · ❤️ {formatCount(likes)}
+                </Text>
+              </View>
+            </Pressable>
             {!isHost ? (
               <Pressable onPress={toggleFollow} style={[styles.followButton, isFollowing && styles.followingButton]}>
                 <Text style={[styles.followText, isFollowing && styles.followingText]}>
@@ -380,20 +472,36 @@ export default function RoomScreen() {
 
           <SeatStrip
             seats={seats}
-            selectedId={giftTarget ?? room.host.id}
+            selectedId={giftTargets[0] ?? room.host.id}
             hostId={room.host.id}
             isHost={isHost}
-            onSelect={(userId) => setGiftTarget(userId === room.host.id ? null : userId)}
+            onSelect={(userId) => setGiftTargets([userId])}
             onRemove={(userId) => void seatAction('remove', userId)}
           />
         </View>
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
-          style={styles.bottom}
+        {/* El desplazamiento por el teclado se hace a mano: en Android la
+            ventana no se redimensiona y el teclado tapaba lo que se escribía.
+            El margen inferior deja libres los tres botones del sistema. */}
+        <View
+          style={[
+            styles.bottom,
+            { marginBottom: keyboard > 0 ? keyboard : 0, paddingBottom: keyboard > 0 ? spacing.sm : insets.bottom },
+          ]}
         >
-          <ChatOverlay messages={messages} />
+          {chatHidden ? null : <ChatOverlay messages={messages} />}
+
+          {/* Repetir el último regalo sin volver a abrir la caja. */}
+          {lastGift && !pickerOpen && room.status === 'live' ? (
+            <View style={styles.quickRow}>
+              <QuickGift
+                gift={lastGift.gift}
+                quantity={lastGift.quantity}
+                onSend={() => void sendGift(lastGift.gift.code, lastGift.quantity)}
+                onExpire={() => setLastGift(null)}
+              />
+            </View>
+          ) : null}
 
           <View style={styles.actionBar}>
             <TextInput
@@ -452,12 +560,15 @@ export default function RoomScreen() {
               </Pressable>
             ) : null}
 
-            <Pressable onPress={tapLike} style={styles.circle} disabled={room.status !== 'live'}>
-              <Ionicons name="heart" size={20} color={colors.primary} />
-              {likes > 0 ? <Text style={styles.likeCount}>{formatCount(likes)}</Text> : null}
+            <Pressable
+              onPress={() => setChatHidden((current) => !current)}
+              style={styles.circle}
+              accessibilityLabel={chatHidden ? 'Mostrar el chat' : 'Ocultar el chat'}
+            >
+              <Ionicons name={chatHidden ? 'chatbubble-outline' : 'eye-off-outline'} size={20} color={colors.primary} />
             </Pressable>
           </View>
-        </KeyboardAvoidingView>
+        </View>
       </SafeAreaView>
 
       <GiftPicker
@@ -465,10 +576,19 @@ export default function RoomScreen() {
         gifts={giftCatalog}
         coins={user?.coins ?? 0}
         sending={sendingGift}
-        recipientName={
-          giftTarget
-            ? (seats.find((seat) => seat.userId === giftTarget)?.user.displayName ?? room.host.displayName)
-            : room.host.displayName
+        targets={giftTargetList}
+        selectedIds={giftTargets.length ? giftTargets : [room.host.id]}
+        fanLevel={fanLevel}
+        locked={giftLocked}
+        onToggleLock={() => setGiftLocked((current) => !current)}
+        onToggleTarget={(targetId) =>
+          setGiftTargets((current) => {
+            const base = current.length ? current : [room.host.id];
+            const ya = base.includes(targetId);
+            const siguiente = ya ? base.filter((item) => item !== targetId) : [...base, targetId];
+            // Nunca se queda sin nadie: quitar al último vuelve al anfitrión.
+            return siguiente.length ? siguiente : [room.host.id];
+          })
         }
         onClose={() => setPickerOpen(false)}
         onSend={sendGift}
@@ -489,6 +609,7 @@ export default function RoomScreen() {
 
 const styles = StyleSheet.create({
   fill: { flex: 1, backgroundColor: colors.bg },
+  quickRow: { alignItems: 'flex-end', paddingHorizontal: spacing.md, paddingBottom: spacing.sm },
   middle: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -533,7 +654,8 @@ const styles = StyleSheet.create({
     paddingRight: spacing.sm,
     flexShrink: 1,
   },
-  hostInfo: { maxWidth: 110 },
+  hostTap: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexShrink: 1 },
+  hostInfo: { maxWidth: 130 },
   hostName: { color: colors.text, fontWeight: '700', fontSize: 13 },
   hostMeta: { color: colors.diamond, fontSize: 11, fontWeight: '600' },
   followButton: { backgroundColor: colors.primary, borderRadius: radius.pill, paddingHorizontal: spacing.md, paddingVertical: 5 },
@@ -588,7 +710,6 @@ const styles = StyleSheet.create({
   },
   giftCircle: { backgroundColor: colors.primary, borderColor: colors.primary },
   endCircle: { backgroundColor: colors.danger, borderColor: colors.danger },
-  likeCount: { position: 'absolute', bottom: 2, color: colors.text, fontSize: 9, fontWeight: '700' },
 
   errorBox: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg },
   errorTitle: { color: colors.text, fontWeight: '700', fontSize: 16, textAlign: 'center' },
