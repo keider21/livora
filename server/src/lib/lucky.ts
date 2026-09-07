@@ -2,25 +2,47 @@
  * Sorteo de los regalos con premio, al estilo de las apps del sector: una parte
  * de lo gastado vuelve al emisor en monedas.
  *
- * La tasa de retorno esperada de un regalo es `luckyChance × media de los
- * multiplicadores`. Se mantiene **por debajo de 1** a propósito: si fuese mayor,
- * enviar regalos saldría rentable y la economía se rompería. El catálogo
- * documenta la tasa de cada regalo en `server/src/scripts/seed.ts`.
+ * Los multiplicadores llevan **peso**, escritos como `"2:850,5:130,50:18,500:2"`:
+ * el primero es cuánto multiplica y el segundo lo probable que es respecto a los
+ * demás. Sin pesos, con todos igual de probables, meter un ×500 en la lista
+ * dispararía el retorno esperado por encima de 1 y enviar ese regalo saldría
+ * rentable. Con pesos, el premio gordo puede existir siendo rarísimo.
+ *
+ * Se admite también la forma antigua sin peso (`"2,5,10"`), que equivale a que
+ * todos pesen lo mismo.
+ *
+ * La tasa de retorno esperada de un regalo es
+ * `luckyChance × media ponderada de los multiplicadores`, y se mantiene **por
+ * debajo de 1** a propósito. El catálogo documenta la de cada regalo en
+ * `server/src/lib/gift-catalog.ts`.
  */
 
-export function parseMultipliers(raw: string): number[] {
+export interface WeightedMultiplier {
+  multiplier: number;
+  weight: number;
+}
+
+export function parseMultipliers(raw: string): WeightedMultiplier[] {
   return raw
     .split(',')
-    .map((part) => Number(part.trim()))
-    .filter((value) => Number.isFinite(value) && value > 0);
+    .map((part) => {
+      const [valor, peso] = part.split(':');
+      const multiplier = Number(valor?.trim());
+      // Sin peso escrito, todos valen lo mismo.
+      const weight = peso === undefined ? 1 : Number(peso.trim());
+      return { multiplier, weight };
+    })
+    .filter(({ multiplier, weight }) => Number.isFinite(multiplier) && multiplier > 0 && Number.isFinite(weight) && weight > 0);
 }
 
 /** Tasa de retorno esperada, para poder comprobarla en las pruebas. */
 export function expectedReturn(chance: number, raw: string): number {
   const multipliers = parseMultipliers(raw);
   if (multipliers.length === 0 || chance <= 0) return 0;
-  const average = multipliers.reduce((sum, value) => sum + value, 0) / multipliers.length;
-  return chance * average;
+
+  const pesoTotal = multipliers.reduce((total, item) => total + item.weight, 0);
+  const media = multipliers.reduce((total, item) => total + item.multiplier * item.weight, 0) / pesoTotal;
+  return chance * media;
 }
 
 export interface LuckyRoll {
@@ -32,17 +54,28 @@ export interface LuckyRoll {
   wins: number;
 }
 
+/** Elige un multiplicador respetando los pesos. */
+function pickMultiplier(multipliers: WeightedMultiplier[], random: number): number {
+  const pesoTotal = multipliers.reduce((total, item) => total + item.weight, 0);
+  let restante = random * pesoTotal;
+  for (const item of multipliers) {
+    restante -= item.weight;
+    if (restante < 0) return item.multiplier;
+  }
+  return multipliers[multipliers.length - 1]!.multiplier;
+}
+
 /**
  * Sortea el premio **unidad por unidad**.
  *
  * Enviar 50 rosas son 50 sorteos independientes, y lo que toque en cada uno se
  * suma. Antes se sorteaba una sola vez por envío, lo que hacía que mandar un
- * paquete grande valiera lo mismo que mandar uno solo: con la probabilidad de
- * la rosa, 50 unidades premian unas 16 veces de media en vez de una.
+ * paquete grande valiera lo mismo que mandar uno solo.
  *
  * `unitPrice` es lo que cuesta **una** unidad, porque el premio de cada una se
- * calcula sobre su propio precio. `random` se inyecta para poder fijarlo en las
- * pruebas; en producción es `Math.random`.
+ * calcula sobre su propio precio: así el ×500 de un castillo devuelve mucho más
+ * que el de una rosa, sin necesidad de listas distintas. `random` se inyecta
+ * para poder fijarlo en las pruebas; en producción es `Math.random`.
  */
 export function rollLucky(
   unitPrice: number,
@@ -60,7 +93,7 @@ export function rollLucky(
 
   for (let i = 0; i < quantity; i += 1) {
     if (random() >= chance) continue;
-    const multiplier = multipliers[Math.floor(random() * multipliers.length)] ?? multipliers[0]!;
+    const multiplier = pickMultiplier(multipliers, random());
     coins += Math.round(unitPrice * multiplier);
     wins += 1;
     if (best === null || multiplier > best) best = multiplier;

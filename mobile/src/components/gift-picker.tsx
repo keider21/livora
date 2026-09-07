@@ -25,6 +25,19 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'fanclub', label: 'Club de fans' },
 ];
 
+/**
+ * Mayor multiplicador de la lista. Los multiplicadores del servidor llevan peso
+ * (`"2:850,500:2"`), así que hay que quedarse con la parte de antes de los dos
+ * puntos; la forma antigua sin peso sigue funcionando.
+ */
+function topMultiplier(raw: string): number {
+  const valores = raw
+    .split(',')
+    .map((part) => Number(part.split(':')[0]?.trim()))
+    .filter((value) => Number.isFinite(value) && value > 0);
+  return valores.length ? Math.max(...valores) : 0;
+}
+
 function tabOf(gift: Gift): Tab {
   if (gift.minFanLevel > 0) return 'fanclub';
   if (gift.tier === 'exclusive') return 'exclusive';
@@ -217,8 +230,11 @@ export function GiftPicker({
           </Text>
         ) : selected && selected.luckyChance > 0 ? (
           <Text style={styles.luckyHint}>
-            {selected.name} sortea premio en cada unidad: {Math.round(selected.luckyChance * 100)}% por unidad, hasta
-            ×{Math.max(...selected.luckyMultipliers.split(',').map(Number).filter(Number.isFinite))}
+            {selected.name} sortea premio en cada unidad: {Math.round(selected.luckyChance * 100)}% por unidad, y el
+            gordo es ×{topMultiplier(selected.luckyMultipliers)} ({(
+              selected.priceCoins * topMultiplier(selected.luckyMultipliers)
+            ).toLocaleString('es')}{' '}
+            monedas)
           </Text>
         ) : null}
 

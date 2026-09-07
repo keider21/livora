@@ -108,7 +108,27 @@ describe('sorteo de los regalos con premio', () => {
   });
 
   it('ignora multiplicadores mal escritos', () => {
-    assert.deepEqual(parseMultipliers('2, x, -3, 5'), [2, 5]);
+    assert.deepEqual(parseMultipliers('2, x, -3, 5'), [
+      { multiplier: 2, weight: 1 },
+      { multiplier: 5, weight: 1 },
+    ]);
+  });
+
+  it('respeta los pesos: el premio gordo sale mucho menos', () => {
+    // Con estos pesos el ×500 ocupa el último 1% del rango, así que solo sale
+    // cuando el segundo número del sorteo cae ahí arriba.
+    const raro = '2:99,500:1';
+    assert.equal(rollLucky(10, 1, 1, raro, () => 0).multiplier, 2, 'lo normal es el ×2');
+
+    const secuencia = [0, 0.995];
+    let i = 0;
+    assert.equal(rollLucky(10, 1, 1, raro, () => secuencia[i++] ?? 0).multiplier, 500);
+  });
+
+  it('la media ponderada baja el retorno esperado', () => {
+    // Sin pesos, 2 y 500 darían una media de 251; con el 500 al 1%, es 6,98.
+    assert.equal(expectedReturn(1, '2,500').toFixed(0), '251');
+    assert.equal(expectedReturn(1, '2:99,500:1').toFixed(2), '6.98');
   });
 
   it('ningún regalo del catálogo es rentable de enviar', () => {
