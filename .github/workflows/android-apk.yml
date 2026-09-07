@@ -17,6 +17,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Para publicar la Release con la APK.
+    permissions:
+      contents: write
     defaults:
       run:
         working-directory: mobile
@@ -49,7 +52,7 @@ jobs:
         run: echo "BUILD_NUMBER=$((100 + ${{ github.run_number }}))" >> "$GITHUB_ENV"
 
       - name: Datos de la compilación
-        run: node scripts/write-build-info.mjs
+        run: node scripts/write-build-info.mjs ../notas-release.md
 
       - name: Generar proyecto nativo
         run: npx expo prebuild --platform android --no-install
@@ -66,3 +69,15 @@ jobs:
           name: livora-apk-${{ github.run_number }}
           path: mobile/livora.apk
           if-no-files-found: error
+
+      # El asset se llama siempre igual, así que
+      # https://github.com/keider21/livora/releases/latest/download/livora.apk
+      # es un enlace fijo que siempre trae la última compilación.
+      - name: Publicar la Release
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "build-$BUILD_NUMBER" mobile/livora.apk
+          --title "Livora Stream - build $BUILD_NUMBER"
+          --notes-file notas-release.md
