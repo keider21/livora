@@ -20,5 +20,6 @@ __pycache__/
 npm-debug.log*
 .DS_Store
 
-# APK compiladas
+# APK compiladas: las descargadas y la que deja `npm run apk` en la raíz
 apk/
+livora.apk

@@ -23,6 +23,7 @@ export function GiftAnimation({
   event,
   comboQuantity,
   comboKey,
+  recipients,
   onDone,
 }: {
   event: GiftEvent;
@@ -30,6 +31,8 @@ export function GiftAnimation({
   comboQuantity: number;
   /** Sube en cada repetición: reinicia la animación y la espera. */
   comboKey: number;
+  /** Los últimos destinatarios, el más reciente primero. Caben dos. */
+  recipients: string[];
   onDone: () => void;
 }) {
   const progress = useRef(new Animated.Value(0)).current;
@@ -72,7 +75,7 @@ export function GiftAnimation({
             {event.sender.displayName}
           </Text>
           <Text style={styles.gift} numberOfLines={1}>
-            {event.gift.name} · para {event.recipient.displayName}
+            {event.gift.name} · para {(recipients.length ? recipients : [event.recipient.displayName]).join(' y ')}
           </Text>
         </View>
         <Animated.Text style={[styles.quantity, { transform: [{ scale: pop }] }]}>

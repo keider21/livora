@@ -1,16 +1,24 @@
 {
   "version": "1.0.0",
-  "buildNumber": 106,
-  "commit": "841c9b7",
+  "buildNumber": 1001,
+  "commit": "31e9b20",
   "branch": "main",
-  "builtAt": "2026-09-06T18:39:48.442Z",
+  "builtAt": "2026-09-07T06:00:13.798Z",
   "changes": [
+    "Los regalos repetidos se acumulan en un solo anuncio",
+    "El envío automático se para de verdad, y los botones del sistema dejan de estorbar",
+    "Caja de regalos nueva, corazones al tocar y arreglos de pantalla",
+    "Regalos a varias personas, a uno mismo, y premio por unidad",
+    "Economía nueva, premios más frecuentes y regalos exclusivos",
+    "Corrige el blueprint de Render para este repositorio",
+    "Tira de invitados, regalos dirigidos y explosión en la app",
+    "Invitados en la tira lateral y regalos dirigidos, con premio",
+    "La APK trae la dirección del servidor de fábrica",
+    "Publica la Release sola en cada compilación",
+    "Las peticiones se rinden a los 15 s en vez de colgarse",
+    "Deja el vídeo de LiveKit listo para la prueba en teléfonos",
+    "Cierra la Fase 10: la APK funciona en el teléfono",
     "Calcula el número de compilación en el shell",
-    "Las APK nuevas vuelven a instalarse encima de las viejas",
-    "Cada APK dice qué build es, y el guardia mira la ruta entera",
-    "La pantalla «Servidor» se abre sin haber iniciado sesión",
-    "Permite HTTP plano en las compilaciones de release",
-    "Ignora la carpeta apk/ con las compilaciones descargadas",
-    "Livora Stream: backend Node + app Expo"
+    "Las APK nuevas vuelven a instalarse encima de las viejas"
   ]
 }

@@ -6,13 +6,13 @@ name: APK Android
 # versión con número menor. Las APK del repositorio anterior llegaron a la 9,
 # así que se suma 100 al contador de este workflow para quedar siempre por
 # encima y que la actualización no exija desinstalar.
+# Solo a mano. Compilar aquí son ~20 minutos porque cada ejecución arranca una
+# máquina limpia y rehace los módulos nativos enteros; en el equipo del usuario,
+# reutilizando la carpeta `android/`, son unos 6 (`npm run apk` en mobile/).
+# Este workflow se queda para cuando haga falta una APK sin tener el equipo
+# delante, o para comprobar que el proyecto compila desde cero.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'mobile/**'
-      - '.github/workflows/android-apk.yml'
 
 jobs:
   build:

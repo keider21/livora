@@ -43,7 +43,8 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "start:clear": "expo start --clear",
-    "test": "jest"
+    "test": "jest",
+    "apk": "node scripts/build-apk.mjs"
   },
   "private": true
 }

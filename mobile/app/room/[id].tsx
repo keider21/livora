@@ -31,6 +31,7 @@ import {
   sendRoomMessage,
 } from '../../src/realtime/socket';
 import { getStreamRenderer } from '../../src/streaming/provider';
+import { LiveKitHostControls } from '../../src/streaming/livekit-surface';
 import { useAuthStore } from '../../src/store/auth-store';
 import { ChatOverlay } from '../../src/components/chat-overlay';
 import { GiftAnimation } from '../../src/components/gift-animation';
@@ -70,6 +71,8 @@ export default function RoomScreen() {
   const [seats, setSeats] = useState<SeatInfo[]>([]);
   const [pendingSeats, setPendingSeats] = useState<SeatInfo[]>([]);
   const [requestsOpen, setRequestsOpen] = useState(false);
+  /** Hoja de cámara y micrófono del anfitrión, que abre la tuerca de la barra. */
+  const [controlsOpen, setControlsOpen] = useState(false);
   /** A quiénes va el próximo regalo. Vacío significa «al anfitrión». */
   const [giftTargets, setGiftTargets] = useState<string[]>([]);
   /** Con el candado echado la caja no se cierra al enviar. */
@@ -95,7 +98,14 @@ export default function RoomScreen() {
    * del mismo remitente, se suma al que ya está en pantalla y se reinicia su
    * tiempo, como el contador de combo de las apps del sector.
    */
-  const [combo, setCombo] = useState({ quantity: 0, coins: 0, wins: 0, key: 0 });
+  const [combo, setCombo] = useState<{
+    quantity: number;
+    coins: number;
+    wins: number;
+    key: number;
+    /** Los últimos destinatarios, el más reciente primero. */
+    recipients: string[];
+  }>({ quantity: 0, coins: 0, wins: 0, key: 0, recipients: [] });
 
   const isHost = Boolean(room && user && room.host.id === user.id);
 
@@ -105,7 +115,7 @@ export default function RoomScreen() {
 
   const hideGift = useCallback(() => {
     setCurrentGift(null);
-    setCombo({ quantity: 0, coins: 0, wins: 0, key: 0 });
+    setCombo({ quantity: 0, coins: 0, wins: 0, key: 0, recipients: [] });
   }, []);
 
   useEffect(() => {
@@ -174,16 +184,31 @@ export default function RoomScreen() {
         anterior.sender.id === event.sender.id;
 
       setCurrentGift(event);
-      setCombo((current) =>
-        esElMismo
+      setCombo((current) => {
+        // Se guardan los dos últimos destinatarios distintos: al regalar a
+        // varios llega un evento por persona y en el anuncio no caben todos.
+        const previos = esElMismo ? current.recipients : [];
+        const recipients = [
+          event.recipient.displayName,
+          ...previos.filter((nombre) => nombre !== event.recipient.displayName),
+        ].slice(0, 2);
+
+        return esElMismo
           ? {
               quantity: current.quantity + event.quantity,
               coins: current.coins + event.coinsRewarded,
               wins: current.wins + event.luckyWins,
               key: current.key + 1,
+              recipients,
             }
-          : { quantity: event.quantity, coins: event.coinsRewarded, wins: event.luckyWins, key: 0 },
-      );
+          : {
+              quantity: event.quantity,
+              coins: event.coinsRewarded,
+              wins: event.luckyWins,
+              key: 0,
+              recipients,
+            };
+      });
     };
     const onViewers = (event: ViewersEvent) => {
       if (event.roomId === id) setViewers(event.count);
@@ -429,7 +454,13 @@ export default function RoomScreen() {
           credentials={credentials}
           hostName={room.host.displayName}
           avatarUrl={room.host.avatarUrl}
-        />
+        >
+          {/* La hoja necesita el contexto de LiveKit, así que vive dentro de la
+              superficie; se pinta en un Modal, por encima de todo lo demás. */}
+          {isHost && credentials.provider === 'livekit' ? (
+            <LiveKitHostControls visible={controlsOpen} onClose={() => setControlsOpen(false)} />
+          ) : null}
+        </renderer.Surface>
       ) : (
         <View style={[StyleSheet.absoluteFill, styles.endedBackdrop]}>
           <Text style={styles.endedText}>Esta transmisión ya terminó</Text>
@@ -518,6 +549,7 @@ export default function RoomScreen() {
                 event={currentGift}
                 comboQuantity={combo.quantity}
                 comboKey={combo.key}
+                recipients={combo.recipients}
                 onDone={hideGift}
               />
             ) : null}
@@ -552,6 +584,11 @@ export default function RoomScreen() {
           {/* Repetir el último regalo sin volver a abrir la caja. */}
           {lastGift && !pickerOpen && room.status === 'live' ? (
             <View style={styles.quickRow}>
+              {/* El saldo se ve sin abrir la caja, que es lo que hacía dudar de
+                  si el automático estaba descontando monedas. */}
+              <View style={styles.balancePill}>
+                <Text style={styles.balanceText}>🪙 {(user?.coins ?? 0).toLocaleString('es')}</Text>
+              </View>
               <QuickGift
                 gift={lastGift.gift}
                 quantity={lastGift.quantity}
@@ -613,6 +650,16 @@ export default function RoomScreen() {
             </Pressable>
 
             {isHost ? (
+              <Pressable
+                onPress={() => setControlsOpen(true)}
+                style={styles.circle}
+                accessibilityLabel="Cámara y micrófono"
+              >
+                <Ionicons name="settings-sharp" size={20} color={colors.primary} />
+              </Pressable>
+            ) : null}
+
+            {isHost ? (
               <Pressable onPress={endBroadcast} style={[styles.circle, styles.endCircle]}>
                 <Ionicons name="stop" size={20} color="#FFFFFF" />
               </Pressable>
@@ -667,7 +714,23 @@ export default function RoomScreen() {
 
 const styles = StyleSheet.create({
   fill: { flex: 1, backgroundColor: colors.bg },
-  quickRow: { alignItems: 'flex-end', paddingHorizontal: spacing.md, paddingBottom: spacing.sm },
+  quickRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  balancePill: {
+    backgroundColor: 'rgba(5,10,7,0.75)',
+    borderWidth: 1,
+    borderColor: colors.coin,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 5,
+  },
+  balanceText: { color: colors.coin, fontSize: 12, fontWeight: '800' },
   middle: {
     flexDirection: 'row',
     alignItems: 'flex-start',

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import {
   AudioSession,
@@ -79,7 +79,6 @@ export function LiveKitStreamSurface({ credentials, hostName, children }: Stream
         onError={(err) => setError(`No se pudo conectar al vídeo: ${err.message}`)}
       >
         <Stage isHost={isHost} hostName={hostName} />
-        {isHost ? <HostControls /> : null}
         {children}
       </LiveKitRoom>
     </View>
@@ -148,11 +147,17 @@ function Stage({ isHost, hostName }: { isHost: boolean; hostName: string }) {
 let facing: 'user' | 'environment' = 'user';
 
 /**
- * Botones del anfitrión: cambiar de cámara, micrófono y cámara. Van en el
- * borde derecho, a media altura, donde la superposición de la sala no pone
- * nada (la sala deja pasar los toques con pointerEvents="box-none").
+ * Controles del anfitrión: cambiar de cámara, micrófono y cámara.
+ *
+ * Estaban en una columna sobre el vídeo, pero la capa que recoge los toques
+ * para los corazones cubre toda la pantalla y se los tragaba: no respondían.
+ * Ahora se abren desde la tuerca de la barra de abajo.
+ *
+ * Tiene que vivir dentro de `LiveKitRoom` para poder usar `useLocalParticipant`,
+ * así que se pinta como hijo de la superficie; el `Modal` lo saca por encima de
+ * todo lo demás, que es lo que evita el problema de antes.
  */
-function HostControls() {
+export function LiveKitHostControls({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const { localParticipant, isMicrophoneEnabled, isCameraEnabled, cameraTrack } = useLocalParticipant();
   const [flipping, setFlipping] = useState(false);
 
@@ -171,38 +176,51 @@ function HostControls() {
   }
 
   return (
-    <View style={styles.controls} pointerEvents="box-none">
-      <ControlButton
-        icon="camera-reverse"
-        label="Cambiar cámara"
-        onPress={flipCamera}
-        disabled={!isCameraEnabled || flipping}
-      />
-      <ControlButton
-        icon={isMicrophoneEnabled ? 'mic' : 'mic-off'}
-        label={isMicrophoneEnabled ? 'Silenciar micrófono' : 'Activar micrófono'}
-        active={!isMicrophoneEnabled}
-        onPress={() => void localParticipant.setMicrophoneEnabled(!isMicrophoneEnabled)}
-      />
-      <ControlButton
-        icon={isCameraEnabled ? 'videocam' : 'videocam-off'}
-        label={isCameraEnabled ? 'Apagar cámara' : 'Encender cámara'}
-        active={!isCameraEnabled}
-        onPress={() => void localParticipant.setCameraEnabled(!isCameraEnabled)}
-      />
-    </View>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={styles.sheetBackdrop} onPress={onClose}>
+        <Pressable style={styles.sheet} onPress={(event) => event.stopPropagation()}>
+          <Text style={styles.sheetTitle}>Cámara y micrófono</Text>
+
+          <ControlRow
+            icon={isMicrophoneEnabled ? 'mic' : 'mic-off'}
+            label="Micrófono"
+            state={isMicrophoneEnabled ? 'Encendido' : 'Silenciado'}
+            active={isMicrophoneEnabled}
+            onPress={() => void localParticipant.setMicrophoneEnabled(!isMicrophoneEnabled)}
+          />
+          <ControlRow
+            icon={isCameraEnabled ? 'videocam' : 'videocam-off'}
+            label="Cámara"
+            state={isCameraEnabled ? 'Encendida' : 'Apagada'}
+            active={isCameraEnabled}
+            onPress={() => void localParticipant.setCameraEnabled(!isCameraEnabled)}
+          />
+          <ControlRow
+            icon="camera-reverse"
+            label="Cambiar cámara"
+            state={facing === 'user' ? 'Frontal' : 'Trasera'}
+            active
+            disabled={!isCameraEnabled || flipping}
+            onPress={flipCamera}
+          />
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }
 
-function ControlButton({
+/** Fila de la hoja: icono, nombre, estado actual y un interruptor. */
+function ControlRow({
   icon,
   label,
+  state,
   onPress,
   active,
   disabled,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
+  state: string;
   onPress: () => void;
   active?: boolean;
   disabled?: boolean;
@@ -211,10 +229,17 @@ function ControlButton({
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      accessibilityLabel={label}
-      style={[styles.control, active && styles.controlActive, disabled && styles.controlDisabled]}
+      accessibilityLabel={`${label}: ${state}`}
+      style={[styles.row, disabled && styles.controlDisabled]}
     >
-      <Ionicons name={icon} size={20} color={active ? colors.onPrimary : colors.text} />
+      <View style={[styles.rowIcon, active && styles.rowIconOn]}>
+        <Ionicons name={icon} size={20} color={active ? colors.onPrimary : colors.text} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.rowLabel}>{label}</Text>
+        <Text style={styles.rowState}>{state}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
     </Pressable>
   );
 }
@@ -232,7 +257,34 @@ const styles = StyleSheet.create({
   fill: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: colors.bg },
   center: { alignItems: 'center', justifyContent: 'center', gap: spacing.md, padding: spacing.xl },
   message: { color: colors.textMuted, fontSize: 14, textAlign: 'center', lineHeight: 20 },
-  controls: { position: 'absolute', right: spacing.md, top: '38%', gap: spacing.sm },
+  sheetBackdrop: { flex: 1, backgroundColor: 'rgba(5,10,7,0.72)', justifyContent: 'flex-end' },
+  sheet: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    padding: spacing.lg,
+    gap: spacing.sm,
+  },
+  sheetTitle: { color: colors.text, fontSize: 19, fontWeight: '700', marginBottom: spacing.xs },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.md,
+    padding: spacing.md,
+  },
+  rowIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.border,
+  },
+  rowIconOn: { backgroundColor: colors.primary },
+  rowLabel: { color: colors.text, fontSize: 15, fontWeight: '700' },
+  rowState: { color: colors.textMuted, fontSize: 12, fontWeight: '600' },
   control: {
     width: 44,
     height: 44,
