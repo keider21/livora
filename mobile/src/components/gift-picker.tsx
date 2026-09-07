@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Gift } from '../api/types';
@@ -79,13 +79,18 @@ export function GiftPicker({
   const [selected, setSelected] = useState<Gift | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [tab, setTab] = useState<Tab>('lucky');
+  /** Cantidad escrita a mano; vacío significa que mandan los botones fijos. */
+  const [customQuantity, setCustomQuantity] = useState('');
 
   const visibles = useMemo(() => gifts.filter((gift) => tabOf(gift) === tab), [gifts, tab]);
 
   // Los exclusivos y los del club se mandan de uno en uno: el servidor ignora
   // la cantidad, así que aquí tampoco se ofrece.
   const unitario = selected ? selected.tier === 'exclusive' : false;
-  const cantidadReal = unitario ? 1 : quantity;
+  // Lo escrito a mano manda sobre los botones fijos. El servidor admite hasta
+  // 999 por envío, que es también el máximo del campo.
+  const escrita = Number(customQuantity);
+  const cantidadReal = unitario ? 1 : Number.isFinite(escrita) && escrita > 0 ? Math.min(escrita, 999) : quantity;
   const bloqueado = selected ? selected.minFanLevel > fanLevel : false;
   const total = selected ? selected.priceCoins * cantidadReal * Math.max(1, selectedIds.length) : 0;
   const affordable = total <= coins;
@@ -210,12 +215,34 @@ export function GiftPicker({
             {QUANTITIES.map((value) => (
               <Pressable
                 key={value}
-                onPress={() => setQuantity(value)}
-                style={[styles.quantity, quantity === value && styles.quantityActive]}
+                onPress={() => {
+                  setQuantity(value);
+                  setCustomQuantity('');
+                }}
+                style={[styles.quantity, !customQuantity && quantity === value && styles.quantityActive]}
               >
-                <Text style={[styles.quantityText, quantity === value && { color: colors.onPrimary }]}>×{value}</Text>
+                <Text
+                  style={[
+                    styles.quantityText,
+                    !customQuantity && quantity === value && { color: colors.onPrimary },
+                  ]}
+                >
+                  ×{value}
+                </Text>
               </Pressable>
             ))}
+
+            {/* Para cantidades que no están en los botones fijos. */}
+            <TextInput
+              value={customQuantity}
+              onChangeText={(text) => setCustomQuantity(text.replace(/[^0-9]/g, '').slice(0, 3))}
+              placeholder="✏️"
+              placeholderTextColor={colors.textFaint}
+              keyboardType="number-pad"
+              maxLength={3}
+              style={[styles.quantity, styles.quantityInput, Boolean(customQuantity) && styles.quantityActive]}
+              accessibilityLabel="Escribir la cantidad"
+            />
           </View>
         )}
 
@@ -342,6 +369,7 @@ const styles = StyleSheet.create({
   },
   quantityActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   quantityText: { color: colors.textMuted, fontWeight: '700', fontSize: 13 },
+  quantityInput: { color: colors.text, fontWeight: '700', fontSize: 13, textAlign: 'center', paddingVertical: spacing.xs },
 
   luckyHint: { color: colors.coin, fontSize: 11, fontWeight: '600', textAlign: 'center' },
   exclusiveHint: { color: tierColors.exclusive, fontSize: 11, fontWeight: '600', textAlign: 'center' },

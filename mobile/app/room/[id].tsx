@@ -48,6 +48,18 @@ import { colors, formatCount, radius, scrim, spacing } from '../../src/theme';
 
 const MAX_MESSAGES = 120;
 
+/** Un regalo en pantalla: el último evento y lo acumulado de esa combinación. */
+interface Announcement {
+  /** regalo | remitente | destinatario */
+  key: string;
+  event: GiftEvent;
+  quantity: number;
+  coins: number;
+  wins: number;
+  /** Sube en cada repetición; reinicia las animaciones. */
+  round: number;
+}
+
 export default function RoomScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -63,7 +75,6 @@ export default function RoomScreen() {
   const [giftCatalog, setGiftCatalog] = useState<Gift[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [sendingGift, setSendingGift] = useState(false);
-  const [currentGift, setCurrentGift] = useState<GiftEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [fatalError, setFatalError] = useState<string | null>(null);
 
@@ -90,22 +101,18 @@ export default function RoomScreen() {
   const heartId = useRef(0);
 
   /**
-   * Regalos repetidos se acumulan en un solo anuncio en vez de encolarse.
+   * Anuncios de regalo en curso, uno por destinatario.
    *
-   * Antes cada envío entraba en una cola y se reproducía entero, uno detrás de
-   * otro: con el envío automático quedaban quince animaciones pendientes que
-   * seguían saliendo mucho después de parar. Ahora, si llega el mismo regalo
-   * del mismo remitente, se suma al que ya está en pantalla y se reinicia su
-   * tiempo, como el contador de combo de las apps del sector.
+   * Al regalar a varias personas el servidor manda un evento por cada una, con
+   * su propio sorteo: pueden salir doce premios en una y cuatro en otra. Por eso
+   * cada destinatario lleva su propio contador en pantalla, en vez de juntarse
+   * todos en uno.
+   *
+   * Los repetidos del mismo regalo, remitente y destinatario sí se acumulan
+   * (×1, ×2, ×3…) y reinician su tiempo. Antes se encolaban y con el envío
+   * automático quedaban animaciones saliendo mucho después de parar.
    */
-  const [combo, setCombo] = useState<{
-    quantity: number;
-    coins: number;
-    wins: number;
-    key: number;
-    /** Los últimos destinatarios, el más reciente primero. */
-    recipients: string[];
-  }>({ quantity: 0, coins: 0, wins: 0, key: 0, recipients: [] });
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
 
   const isHost = Boolean(room && user && room.host.id === user.id);
 
@@ -113,9 +120,8 @@ export default function RoomScreen() {
     setMessages((current) => [...current, message].slice(-MAX_MESSAGES));
   }, []);
 
-  const hideGift = useCallback(() => {
-    setCurrentGift(null);
-    setCombo({ quantity: 0, coins: 0, wins: 0, key: 0, recipients: [] });
+  const hideAnnouncement = useCallback((key: string) => {
+    setAnnouncements((current) => current.filter((item) => item.key !== key));
   }, []);
 
   useEffect(() => {
@@ -177,39 +183,29 @@ export default function RoomScreen() {
       if (event.roomId !== id) return;
       setRoom((current) => (current ? { ...current, totalDiamonds: event.roomTotalDiamonds } : current));
 
-      const anterior = currentGiftRef.current;
-      const esElMismo =
-        anterior !== null &&
-        anterior.gift.code === event.gift.code &&
-        anterior.sender.id === event.sender.id;
-
-      setCurrentGift(event);
-      setCombo((current) => {
-        // Se guardan los dos últimos destinatarios distintos: al regalar a
-        // varios llega un evento por persona y en el anuncio no caben todos.
-        const previos = esElMismo ? current.recipients : [];
-        const recipients = [
-          event.recipient.displayName,
-          ...previos.filter((nombre) => nombre !== event.recipient.displayName),
-        ].slice(0, 2);
-
-        return esElMismo
+      // Un anuncio por regalo, remitente y destinatario. La comparación va
+      // dentro del actualizador porque al regalar a varios los eventos llegan
+      // en la misma vuelta y un valor leído de fuera estaría desfasado.
+      const key = `${event.gift.code}|${event.sender.id}|${event.recipient.id}`;
+      setAnnouncements((current) => {
+        const existente = current.find((item) => item.key === key);
+        const actualizado: Announcement = existente
           ? {
-              quantity: current.quantity + event.quantity,
-              coins: current.coins + event.coinsRewarded,
-              wins: current.wins + event.luckyWins,
-              key: current.key + 1,
-              recipients,
+              ...existente,
+              event,
+              quantity: existente.quantity + event.quantity,
+              coins: existente.coins + event.coinsRewarded,
+              wins: existente.wins + event.luckyWins,
+              round: existente.round + 1,
             }
-          : {
-              quantity: event.quantity,
-              coins: event.coinsRewarded,
-              wins: event.luckyWins,
-              key: 0,
-              recipients,
-            };
+          : { key, event, quantity: event.quantity, coins: event.coinsRewarded, wins: event.luckyWins, round: 0 };
+
+        const resto = current.filter((item) => item.key !== key);
+        // Como mucho tres a la vez: más no caben y tapan el vídeo.
+        return [...resto, actualizado].slice(-3);
       });
     };
+
     const onViewers = (event: ViewersEvent) => {
       if (event.roomId === id) setViewers(event.count);
     };
@@ -256,13 +252,6 @@ export default function RoomScreen() {
       socket.off(SOCKET_EVENTS.ERROR, onError);
     };
   }, [id, pushMessage, router]);
-
-  // Espejo del regalo en curso para leerlo dentro del manejador del socket sin
-  // volver a suscribirse en cada cambio.
-  const currentGiftRef = useRef<GiftEvent | null>(null);
-  useEffect(() => {
-    currentGiftRef.current = currentGift;
-  }, [currentGift]);
 
   function submitMessage() {
     const body = draft.trim();
@@ -446,6 +435,7 @@ export default function RoomScreen() {
   }
 
   const renderer = getStreamRenderer(credentials?.provider ?? 'mock');
+  const ultimoAnuncio = announcements[announcements.length - 1] ?? null;
 
   return (
     <View style={styles.fill}>
@@ -479,18 +469,20 @@ export default function RoomScreen() {
         <FloatingHeart key={heart.id} heart={heart} onDone={removeHeart} />
       ))}
 
-      {/* Los exclusivos no explotan: llenan la pantalla con su aura. */}
-      {currentGift ? (
-        currentGift.gift.animation === 'aura' ? (
-          <GiftAura key={currentGift.id} event={currentGift} onDone={() => undefined} />
+      {/* La explosión se pinta una sola vez, con el último anuncio: llenar la
+          pantalla con varias a la vez no dejaría ver nada. Los exclusivos no
+          explotan, muestran su aura. */}
+      {ultimoAnuncio ? (
+        ultimoAnuncio.event.gift.animation === 'aura' ? (
+          <GiftAura key={ultimoAnuncio.event.id} event={ultimoAnuncio.event} onDone={() => undefined} />
         ) : (
           <GiftBurst
-            // La clave incluye el combo para que cada repetición relance la
+            // La clave incluye la ronda para que cada repetición relance la
             // explosión desde cero en vez de esperar a que acabe la anterior.
-            key={`${currentGift.gift.code}-${combo.key}`}
-            event={currentGift}
-            coinsRewarded={combo.coins}
-            wins={combo.wins}
+            key={`${ultimoAnuncio.key}-${ultimoAnuncio.round}`}
+            event={ultimoAnuncio.event}
+            coinsRewarded={ultimoAnuncio.coins}
+            wins={ultimoAnuncio.wins}
             onDone={() => undefined}
           />
         )
@@ -544,15 +536,17 @@ export default function RoomScreen() {
 
         <View style={styles.middle} pointerEvents="box-none">
           <View style={styles.giftLayer} pointerEvents="none">
-            {currentGift ? (
+            {announcements.map((item) => (
               <GiftAnimation
-                event={currentGift}
-                comboQuantity={combo.quantity}
-                comboKey={combo.key}
-                recipients={combo.recipients}
-                onDone={hideGift}
+                key={item.key}
+                event={item.event}
+                comboQuantity={item.quantity}
+                comboKey={item.round}
+                coinsRewarded={item.coins}
+                wins={item.wins}
+                onDone={() => hideAnnouncement(item.key)}
               />
-            ) : null}
+            ))}
           </View>
 
           <SeatStrip
@@ -804,7 +798,8 @@ const styles = StyleSheet.create({
     backgroundColor: scrim.soft,
   },
 
-  giftLayer: { paddingHorizontal: spacing.md },
+  // Los anuncios se apilan: al regalar a varios hay uno por destinatario.
+  giftLayer: { paddingHorizontal: spacing.md, gap: spacing.xs },
 
   bottom: { padding: spacing.md, gap: spacing.sm },
   actionBar: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },

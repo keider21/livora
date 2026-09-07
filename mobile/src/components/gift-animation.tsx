@@ -23,7 +23,8 @@ export function GiftAnimation({
   event,
   comboQuantity,
   comboKey,
-  recipients,
+  coinsRewarded,
+  wins,
   onDone,
 }: {
   event: GiftEvent;
@@ -31,8 +32,10 @@ export function GiftAnimation({
   comboQuantity: number;
   /** Sube en cada repetición: reinicia la animación y la espera. */
   comboKey: number;
-  /** Los últimos destinatarios, el más reciente primero. Caben dos. */
-  recipients: string[];
+  /** Monedas ganadas por este destinatario, ya sumadas. */
+  coinsRewarded: number;
+  /** Cuántas unidades premiaron para este destinatario. */
+  wins: number;
   onDone: () => void;
 }) {
   const progress = useRef(new Animated.Value(0)).current;
@@ -75,8 +78,15 @@ export function GiftAnimation({
             {event.sender.displayName}
           </Text>
           <Text style={styles.gift} numberOfLines={1}>
-            {event.gift.name} · para {(recipients.length ? recipients : [event.recipient.displayName]).join(' y ')}
+            {event.gift.name} · para {event.recipient.displayName}
           </Text>
+          {/* Cada destinatario tiene su propio sorteo, así que su premio se
+              cuenta aquí y no en el de al lado. */}
+          {wins > 0 ? (
+            <Text style={styles.reward} numberOfLines={1}>
+              🍀 {wins} · +{coinsRewarded.toLocaleString('es')}
+            </Text>
+          ) : null}
         </View>
         <Animated.Text style={[styles.quantity, { transform: [{ scale: pop }] }]}>
           ×{comboQuantity}
@@ -105,5 +115,6 @@ const styles = StyleSheet.create({
   texts: { maxWidth: 170 },
   sender: { color: colors.text, fontWeight: '700', fontSize: 13 },
   gift: { color: colors.textMuted, fontWeight: '600', fontSize: 11 },
+  reward: { color: colors.coin, fontWeight: '800', fontSize: 11 },
   quantity: { color: colors.accent, fontWeight: '800', fontSize: 20 },
 });
