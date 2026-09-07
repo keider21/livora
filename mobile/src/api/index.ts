@@ -1,5 +1,5 @@
 import { apiRequest } from './client';
-import type { ChatMessage } from '../realtime/events';
+import type { ChatMessage, GiftEvent, SeatsEvent } from '../realtime/events';
 import type {
   CoinPackage,
   CurrentUser,
@@ -63,12 +63,38 @@ export const rooms = {
     ),
 
   like: (roomId: string) => apiRequest<{ totalLikes: number }>(`/api/rooms/${roomId}/like`, { method: 'POST' }),
+
+  // --- Invitados de la tira lateral ---
+
+  seats: (roomId: string) => apiRequest<SeatsEvent>(`/api/rooms/${roomId}/seats`),
+
+  /** Un espectador pide subir; queda pendiente hasta que el anfitrión responda. */
+  requestSeat: (roomId: string) =>
+    apiRequest<SeatsEvent>(`/api/rooms/${roomId}/seats/request`, { method: 'POST' }),
+
+  /** El anfitrión acepta a alguien y recibe de vuelta el estado de la tira. */
+  acceptSeat: (roomId: string, userId: string) =>
+    apiRequest<SeatsEvent & { credentials: StreamCredentials }>(
+      `/api/rooms/${roomId}/seats/${userId}/accept`,
+      { method: 'POST' },
+    ),
+
+  /** Bajar a alguien de la tira, o rechazar su solicitud. */
+  removeSeat: (roomId: string, userId: string) =>
+    apiRequest<SeatsEvent>(`/api/rooms/${roomId}/seats/${userId}`, { method: 'DELETE' }),
+
+  setSeatMic: (roomId: string, userId: string, micMuted: boolean) =>
+    apiRequest<SeatsEvent>(`/api/rooms/${roomId}/seats/${userId}/mic`, {
+      method: 'PATCH',
+      body: { micMuted },
+    }),
 };
 
 export const gifts = {
   catalog: () => apiRequest<{ gifts: Gift[] }>('/api/gifts'),
-  send: (body: { roomId: string; giftCode: string; quantity?: number }) =>
-    apiRequest<{ giftSend: unknown; wallet: Wallet }>('/api/gifts/send', { method: 'POST', body }),
+  /** Sin `recipientId` el regalo va al anfitrión; con él, a un invitado. */
+  send: (body: { roomId: string; giftCode: string; quantity?: number; recipientId?: string }) =>
+    apiRequest<{ giftSend: GiftEvent; wallet: Wallet }>('/api/gifts/send', { method: 'POST', body }),
 };
 
 export const users = {
@@ -99,6 +125,6 @@ export const ranking = {
     apiRequest<{ entries: RankingEntry[] }>(`/api/ranking/senders?period=${period}`),
 };
 
-export type { ChatMessage } from '../realtime/events';
+export type { ChatMessage, GiftEvent, SeatInfo, SeatsEvent } from '../realtime/events';
 export * from './types';
 export { ApiError, DEFAULT_API_URL, getApiUrl, setApiUrl, setAuthToken } from './client';

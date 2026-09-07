@@ -43,7 +43,7 @@ export interface StreamCredentials {
   provider: string;
   channel: string;
   identity: string;
-  role: 'host' | 'viewer';
+  role: 'host' | 'guest' | 'viewer';
   token: string;
   url?: string;
   expiresAt: number;
@@ -58,6 +58,10 @@ export interface Gift {
   tier: string;
   animation: string;
   isActive: boolean;
+  /** Probabilidad de premio, de 0 a 1. En 0 el regalo nunca devuelve nada. */
+  luckyChance: number;
+  /** Multiplicadores posibles sobre lo gastado, separados por coma. */
+  luckyMultipliers: string;
 }
 
 export interface Wallet {

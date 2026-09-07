@@ -56,6 +56,11 @@ Con token, `GET /api/users/:username` añade `isFollowing` e `isSelf`.
 | GET    | `/api/rooms/:id/messages`     | no      | Historial de chat                               |
 | POST   | `/api/rooms/:id/messages`     | sí      | Publica un mensaje (alternativa REST al socket) |
 | POST   | `/api/rooms/:id/like`         | sí      | Suma un like                                    |
+| GET    | `/api/rooms/:id/seats`        | no      | Invitados de la tira lateral                    |
+| POST   | `/api/rooms/:id/seats/request`| sí      | Pedir subir a la transmisión                    |
+| POST   | `/api/rooms/:id/seats/:userId/accept` | sí | El anfitrión sube a alguien                |
+| DELETE | `/api/rooms/:id/seats/:userId`| sí      | Bajar a alguien, o rechazar su solicitud        |
+| PATCH  | `/api/rooms/:id/seats/:userId/mic` | sí | Silenciar o reactivar su micrófono           |
 
 Categorías: `chat`, `music`, `dance`, `game`, `talent`.
 
@@ -71,6 +76,32 @@ POST /api/rooms
 }
 ```
 
+### Invitados de la tira lateral
+
+Un espectador puede subir a la transmisión **sin cámara**: en la tira solo se ve
+su avatar y publica únicamente micrófono, con un token de LiveKit limitado a esa
+fuente. Caben 8 a la vez y los huecos se reutilizan al quedar libres.
+
+El flujo es: el espectador pide subir, el anfitrión acepta, y quien sube recibe
+por socket sus credenciales de voz. Bajar de la tira lo puede hacer el propio
+invitado o el anfitrión, y es también la forma de rechazar una solicitud.
+
+```http
+POST /api/rooms/:id/seats/request
+201 { "roomId": "…", "seats": [], "pending": [{ "userId": "…", "status": "pending", … }] }
+
+POST /api/rooms/:id/seats/:userId/accept
+200 {
+  "roomId": "…",
+  "seats": [{ "userId": "…", "status": "active", "position": 1, "micMuted": false, "user": { … } }],
+  "pending": [],
+  "credentials": { "provider": "livekit", "role": "guest", … }
+}
+```
+
+La lista `pending` solo llega completa al anfitrión: al resto de la sala se le
+manda vacía, porque las solicitudes ajenas no le incumben.
+
 ## Regalos
 
 | Método | Ruta                    | Privada | Qué hace                        |
@@ -81,10 +112,31 @@ POST /api/rooms
 
 ```http
 POST /api/gifts/send
-{ "roomId": "…", "giftCode": "rose", "quantity": 3 }
+{ "roomId": "…", "giftCode": "rose", "quantity": 3, "recipientId": "…" }
 
-201 { "giftSend": { "coinsSpent": 30, "diamondsEarned": 15, … }, "wallet": { "coins": 470, "diamonds": 0 } }
+201 {
+  "giftSend": { "coinsSpent": 30, "diamondsEarned": 15, "coinsRewarded": 0, "luckyMultiplier": null, "recipient": { … }, … },
+  "wallet": { "coins": 470, "diamonds": 0 }
+}
 ```
+
+`recipientId` es opcional: sin él el regalo va al anfitrión, como siempre. Con
+él tiene que ser alguien que esté en la sala (el anfitrión o un invitado de la
+tira), así que **el anfitrión también puede regalar** a sus invitados. Nadie
+puede regalarse a sí mismo.
+
+### Regalos con premio
+
+Algunos regalos devuelven monedas al emisor. Al enviarlos se sortea una vez
+(no por unidad) con la probabilidad `luckyChance` del catálogo; si toca, se
+elige uno de `luckyMultipliers` y se abonan `coinsSpent × multiplicador` monedas
+dentro de la misma transacción que el cobro, con su propio movimiento
+`gift_reward` en el historial.
+
+La **tasa de retorno esperada** de cada regalo (probabilidad × media de los
+multiplicadores) se mantiene por debajo de 1 a propósito: por encima, enviarlo
+sería rentable y la economía dejaría de tener sentido. Está documentada regalo a
+regalo en `server/src/lib/gift-catalog.ts` y vigilada por una prueba.
 
 El anfitrión recibe **0,5 diamantes por moneda** gastada, y el emisor gana
 **1 punto de experiencia por moneda**. Si no hay saldo, responde `402`.

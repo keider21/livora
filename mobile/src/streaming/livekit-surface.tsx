@@ -18,20 +18,25 @@ import type { StreamSurfaceProps } from './provider';
 /**
  * Superficie de vídeo real sobre LiveKit.
  *
- * El anfitrión publica cámara y micrófono; el espectador solo se suscribe. La
- * sala y el token los emite el servidor (LiveKitStreamProvider), aquí no hay
- * ninguna clave. Ocupa el mismo hueco que la superficie simulada, así la
- * pantalla de la sala no distingue una de otra.
+ * El anfitrión publica cámara y micrófono, el invitado de la tira lateral solo
+ * micrófono, y el espectador se limita a suscribirse. La sala y el token los
+ * emite el servidor (LiveKitStreamProvider), aquí no hay ninguna clave. Ocupa el
+ * mismo hueco que la superficie simulada, así la pantalla de la sala no
+ * distingue una de otra.
  */
 export function LiveKitStreamSurface({ credentials, hostName, children }: StreamSurfaceProps) {
   const isHost = credentials.role === 'host';
-  const [permission, setPermission] = useState<'pending' | 'granted' | 'denied'>(isHost ? 'pending' : 'granted');
+  const isGuest = credentials.role === 'guest';
+  const publica = isHost || isGuest;
+  const [permission, setPermission] = useState<'pending' | 'granted' | 'denied'>(publica ? 'pending' : 'granted');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isHost) return;
-    ensureMediaPermissions().then((granted) => setPermission(granted ? 'granted' : 'denied'));
-  }, [isHost]);
+    if (!publica) return;
+    ensureMediaPermissions(isHost ? 'camera-and-mic' : 'mic').then((granted) =>
+      setPermission(granted ? 'granted' : 'denied'),
+    );
+  }, [publica, isHost]);
 
   // La sesión de audio nativa (altavoz, modo llamada) se abre al entrar y se
   // cierra al salir, para no dejar el teléfono en modo comunicación.
@@ -46,10 +51,18 @@ export function LiveKitStreamSurface({ credentials, hostName, children }: Stream
     return <Status message="El servidor no indicó la dirección de vídeo (LIVEKIT_URL)." />;
   }
   if (permission === 'pending') {
-    return <Status message="Pidiendo permiso de cámara y micrófono…" spinner />;
+    return <Status message={isHost ? 'Pidiendo permiso de cámara y micrófono…' : 'Pidiendo permiso de micrófono…'} spinner />;
   }
   if (permission === 'denied') {
-    return <Status message="Sin permiso de cámara o micrófono no se puede transmitir. Actívalos en los ajustes del teléfono." />;
+    return (
+      <Status
+        message={
+          isHost
+            ? 'Sin permiso de cámara o micrófono no se puede transmitir. Actívalos en los ajustes del teléfono.'
+            : 'Sin permiso de micrófono no puedes hablar en la transmisión. Actívalo en los ajustes del teléfono.'
+        }
+      />
+    );
   }
   if (error) {
     return <Status message={error} />;
@@ -61,7 +74,7 @@ export function LiveKitStreamSurface({ credentials, hostName, children }: Stream
         serverUrl={credentials.url}
         token={credentials.token}
         connect
-        audio={isHost}
+        audio={publica}
         video={isHost}
         onError={(err) => setError(`No se pudo conectar al vídeo: ${err.message}`)}
       >

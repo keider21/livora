@@ -11,6 +11,7 @@ export function GiftPicker({
   gifts,
   coins,
   sending,
+  recipientName,
   onClose,
   onSend,
 }: {
@@ -18,6 +19,8 @@ export function GiftPicker({
   gifts: Gift[];
   coins: number;
   sending: boolean;
+  /** A quién va: el anfitrión o el invitado elegido en la tira lateral. */
+  recipientName: string;
   onClose: () => void;
   onSend: (giftCode: string, quantity: number) => void;
 }) {
@@ -32,7 +35,12 @@ export function GiftPicker({
       <Pressable style={styles.backdrop} onPress={onClose} />
       <View style={styles.sheet}>
         <View style={styles.header}>
-          <Text style={typography.heading}>Enviar un regalo</Text>
+          <View style={styles.headerTexts}>
+            <Text style={typography.heading}>Enviar un regalo</Text>
+            <Text style={styles.recipient} numberOfLines={1}>
+              para {recipientName}
+            </Text>
+          </View>
           <Text style={styles.balance}>🪙 {coins.toLocaleString('es')}</Text>
         </View>
 
@@ -60,6 +68,8 @@ export function GiftPicker({
                 <Text style={[styles.price, { color: tierColors[item.tier] ?? colors.coin }]}>
                   🪙 {item.priceCoins}
                 </Text>
+                {/* Los regalos con premio se marcan: parte de lo gastado puede volver. */}
+                {item.luckyChance > 0 ? <Text style={styles.lucky}>🍀</Text> : null}
               </Pressable>
             );
           }}
@@ -76,6 +86,13 @@ export function GiftPicker({
             </Pressable>
           ))}
         </View>
+
+        {selected && selected.luckyChance > 0 ? (
+          <Text style={styles.luckyHint}>
+            {selected.name} puede devolverte monedas: {Math.round(selected.luckyChance * 100)}% de premio, hasta
+            ×{Math.max(...selected.luckyMultipliers.split(',').map(Number).filter(Number.isFinite))}
+          </Text>
+        ) : null}
 
         <Button
           label={
@@ -104,7 +121,9 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     maxHeight: '68%',
   },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm },
+  headerTexts: { flexShrink: 1 },
+  recipient: { color: colors.textMuted, fontSize: 12, fontWeight: '600' },
   balance: { color: colors.coin, fontWeight: '700' },
   gift: {
     flex: 1,
@@ -119,6 +138,8 @@ const styles = StyleSheet.create({
   emoji: { fontSize: 26 },
   giftName: { color: colors.text, fontSize: 10, fontWeight: '600' },
   price: { fontSize: 10, fontWeight: '700' },
+  lucky: { position: 'absolute', top: 2, right: 4, fontSize: 11 },
+  luckyHint: { color: colors.coin, fontSize: 11, fontWeight: '600', textAlign: 'center' },
   quantities: { flexDirection: 'row', gap: spacing.sm },
   quantity: {
     flex: 1,

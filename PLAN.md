@@ -16,7 +16,7 @@
 | **Última actualización** | 2026-09-06 |
 | **Rama** | `main` en `keider21/livora`, repositorio propio y público (el último commit lo dice `git log -1`) |
 | **Pull request** | Ninguno: se trabaja directo sobre `main` en el repositorio nuevo. El anterior ([keider21/cecchi#1](https://github.com/keider21/cecchi/pull/1)) queda histórico |
-| **Salud** | 54 pruebas en verde (27 servidor + 27 móvil) · TypeScript limpio en `server/` y `mobile/` · empaqueta para Android · `expo prebuild` acepta los plugins de LiveKit |
+| **Salud** | 75 pruebas en verde (42 servidor + 33 móvil) · TypeScript limpio en `server/` y `mobile/` · empaqueta para Android · `expo prebuild` acepta los plugins de LiveKit |
 
 **Lo último:** la APK funciona en el teléfono (build 106, 2026-09-06). Cerrada
 la Fase 10 salvo el despliegue público (10.7, ⛔ en el usuario). El backend local
@@ -320,12 +320,13 @@ invitados.
 
 | Paso | Estado | Notas |
 | --- | --- | --- |
-| 11.1 Asientos de invitado: modelo `RoomSeat`, solicitar / aceptar / bajar, y evento en tiempo real | ⏳ | Sin cámara: el token de LiveKit del invitado publica solo micrófono (`canPublishSources: ['microphone']`). Máximo 8 asientos |
-| 11.2 Regalos dirigidos a cualquier participante | ⏳ | `POST /api/gifts/send` acepta `recipientId`; por defecto el anfitrión. El destinatario debe estar en la sala como anfitrión o invitado activo. El anfitrión pasa a poder enviar |
-| 11.3 Regalos con premio que devuelven monedas | ⏳ | El catálogo gana probabilidad y multiplicadores; al enviarlo se sortea y, si toca, se abonan monedas al emisor con su propio movimiento contable. Es azar con dinero: se decide y documenta la tasa de retorno |
-| 11.4 Tira lateral de invitados en la app | ⏳ | Avatares en vertical sobre el vídeo, con indicador de quien habla y de micro apagado. Tocar uno lo elige como destinatario del regalo |
-| 11.5 Animación de explosión del regalo | ⏳ | Cierra la **Falta** de 2.5 junto con 9.6 |
-| 11.6 El anfitrión gestiona las solicitudes de subir | ⏳ | Lista de peticiones pendientes con aceptar o rechazar |
+| 11.1 Asientos de invitado: modelo `RoomSeat`, solicitar / aceptar / bajar, y evento en tiempo real | ✅ | Sin cámara: el token de LiveKit del invitado publica solo micrófono (`canPublishSources: ['microphone']`). Máximo 8 asientos, con los huecos reutilizables. `seats.service.ts` + rutas bajo `/api/rooms/:id/seats`. **Verificación:** 6 pruebas de invitados, incluida la reutilización de huecos y el borrado al cerrar la sala |
+| 11.2 Regalos dirigidos a cualquier participante | ✅ | `POST /api/gifts/send` acepta `recipientId`; por defecto el anfitrión. El destinatario debe estar en la sala como anfitrión o invitado activo. El anfitrión pasa a poder enviar. **Verificación:** 4 pruebas, incluidas «el anfitrión puede regalar a su invitado» y el rechazo a quien no está en la sala |
+| 11.3 Regalos con premio que devuelven monedas | ✅ | `lib/lucky.ts` sortea y `gift-catalog.ts` documenta la tasa de retorno de cada regalo. **Decisión:** ninguna pasa de 1, porque por encima enviar el regalo sería rentable; una prueba lo vigila y ya cazó el deportivo, que quedó en 1,05 al escribirlo. El abono va dentro de la transacción del cobro, con movimiento `gift_reward` propio |
+| 11.4 Tira lateral de invitados en la app | ⚠️ | `components/seat-strip.tsx`: avatares en vertical sobre el vídeo, con marca de micro apagado, y al tocar uno pasa a ser el destinatario del regalo. **Falta:** el indicador de quién está hablando; y validarlo en el teléfono (11.7) |
+| 11.5 Animación de explosión del regalo | ⚠️ | `components/gift-burst.tsx`: el emoji sale disparado en círculo, con más partículas y más alcance cuanto más caro, y el premio aparece en el centro. **Falta:** verlo en el teléfono (11.7). Cierra la **Falta** de 2.5 junto con 9.6 |
+| 11.6 El anfitrión gestiona las solicitudes de subir | ⚠️ | `components/seat-requests.tsx`, con contador de pendientes en la barra. **Falta:** verlo en el teléfono (11.7) |
+| 11.7 Prueba en dos teléfonos: subir a alguien, regalarle y ver la explosión | ⏳ | Va junto con 3.8. **Criterio de hecho:** el invitado se oye, recibe el regalo y el premio se ve en ambos teléfonos |
 
 ---
 ---
