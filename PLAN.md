@@ -138,7 +138,7 @@ Hoy la sala pinta una superficie simulada; el contrato para sustituirla está en
 | 3.5 Permisos de cámara y micrófono; estado denegado | ⚠️ | `permissions.ts` los pide al montar la superficie como anfitrión; el manifiesto los declara (verificado en el prebuild). **Falta:** probarlo en un teléfono; no hay estado «sin cámara» |
 | 3.6 Controles del anfitrión: cambiar cámara, silenciar micro, apagar cámara | ⚠️ | Columna de botones en la superficie LiveKit (`HostControls`); la sala deja pasar los toques con `pointerEvents="box-none"`. **Falta:** probarlo en un teléfono (3.8) |
 | 3.7 La APK de la Fase 10 incluye los módulos nativos de LiveKit y sigue compilando en GitHub Actions | ✅ | Sustituye al EAS Build previsto: sin cuenta de Expo |
-| 3.8 Prueba real: host en un dispositivo, viewer en otro, backend y `livekit-server --dev` en el equipo del usuario | ⏳ | **Criterio de hecho:** vídeo y audio llegan con menos de 2 s de retardo y el aforo cuenta bien. **Bloqueo previsible:** necesita al usuario con dos teléfonos o teléfono + emulador |
+| 3.8 Prueba real: host en un dispositivo, viewer en otro, backend y `livekit-server --dev` en el equipo del usuario | 🔄 | **Criterio de hecho:** vídeo y audio llegan con menos de 2 s de retardo y el aforo cuenta bien. **Listo (2026-09-06):** `livekit-server` 1.13.6 en Docker (`livora-livekit`, `--dev --node-ip 192.168.5.186`, puertos 7880/7881 TCP y 7882 UDP publicados) y el backend con `STREAM_PROVIDER=livekit`. Comprobado que `POST /api/rooms` devuelve `provider: livekit` con JWT firmado hacia `ws://192.168.5.186:7880`, y que LiveKit autentica las llamadas del backend (`DeleteRoom` responde 404, no 401). **Pendiente:** el usuario con los dos teléfonos |
 
 ---
 
