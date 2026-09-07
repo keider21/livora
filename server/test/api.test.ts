@@ -10,10 +10,22 @@ let api: TestApi;
 
 before(async () => {
   api = await startTestApi();
+  // La rosa del catálogo real premia una de cada tres veces. Aquí se fija sin
+  // premio: si no, el saldo del emisor dependería del azar y esta prueba
+  // fallaría de vez en cuando. El sorteo tiene sus propias pruebas.
   await prisma.gift.upsert({
     where: { code: 'rose' },
-    create: { code: 'rose', name: 'Rosa', emoji: '🌹', priceCoins: 10, tier: 'basic', animation: 'float' },
-    update: { priceCoins: 10, isActive: true },
+    create: {
+      code: 'rose',
+      name: 'Rosa',
+      emoji: '🌹',
+      priceCoins: 10,
+      tier: 'basic',
+      animation: 'float',
+      luckyChance: 0,
+      luckyMultipliers: '',
+    },
+    update: { priceCoins: 10, isActive: true, luckyChance: 0, luckyMultipliers: '' },
   });
 });
 
@@ -157,11 +169,12 @@ describe('economía y regalos', () => {
     });
     assert.equal(sent.status, 201);
     assert.equal(sent.data.giftSend.coinsSpent, 30);
-    assert.equal(sent.data.giftSend.diamondsEarned, 15);
+    // El anfitrión cobra el 5% en diamantes: 30 × 0,05 = 1,5, redondeado a 2.
+    assert.equal(sent.data.giftSend.diamondsEarned, 2);
     assert.equal(sent.data.wallet.coins, 470, '500 de bienvenida menos 30 gastadas');
 
     const hostWallet = await api.request('GET', '/api/wallet', { token: host.token });
-    assert.equal(hostWallet.data.wallet.diamonds, 15);
+    assert.equal(hostWallet.data.wallet.diamonds, 2);
 
     const ranking = await api.request('GET', '/api/ranking/hosts?period=day');
     assert.ok(
@@ -193,8 +206,8 @@ describe('economía y regalos', () => {
       body: { packageId: 'popular' },
     });
     assert.equal(topup.status, 200);
-    assert.equal(topup.data.credited, 1300, '1200 monedas más 100 de bonus');
-    assert.equal(topup.data.wallet.coins, 1800);
+    assert.equal(topup.data.credited, 52_500, '50.000 monedas más 2.500 de bonus');
+    assert.equal(topup.data.wallet.coins, 53_000, '500 de bienvenida más la recarga');
 
     const noDiamonds = await api.request('POST', '/api/wallet/exchange', {
       token: user.token,

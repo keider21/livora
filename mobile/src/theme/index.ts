@@ -70,6 +70,8 @@ export const tierColors: Record<string, string> = {
   rare: '#5EE7FF',
   epic: '#00E676',
   legendary: '#FFD24A',
+  // Los exclusivos se salen de la escala a propósito: son los de vitrina.
+  exclusive: '#FF6EC7',
 };
 
 /** Velo sobre el vídeo, para que el texto se lea sin tapar la imagen. */

@@ -5,15 +5,19 @@ import { emitToUser } from '../../realtime/bus';
 import { SOCKET_EVENTS } from '../../realtime/events';
 
 /**
- * Paquetes de recarga. En producción cada compra debe validarse contra el
- * recibo de App Store / Google Play antes de acreditar monedas; aquí la compra
- * se simula para poder probar el flujo completo sin pasarela de pago.
+ * Paquetes de recarga, a 10.000 monedas por dólar (100.000 monedas = 10 USD).
+ * El `bonus` es regalo comercial y rompe esa tarifa a propósito en los paquetes
+ * grandes, que es como se empuja a comprar el paquete de arriba.
+ *
+ * En producción cada compra debe validarse contra el recibo de App Store /
+ * Google Play antes de acreditar monedas; aquí se simula para poder probar el
+ * flujo completo sin pasarela de pago (paso 6.1 del plan).
  */
 export const COIN_PACKAGES = [
-  { id: 'starter', coins: 500, priceUsd: 4.99, bonus: 0 },
-  { id: 'popular', coins: 1200, priceUsd: 9.99, bonus: 100 },
-  { id: 'pro', coins: 3000, priceUsd: 24.99, bonus: 400 },
-  { id: 'whale', coins: 7000, priceUsd: 49.99, bonus: 1500 },
+  { id: 'starter', coins: 10_000, priceUsd: 0.99, bonus: 0 },
+  { id: 'popular', coins: 50_000, priceUsd: 4.99, bonus: 2_500 },
+  { id: 'pro', coins: 100_000, priceUsd: 9.99, bonus: 10_000 },
+  { id: 'whale', coins: 500_000, priceUsd: 49.99, bonus: 75_000 },
 ] as const;
 
 export async function getWallet(userId: string) {
@@ -51,7 +55,13 @@ export async function topUp(userId: string, packageId: string) {
   return { wallet: user, credited: total };
 }
 
-/** Convierte diamantes ganados en monedas gastables. */
+/**
+ * Convierte diamantes ganados en monedas gastables, 1:1.
+ *
+ * Solo existe este sentido. No hay ni habrá conversión de monedas a diamantes:
+ * las monedas se compran, y dejar pasarlas a diamantes permitiría fabricar
+ * saldo de retiro con tarjeta.
+ */
 export async function exchangeDiamonds(userId: string, diamonds: number) {
   if (diamonds <= 0) throw HttpError.badRequest('La cantidad debe ser mayor que cero');
 

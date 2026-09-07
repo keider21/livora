@@ -86,14 +86,40 @@ export function LiveKitStreamSurface({ credentials, hostName, children }: Stream
   );
 }
 
+/**
+ * Si el servidor de vídeo no es alcanzable (típico: la app apunta a una
+ * dirección de red local y el teléfono está fuera de esa red), LiveKit se queda
+ * reintentando sin decir nada y la pantalla gira para siempre. Pasado este
+ * tiempo se explica qué ocurre en vez de seguir esperando.
+ */
+const CONNECT_TIMEOUT_MS = 15000;
+
 function Stage({ isHost, hostName }: { isHost: boolean; hostName: string }) {
   const connection = useConnectionState();
+  const [tardando, setTardando] = useState(false);
   // Solo interesa la cámara: la del propio anfitrión (local) o la que llega
   // del anfitrión (remota) cuando se es espectador.
   const tracks = useTracks([Track.Source.Camera], { onlySubscribed: false });
   const camera = tracks.find(isTrackReference);
 
-  if (connection === ConnectionState.Connecting || connection === ConnectionState.Reconnecting) {
+  const conectando =
+    connection === ConnectionState.Connecting || connection === ConnectionState.Reconnecting;
+
+  useEffect(() => {
+    if (!conectando) {
+      setTardando(false);
+      return;
+    }
+    const timer = setTimeout(() => setTardando(true), CONNECT_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [conectando]);
+
+  if (conectando) {
+    if (tardando) {
+      return (
+        <Status message="No se llega al servidor de vídeo. Suele pasar cuando la app apunta a una dirección de la red de casa y el teléfono está fuera de esa red. El chat y los regalos siguen funcionando." />
+      );
+    }
     return <Status message={connection === ConnectionState.Connecting ? 'Conectando al vídeo…' : 'Reconectando…'} spinner />;
   }
   if (connection === ConnectionState.Disconnected) {

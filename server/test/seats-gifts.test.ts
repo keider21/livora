@@ -208,8 +208,9 @@ describe('invitados en la tira lateral', () => {
     assert.equal(regalo.status, 201);
     assert.equal(regalo.data.giftSend.recipient.id, guest.id);
 
+    // 10 monedas al 5% son 0,5 diamantes, que se redondean a 1.
     const invitado = await prisma.user.findUnique({ where: { id: guest.id } });
-    assert.equal(invitado?.diamonds, 5);
+    assert.equal(invitado?.diamonds, 1);
   });
 
   it('el anfitrión puede regalar a su invitado', async () => {

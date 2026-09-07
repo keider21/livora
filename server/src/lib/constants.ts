@@ -38,11 +38,33 @@ export const CURRENCY = {
   DIAMONDS: 'diamonds',
 } as const;
 
-/** Cuántos diamantes recibe el anfitrión por cada moneda gastada en un regalo. */
-export const DIAMONDS_PER_COIN = 0.5;
+/**
+ * Economía de Livora, en un solo sitio.
+ *
+ * Referencia del sector (TikTok Live y similares): el espectador compra
+ * monedas, las gasta en regalos, y quien recibe cobra en diamantes a una tasa
+ * bastante por debajo de 1:1, que es de donde sale el margen de la plataforma.
+ * Ahí ese reparto ronda el 50%.
+ *
+ * Aquí es del 5% por decisión del usuario (2026-09-06): gastar 1.000 monedas
+ * deja 50 diamantes a quien recibe. Es mucho más agresivo que la referencia,
+ * así que conviene tenerlo presente si algún día hay anfitriones reales.
+ */
+export const DIAMONDS_PER_COIN = 0.05;
 
-/** Cuántas monedas cuesta cambiar un diamante de vuelta (tasa de retiro). */
+/**
+ * Diamantes y monedas valen lo mismo en dólares (100.000 de cada = 10 USD), de
+ * modo que el cambio es 1:1. Solo existe en un sentido, de diamantes a monedas:
+ * las monedas se compran y no se pueden convertir en diamantes, porque si no
+ * cualquiera se fabricaría saldo de retiro comprando monedas.
+ */
 export const COINS_PER_DIAMOND = 1;
+
+/** Monedas por dólar de recarga: 100.000 monedas = 10 USD. */
+export const COINS_PER_USD = 10_000;
+
+/** Diamantes por dólar al retirar: 100.000 diamantes = 10 USD. */
+export const DIAMONDS_PER_USD = 10_000;
 
 /** Experiencia que gana quien envía un regalo, por moneda gastada. */
 export const XP_PER_COIN_SPENT = 1;

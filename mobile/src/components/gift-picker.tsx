@@ -68,8 +68,13 @@ export function GiftPicker({
                 <Text style={[styles.price, { color: tierColors[item.tier] ?? colors.coin }]}>
                   🪙 {item.priceCoins}
                 </Text>
-                {/* Los regalos con premio se marcan: parte de lo gastado puede volver. */}
-                {item.luckyChance > 0 ? <Text style={styles.lucky}>🍀</Text> : null}
+                {/* Con premio va el trébol; los exclusivos, que nunca premian
+                    pero llenan la pantalla, van con la estrella. */}
+                {item.tier === 'exclusive' ? (
+                  <Text style={styles.lucky}>✨</Text>
+                ) : item.luckyChance > 0 ? (
+                  <Text style={styles.lucky}>🍀</Text>
+                ) : null}
               </Pressable>
             );
           }}
@@ -87,7 +92,11 @@ export function GiftPicker({
           ))}
         </View>
 
-        {selected && selected.luckyChance > 0 ? (
+        {selected?.tier === 'exclusive' ? (
+          <Text style={styles.exclusiveHint}>
+            {selected.name} es exclusivo: no devuelve monedas, pero llena la pantalla de toda la sala.
+          </Text>
+        ) : selected && selected.luckyChance > 0 ? (
           <Text style={styles.luckyHint}>
             {selected.name} puede devolverte monedas: {Math.round(selected.luckyChance * 100)}% de premio, hasta
             ×{Math.max(...selected.luckyMultipliers.split(',').map(Number).filter(Number.isFinite))}
@@ -140,6 +149,7 @@ const styles = StyleSheet.create({
   price: { fontSize: 10, fontWeight: '700' },
   lucky: { position: 'absolute', top: 2, right: 4, fontSize: 11 },
   luckyHint: { color: colors.coin, fontSize: 11, fontWeight: '600', textAlign: 'center' },
+  exclusiveHint: { color: tierColors.exclusive, fontSize: 11, fontWeight: '600', textAlign: 'center' },
   quantities: { flexDirection: 'row', gap: spacing.sm },
   quantity: {
     flex: 1,

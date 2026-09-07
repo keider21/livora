@@ -36,6 +36,7 @@ import { getStreamRenderer } from '../../src/streaming/provider';
 import { useAuthStore } from '../../src/store/auth-store';
 import { ChatOverlay } from '../../src/components/chat-overlay';
 import { GiftAnimation } from '../../src/components/gift-animation';
+import { GiftAura } from '../../src/components/gift-aura';
 import { GiftBurst } from '../../src/components/gift-burst';
 import { GiftPicker } from '../../src/components/gift-picker';
 import { SeatRequests } from '../../src/components/seat-requests';
@@ -328,7 +329,14 @@ export default function RoomScreen() {
         </View>
       )}
 
-      {currentGift ? <GiftBurst key={currentGift.id} event={currentGift} onDone={() => undefined} /> : null}
+      {/* Los exclusivos no explotan: llenan la pantalla con su aura. */}
+      {currentGift ? (
+        currentGift.gift.animation === 'aura' ? (
+          <GiftAura key={currentGift.id} event={currentGift} onDone={() => undefined} />
+        ) : (
+          <GiftBurst key={currentGift.id} event={currentGift} onDone={() => undefined} />
+        )
+      ) : null}
 
       <SafeAreaView style={styles.overlay} pointerEvents="box-none">
         <View style={styles.topBar}>
