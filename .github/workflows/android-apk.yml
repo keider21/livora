@@ -20,6 +20,12 @@ jobs:
     # Para publicar la Release con la APK.
     permissions:
       contents: write
+    env:
+      # Dirección que trae la APK de fábrica, para no tener que configurarla en
+      # cada teléfono. Se cambia en Settings → Secrets and variables → Actions →
+      # Variables, sin tocar el código. La pantalla «Servidor» sigue mandando
+      # sobre esto en cada dispositivo.
+      EXPO_PUBLIC_API_URL: ${{ vars.API_URL || 'http://localhost:4000' }}
     defaults:
       run:
         working-directory: mobile
