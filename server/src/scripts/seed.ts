@@ -1,17 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma';
+import { GIFT_CATALOG } from '../lib/gift-catalog';
 import { streamProvider } from '../streaming';
-
-const GIFTS = [
-  { code: 'rose', name: 'Rosa', emoji: '🌹', priceCoins: 10, tier: 'basic', animation: 'float' },
-  { code: 'heart', name: 'Corazón', emoji: '💖', priceCoins: 25, tier: 'basic', animation: 'float' },
-  { code: 'beer', name: 'Cerveza', emoji: '🍺', priceCoins: 50, tier: 'basic', animation: 'float' },
-  { code: 'crown', name: 'Corona', emoji: '👑', priceCoins: 199, tier: 'rare', animation: 'burst' },
-  { code: 'fireworks', name: 'Fuegos artificiales', emoji: '🎆', priceCoins: 499, tier: 'rare', animation: 'burst' },
-  { code: 'ferrari', name: 'Deportivo', emoji: '🏎️', priceCoins: 1299, tier: 'epic', animation: 'fullscreen' },
-  { code: 'yacht', name: 'Yate', emoji: '🛥️', priceCoins: 2999, tier: 'epic', animation: 'fullscreen' },
-  { code: 'castle', name: 'Castillo', emoji: '🏰', priceCoins: 9999, tier: 'legendary', animation: 'fullscreen' },
-];
 
 const USERS = [
   { username: 'luna', displayName: 'Luna Ríos', country: 'CO', gender: 'female', bio: 'Canto cada noche a las 9 ✨' },
@@ -29,7 +19,7 @@ const ROOMS = [
 
 async function main() {
   console.log('[seed] Cargando catálogo de regalos...');
-  for (const gift of GIFTS) {
+  for (const gift of GIFT_CATALOG) {
     await prisma.gift.upsert({ where: { code: gift.code }, create: gift, update: gift });
   }
 

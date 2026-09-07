@@ -20,3 +20,9 @@ export const sendMessageSchema = z.object({
 
 export type CreateRoomInput = z.infer<typeof createRoomSchema>;
 export type ListRoomsInput = z.infer<typeof listRoomsSchema>;
+
+export const seatMicSchema = z.object({
+  micMuted: z.boolean(),
+});
+
+export type SeatMicInput = z.infer<typeof seatMicSchema>;

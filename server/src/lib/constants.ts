@@ -19,8 +19,19 @@ export const TRANSACTION_TYPE = {
   TOPUP: 'topup',
   GIFT_SENT: 'gift_sent',
   GIFT_RECEIVED: 'gift_received',
+  GIFT_REWARD: 'gift_reward',
   EXCHANGE: 'exchange',
 } as const;
+
+export const SEAT_STATUS = {
+  /** Ha pedido subir y espera al anfitrión. */
+  PENDING: 'pending',
+  /** Está arriba, en la tira lateral. */
+  ACTIVE: 'active',
+} as const;
+
+/** Cuántos invitados caben a la vez en la tira lateral. */
+export const MAX_SEATS = 8;
 
 export const CURRENCY = {
   COINS: 'coins',

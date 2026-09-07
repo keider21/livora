@@ -1,4 +1,4 @@
-import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
+import { AccessToken, RoomServiceClient, TrackSource } from 'livekit-server-sdk';
 import type { StreamCredentials, StreamProvider, StreamRole } from './provider';
 
 const DEFAULT_TTL_SECONDS = 60 * 60;
@@ -40,6 +40,7 @@ export class LiveKitStreamProvider implements StreamProvider {
   }): Promise<StreamCredentials> {
     const ttl = params.ttlSeconds ?? DEFAULT_TTL_SECONDS;
     const isHost = params.role === 'host';
+    const isGuest = params.role === 'guest';
 
     const token = new AccessToken(this.config.apiKey, this.config.apiSecret, {
       identity: params.identity,
@@ -48,7 +49,10 @@ export class LiveKitStreamProvider implements StreamProvider {
     token.addGrant({
       room: params.channel,
       roomJoin: true,
-      canPublish: isHost,
+      canPublish: isHost || isGuest,
+      // El invitado sube a la tira lateral, donde solo se ve su avatar: se le
+      // limita a micrófono para que no pueda publicar vídeo aunque quiera.
+      ...(isGuest ? { canPublishSources: [TrackSource.MICROPHONE] } : {}),
       canSubscribe: true,
       // El chat va por nuestro socket, no por LiveKit: nadie publica datos.
       canPublishData: false,

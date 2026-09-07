@@ -16,6 +16,7 @@ export const SOCKET_EVENTS = {
   ROOM_VIEWERS: 'room:viewers',
   ROOM_LIKES: 'room:likes',
   ROOM_ENDED: 'room:ended',
+  ROOM_SEATS: 'room:seats',
   WALLET_UPDATED: 'wallet:updated',
   ERROR: 'app:error',
 } as const;
@@ -41,10 +42,39 @@ export interface GiftEventPayload {
   quantity: number;
   coinsSpent: number;
   diamondsEarned: number;
+  /** Monedas devueltas al emisor por el premio, 0 si no tocó. */
+  coinsRewarded: number;
+  /** Multiplicador que salió premiado, null si no hubo premio. */
+  luckyMultiplier: number | null;
   createdAt: string;
   gift: { code: string; name: string; emoji: string; tier: string; animation: string };
   sender: { id: string; username: string; displayName: string; avatarUrl: string | null };
+  /** A quién se lo enviaron: el anfitrión o un invitado de la tira. */
+  recipient: { id: string; username: string; displayName: string; avatarUrl: string | null };
   roomTotalDiamonds: number;
+}
+
+/** Un invitado en la tira lateral, o alguien esperando a que le suban. */
+export interface SeatPayload {
+  userId: string;
+  status: 'pending' | 'active';
+  position: number | null;
+  micMuted: boolean;
+  user: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatarUrl: string | null;
+    level: number;
+  };
+}
+
+export interface SeatsPayload {
+  roomId: string;
+  /** Los que están arriba, ordenados por hueco. */
+  seats: SeatPayload[];
+  /** Solicitudes sin responder. Solo se envían al anfitrión. */
+  pending: SeatPayload[];
 }
 
 export interface ViewersPayload {

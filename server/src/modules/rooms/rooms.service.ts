@@ -6,6 +6,7 @@ import { publicUserSelect } from '../users/user.dto';
 import { countRoomViewers, emitToRoom } from '../../realtime/bus';
 import { SOCKET_EVENTS, type ChatMessagePayload } from '../../realtime/events';
 import { roomSelect, toRoom } from './room.dto';
+import { clearSeats } from './seats.service';
 import type { CreateRoomInput, ListRoomsInput } from './rooms.schema';
 
 const MESSAGE_HISTORY = 50;
@@ -124,6 +125,9 @@ export async function endRoom(roomId: string, hostId: string) {
     where: { id: roomId },
     data: { status: ROOM_STATUS.ENDED, endedAt, viewerCount: 0 },
   });
+  // Al cerrar no queda nadie arriba: si no se limpia, una sala nueva del mismo
+  // anfitrión heredaría invitados fantasma.
+  await clearSeats(roomId);
   await streamProvider.closeChannel(room.channel);
 
   const summary = {

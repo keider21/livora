@@ -12,15 +12,15 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  username     String   @unique
+  id           String    @id @default(cuid())
+  email        String    @unique
+  username     String    @unique
   passwordHash String
   displayName  String
   avatarUrl    String?
   bio          String?
   country      String?
-  gender       String   @default("unspecified") // male | female | unspecified
+  gender       String    @default("unspecified") // male | female | unspecified
   birthDate    DateTime?
 
   // Progresión y economía
@@ -35,13 +35,14 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  rooms          Room[]
-  messages       Message[]
-  giftsSent      GiftSend[]     @relation("GiftSender")
-  giftsReceived  GiftSend[]     @relation("GiftReceiver")
-  transactions   Transaction[]
-  following      Follow[]       @relation("Follower")
-  followers      Follow[]       @relation("Following")
+  rooms         Room[]
+  messages      Message[]
+  giftsSent     GiftSend[]    @relation("GiftSender")
+  giftsReceived GiftSend[]    @relation("GiftReceiver")
+  transactions  Transaction[]
+  following     Follow[]      @relation("Follower")
+  followers     Follow[]      @relation("Following")
+  seats         RoomSeat[]
 }
 
 model Follow {
@@ -68,10 +69,10 @@ model Room {
   // Identificador del canal en el proveedor de streaming (Agora/LiveKit/mock)
   channel String @unique
 
-  viewerCount    Int @default(0)
-  peakViewers    Int @default(0)
-  totalDiamonds  Int @default(0)
-  totalLikes     Int @default(0)
+  viewerCount   Int @default(0)
+  peakViewers   Int @default(0)
+  totalDiamonds Int @default(0)
+  totalLikes    Int @default(0)
 
   startedAt DateTime  @default(now())
   endedAt   DateTime?
@@ -79,8 +80,34 @@ model Room {
   host     User       @relation(fields: [hostId], references: [id], onDelete: Cascade)
   messages Message[]
   gifts    GiftSend[]
+  seats    RoomSeat[]
 
   @@index([status, startedAt])
+}
+
+/// Invitado subido a la transmisión: aparece en la tira lateral, habla por
+/// micrófono (nunca cámara) y puede recibir regalos como el anfitrión.
+model RoomSeat {
+  id       String  @id @default(cuid())
+  roomId   String
+  userId   String
+  /// pending = ha pedido subir | active = está arriba
+  status   String  @default("pending")
+  /// 1..8, el hueco que ocupa en la tira. Nulo mientras está pendiente.
+  position Int?
+  micMuted Boolean @default(false)
+
+  requestedAt DateTime  @default(now())
+  acceptedAt  DateTime?
+  leftAt      DateTime?
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Un usuario no puede tener dos solicitudes o asientos vivos en la misma
+  /// sala; al bajarse se borra la fila en vez de dejarla histórica.
+  @@unique([roomId, userId])
+  @@index([roomId, status])
 }
 
 model Message {
@@ -107,6 +134,12 @@ model Gift {
   animation  String  @default("float") // float | burst | fullscreen
   isActive   Boolean @default(true)
 
+  /// Probabilidad de premio, de 0 a 1. En 0 el regalo nunca devuelve nada.
+  luckyChance      Float  @default(0)
+  /// Multiplicadores posibles sobre lo gastado, separados por coma ("2,5,50").
+  /// Se sortea uno al azar cuando toca premio.
+  luckyMultipliers String @default("")
+
   sends GiftSend[]
 }
 
@@ -119,6 +152,8 @@ model GiftSend {
   quantity       Int      @default(1)
   coinsSpent     Int
   diamondsEarned Int
+  /// Monedas devueltas al emisor por el premio, 0 si no tocó.
+  coinsRewarded  Int      @default(0)
   createdAt      DateTime @default(now())
 
   gift     Gift @relation(fields: [giftId], references: [id])
@@ -133,9 +168,9 @@ model GiftSend {
 model Transaction {
   id           String   @id @default(cuid())
   userId       String
-  type         String   // topup | gift_sent | gift_received | exchange
-  currency     String   // coins | diamonds
-  amount       Int      // positivo suma, negativo resta
+  type         String // topup | gift_sent | gift_received | exchange
+  currency     String // coins | diamonds
+  amount       Int // positivo suma, negativo resta
   balanceAfter Int
   reference    String?
   createdAt    DateTime @default(now())

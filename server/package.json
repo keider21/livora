@@ -13,7 +13,7 @@
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
     "seed": "tsx src/scripts/seed.ts",
-    "test": "rm -f prisma/test.db prisma/test.db-journal && DATABASE_URL=\"file:./test.db\" npx prisma db push --skip-generate && DATABASE_URL=\"file:./test.db\" node --test --import tsx test/*.test.ts"
+    "test": "node scripts/test.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

@@ -6,7 +6,11 @@
  * STREAM_PROVIDER en el .env, sin tocar rutas ni pantallas.
  */
 
-export type StreamRole = 'host' | 'viewer';
+/**
+ * `guest` es el invitado que sube a la transmisión: publica micrófono pero
+ * nunca cámara, porque en la tira lateral solo se le ve el avatar.
+ */
+export type StreamRole = 'host' | 'guest' | 'viewer';
 
 export interface StreamCredentials {
   /** Nombre del proveedor que emitió las credenciales. */
@@ -15,7 +19,7 @@ export interface StreamCredentials {
   channel: string;
   /** Identificador del participante dentro del canal. */
   identity: string;
-  /** Rol con el que se entra: publica vídeo o solo lo consume. */
+  /** Rol con el que se entra: publica vídeo, solo voz, o solo consume. */
   role: StreamRole;
   /** Token de acceso al canal. */
   token: string;

@@ -309,6 +309,25 @@ correspondan.
 | Iconos regenerables | `cd mobile && python3 scripts/generate-icons.py` | Escribe 7 PNG y `logo.svg` |
 | Seed | `npm run seed --prefix server` | `5 usuarios, 3 salas, 8 regalos` |
 
+
+## Fase 11 — Regalos e invitados estilo Kako 🔄
+
+Pedido del usuario el 2026-09-06: regalos que exploten y puedan devolver
+monedas, poder **subir invitados a la transmisión en una tira lateral y sin
+cámara**, que esos invitados reciban regalos, y que el anfitrión también pueda
+regalar. Hoy el regalo va siempre del espectador al anfitrión y no hay
+invitados.
+
+| Paso | Estado | Notas |
+| --- | --- | --- |
+| 11.1 Asientos de invitado: modelo `RoomSeat`, solicitar / aceptar / bajar, y evento en tiempo real | ⏳ | Sin cámara: el token de LiveKit del invitado publica solo micrófono (`canPublishSources: ['microphone']`). Máximo 8 asientos |
+| 11.2 Regalos dirigidos a cualquier participante | ⏳ | `POST /api/gifts/send` acepta `recipientId`; por defecto el anfitrión. El destinatario debe estar en la sala como anfitrión o invitado activo. El anfitrión pasa a poder enviar |
+| 11.3 Regalos con premio que devuelven monedas | ⏳ | El catálogo gana probabilidad y multiplicadores; al enviarlo se sortea y, si toca, se abonan monedas al emisor con su propio movimiento contable. Es azar con dinero: se decide y documenta la tasa de retorno |
+| 11.4 Tira lateral de invitados en la app | ⏳ | Avatares en vertical sobre el vídeo, con indicador de quien habla y de micro apagado. Tocar uno lo elige como destinatario del regalo |
+| 11.5 Animación de explosión del regalo | ⏳ | Cierra la **Falta** de 2.5 junto con 9.6 |
+| 11.6 El anfitrión gestiona las solicitudes de subir | ⏳ | Lista de peticiones pendientes con aceptar o rechazar |
+
+---
 ---
 
 ## Cómo mantener este plan
