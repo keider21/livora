@@ -86,8 +86,16 @@ export default function RoomScreen() {
   const [chatHidden, setChatHidden] = useState(false);
   const heartId = useRef(0);
 
-  // Los regalos entran en cola para que dos seguidos no se pisen en pantalla.
-  const giftQueue = useRef<GiftEvent[]>([]);
+  /**
+   * Regalos repetidos se acumulan en un solo anuncio en vez de encolarse.
+   *
+   * Antes cada envío entraba en una cola y se reproducía entero, uno detrás de
+   * otro: con el envío automático quedaban quince animaciones pendientes que
+   * seguían saliendo mucho después de parar. Ahora, si llega el mismo regalo
+   * del mismo remitente, se suma al que ya está en pantalla y se reinicia su
+   * tiempo, como el contador de combo de las apps del sector.
+   */
+  const [combo, setCombo] = useState({ quantity: 0, coins: 0, wins: 0, key: 0 });
 
   const isHost = Boolean(room && user && room.host.id === user.id);
 
@@ -95,9 +103,9 @@ export default function RoomScreen() {
     setMessages((current) => [...current, message].slice(-MAX_MESSAGES));
   }, []);
 
-  const showNextGift = useCallback(() => {
-    const next = giftQueue.current.shift() ?? null;
-    setCurrentGift(next);
+  const hideGift = useCallback(() => {
+    setCurrentGift(null);
+    setCombo({ quantity: 0, coins: 0, wins: 0, key: 0 });
   }, []);
 
   useEffect(() => {
@@ -158,11 +166,24 @@ export default function RoomScreen() {
     const onGift = (event: GiftEvent) => {
       if (event.roomId !== id) return;
       setRoom((current) => (current ? { ...current, totalDiamonds: event.roomTotalDiamonds } : current));
-      if (currentGiftRef.current) {
-        giftQueue.current.push(event);
-      } else {
-        setCurrentGift(event);
-      }
+
+      const anterior = currentGiftRef.current;
+      const esElMismo =
+        anterior !== null &&
+        anterior.gift.code === event.gift.code &&
+        anterior.sender.id === event.sender.id;
+
+      setCurrentGift(event);
+      setCombo((current) =>
+        esElMismo
+          ? {
+              quantity: current.quantity + event.quantity,
+              coins: current.coins + event.coinsRewarded,
+              wins: current.wins + event.luckyWins,
+              key: current.key + 1,
+            }
+          : { quantity: event.quantity, coins: event.coinsRewarded, wins: event.luckyWins, key: 0 },
+      );
     };
     const onViewers = (event: ViewersEvent) => {
       if (event.roomId === id) setViewers(event.count);
@@ -432,7 +453,15 @@ export default function RoomScreen() {
         currentGift.gift.animation === 'aura' ? (
           <GiftAura key={currentGift.id} event={currentGift} onDone={() => undefined} />
         ) : (
-          <GiftBurst key={currentGift.id} event={currentGift} onDone={() => undefined} />
+          <GiftBurst
+            // La clave incluye el combo para que cada repetición relance la
+            // explosión desde cero en vez de esperar a que acabe la anterior.
+            key={`${currentGift.gift.code}-${combo.key}`}
+            event={currentGift}
+            coinsRewarded={combo.coins}
+            wins={combo.wins}
+            onDone={() => undefined}
+          />
         )
       ) : null}
 
@@ -484,7 +513,14 @@ export default function RoomScreen() {
 
         <View style={styles.middle} pointerEvents="box-none">
           <View style={styles.giftLayer} pointerEvents="none">
-            {currentGift ? <GiftAnimation event={currentGift} onDone={showNextGift} /> : null}
+            {currentGift ? (
+              <GiftAnimation
+                event={currentGift}
+                comboQuantity={combo.quantity}
+                comboKey={combo.key}
+                onDone={hideGift}
+              />
+            ) : null}
           </View>
 
           <SeatStrip

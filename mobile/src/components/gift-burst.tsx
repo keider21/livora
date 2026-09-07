@@ -11,7 +11,19 @@ import { colors, radius, spacing } from '../theme';
 const PARTICLES: Record<string, number> = { float: 6, burst: 12, fullscreen: 20 };
 const DISTANCE: Record<string, number> = { float: 90, burst: 150, fullscreen: 240 };
 
-export function GiftBurst({ event, onDone }: { event: GiftEvent; onDone: () => void }) {
+export function GiftBurst({
+  event,
+  coinsRewarded,
+  wins,
+  onDone,
+}: {
+  event: GiftEvent;
+  /** Monedas ganadas en todo el combo, no solo en el último envío. */
+  coinsRewarded: number;
+  /** Cuántas unidades premiaron en total. */
+  wins: number;
+  onDone: () => void;
+}) {
   const progress = useRef(new Animated.Value(0)).current;
   const count = PARTICLES[event.gift.animation] ?? PARTICLES.burst!;
   const distance = DISTANCE[event.gift.animation] ?? DISTANCE.burst!;
@@ -60,8 +72,10 @@ export function GiftBurst({ event, onDone }: { event: GiftEvent; onDone: () => v
         </Animated.Text>
       ))}
 
-      {/* Si el regalo tocó premio, el aviso sale en el centro de la explosión. */}
-      {event.coinsRewarded > 0 ? (
+      {/* Si tocó premio, el aviso sale en el centro de la explosión. Con un
+          paquete grande no se enseña ×2 tres veces: se dice cuántas unidades
+          premiaron y el total de monedas ganadas, ya sumado. */}
+      {coinsRewarded > 0 ? (
         <Animated.View
           style={[
             styles.reward,
@@ -73,8 +87,12 @@ export function GiftBurst({ event, onDone }: { event: GiftEvent; onDone: () => v
             },
           ]}
         >
-          <Text style={styles.rewardMultiplier}>×{event.luckyMultiplier}</Text>
-          <Text style={styles.rewardCoins}>+{event.coinsRewarded} monedas</Text>
+          <Text style={styles.rewardMultiplier}>
+            {wins > 1 ? `×${wins}` : `×${event.luckyMultiplier}`}
+          </Text>
+          <Text style={styles.rewardCoins}>
+            {wins > 1 ? `${wins} premios · ` : ''}+{coinsRewarded.toLocaleString('es')} monedas
+          </Text>
         </Animated.View>
       ) : null}
     </View>

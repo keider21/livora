@@ -3,24 +3,62 @@ import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import type { GiftEvent } from '../realtime/events';
 import { colors, radius, spacing } from '../theme';
 
+/** Lo que se espera sin recibir otro igual antes de retirar el anuncio. */
+const HOLD_BIG_MS = 2600;
+const HOLD_MS = 1500;
+
 /**
- * Anuncio animado del último regalo recibido. Los regalos `fullscreen` entran
- * más grandes y duran más, igual que los caros en las apps de streaming.
+ * Anuncio del regalo en curso, arriba a la izquierda.
+ *
+ * Cuando llega el mismo regalo del mismo remitente no se apila otro anuncio:
+ * el contador sube (×1, ×2, ×3…) y el tiempo de permanencia vuelve a empezar,
+ * como el combo de las apps del sector. Antes cada envío entraba en una cola y
+ * se reproducía entero, así que con el envío automático quedaban animaciones
+ * saliendo mucho después de haber parado.
+ *
+ * Los regalos `fullscreen` entran más grandes y aguantan más, igual que los
+ * caros en esas apps.
  */
-export function GiftAnimation({ event, onDone }: { event: GiftEvent; onDone: () => void }) {
+export function GiftAnimation({
+  event,
+  comboQuantity,
+  comboKey,
+  onDone,
+}: {
+  event: GiftEvent;
+  /** Unidades acumuladas del combo, que es lo que se muestra. */
+  comboQuantity: number;
+  /** Sube en cada repetición: reinicia la animación y la espera. */
+  comboKey: number;
+  onDone: () => void;
+}) {
   const progress = useRef(new Animated.Value(0)).current;
+  const pop = useRef(new Animated.Value(1)).current;
   const isBig = event.gift.animation === 'fullscreen';
 
+  // La entrada y la retirada se reinician con cada repetición.
   useEffect(() => {
     progress.setValue(0);
     const animation = Animated.sequence([
       Animated.timing(progress, { toValue: 1, duration: 320, easing: Easing.out(Easing.back(1.6)), useNativeDriver: true }),
-      Animated.delay(isBig ? 2600 : 1500),
+      Animated.delay(isBig ? HOLD_BIG_MS : HOLD_MS),
       Animated.timing(progress, { toValue: 0, duration: 280, easing: Easing.in(Easing.ease), useNativeDriver: true }),
     ]);
     animation.start(({ finished }) => finished && onDone());
     return () => animation.stop();
-  }, [event.id, isBig, onDone, progress]);
+  }, [event.gift.code, event.sender.id, comboKey, isBig, onDone, progress]);
+
+  // Un golpe de escala en el número cada vez que sube, para que se note.
+  useEffect(() => {
+    if (comboKey === 0) return;
+    pop.setValue(1);
+    const animation = Animated.sequence([
+      Animated.timing(pop, { toValue: 1.35, duration: 110, useNativeDriver: true }),
+      Animated.spring(pop, { toValue: 1, friction: 4, useNativeDriver: true }),
+    ]);
+    animation.start();
+    return () => animation.stop();
+  }, [comboKey, pop]);
 
   const translateX = progress.interpolate({ inputRange: [0, 1], outputRange: [-260, 0] });
   const scale = progress.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] });
@@ -34,10 +72,12 @@ export function GiftAnimation({ event, onDone }: { event: GiftEvent; onDone: () 
             {event.sender.displayName}
           </Text>
           <Text style={styles.gift} numberOfLines={1}>
-            envió {event.gift.name}
+            {event.gift.name} · para {event.recipient.displayName}
           </Text>
         </View>
-        <Text style={styles.quantity}>×{event.quantity}</Text>
+        <Animated.Text style={[styles.quantity, { transform: [{ scale: pop }] }]}>
+          ×{comboQuantity}
+        </Animated.Text>
       </View>
     </Animated.View>
   );
@@ -62,5 +102,5 @@ const styles = StyleSheet.create({
   texts: { maxWidth: 170 },
   sender: { color: colors.text, fontWeight: '700', fontSize: 13 },
   gift: { color: colors.textMuted, fontWeight: '600', fontSize: 11 },
-  quantity: { color: colors.accent, fontWeight: '800', fontSize: 18 },
+  quantity: { color: colors.accent, fontWeight: '800', fontSize: 20 },
 });
