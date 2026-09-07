@@ -16,7 +16,7 @@
 | **Última actualización** | 2026-09-06 |
 | **Rama** | `main` en `keider21/livora`, repositorio propio y público (el último commit lo dice `git log -1`) |
 | **Pull request** | Ninguno: se trabaja directo sobre `main` en el repositorio nuevo. El anterior ([keider21/cecchi#1](https://github.com/keider21/cecchi/pull/1)) queda histórico |
-| **Salud** | 52 pruebas en verde (27 servidor + 25 móvil) · TypeScript limpio en `server/` y `mobile/` · empaqueta para Android · `expo prebuild` acepta los plugins de LiveKit |
+| **Salud** | 54 pruebas en verde (27 servidor + 27 móvil) · TypeScript limpio en `server/` y `mobile/` · empaqueta para Android · `expo prebuild` acepta los plugins de LiveKit |
 
 **Lo último:** la APK funciona en el teléfono (build 106, 2026-09-06). Cerrada
 la Fase 10 salvo el despliegue público (10.7, ⛔ en el usuario). El backend local
@@ -247,6 +247,7 @@ cuenta de Expo, y vea dentro de la app qué cambió.
 | 10.10 Cada APK se puede identificar a simple vista y el guardia mira la ruta entera | ✅ | El login ya imprimía `versionLabel()`, pero el workflow nunca ejecutaba `write-build-info.mjs`: todas las compilaciones decían «build 8», heredado del repositorio anterior, y eran indistinguibles. Ahora el workflow lo ejecuta con `fetch-depth: 0` y el número de build coincide con el run de Actions. Además el guardia usa `segments.includes(...)` en vez de `segments[0]`, por si el modal queda anidado. **Verificación:** `tsc` y 25 pruebas en verde; el número del login debe coincidir con el del Release |
 | 10.11 Enlaces de descarga dentro de la app apuntando al repositorio actual | ✅ | `RELEASES_URL` y `LATEST_APK_URL` de `mobile/src/build-info.ts` seguían en `keider21/cecchi`, privado. Ahora apuntan a `keider21/livora` y al asset `livora.apk` de la última Release |
 | 10.12 Las APK nuevas se instalan encima de las del repositorio anterior | ✅ | Diagnóstico: el login del teléfono decía «build 9», número que solo produjo el workflow de `keider21/cecchi`; las de aquí eran la 1, 3 y 4. Android rechaza en silencio una `versionCode` menor que la instalada, así que ninguna corrección había llegado nunca al teléfono y se estaba depurando código que no se estaba ejecutando. El workflow pasa a usar `100 + run_number`. **Verificación:** la APK publicada declara `versionCode` 105 y el login dice «build 105» |
+| 10.13 Ninguna pantalla se queda cargando para siempre si el servidor no responde | ✅ | `apiRequest` no tenía tiempo límite: con una dirección equivocada el `fetch` de React Native no se rinde nunca y el registro se quedaba girando sin decir nada (solo `checkServer` tenía límite, de ahí que «Probar conexión» sí respondiera). Ahora corta a los 15 s con un mensaje que remite a la pantalla Servidor, y respeta la señal de cancelación de quien llama. **Verificación:** pruebas «se rinde si el servidor no contesta» y «quien llama puede cancelar» (27 en total) |
 
 **Falta en la fase:** la APK va firmada con la clave de depuración que genera
 `expo prebuild`; sirve para probar e instalar actualizaciones encima, no para

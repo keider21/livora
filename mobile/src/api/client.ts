@@ -28,6 +28,12 @@ export function setApiUrl(url: string | null): void {
   apiUrl = url ? adaptForPlatform(url) : DEFAULT_API_URL;
 }
 
+/**
+ * Tiempo máximo por petición. Sin él, una dirección de servidor equivocada deja
+ * la pantalla cargando para siempre: `fetch` en React Native no se rinde solo.
+ */
+const REQUEST_TIMEOUT_MS = 15000;
+
 export class ApiError extends Error {
   readonly status: number;
   readonly code: string;
@@ -59,6 +65,13 @@ interface RequestOptions {
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  // Quien llama puede cancelar por su cuenta (al desmontar una pantalla, por
+  // ejemplo); su señal se suma a la del tiempo límite.
+  const forwardAbort = () => controller.abort();
+  options.signal?.addEventListener('abort', forwardAbort);
+
   const response = await fetch(`${getApiUrl()}${path}`, {
     method: options.method ?? 'GET',
     headers: {
@@ -66,10 +79,22 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
     },
     ...(options.body === undefined ? {} : { body: JSON.stringify(options.body) }),
-    signal: options.signal,
-  }).catch(() => {
-    throw new ApiError(0, 'network_error', 'No se pudo conectar con el servidor');
-  });
+    signal: controller.signal,
+  })
+    .catch(() => {
+      if (options.signal?.aborted) {
+        throw new ApiError(0, 'aborted', 'Petición cancelada');
+      }
+      throw new ApiError(
+        0,
+        'network_error',
+        'No se pudo conectar con el servidor. Revisa la dirección en la pantalla Servidor.',
+      );
+    })
+    .finally(() => {
+      clearTimeout(timer);
+      options.signal?.removeEventListener('abort', forwardAbort);
+    });
 
   const text = await response.text();
   const data = text ? (JSON.parse(text) as unknown) : null;

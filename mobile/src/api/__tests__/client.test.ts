@@ -73,4 +73,41 @@ describe('apiRequest', () => {
     fetchMock.mockResolvedValue(mockResponse(204));
     await expect(apiRequest('/api/rooms/1/leave', { method: 'POST' })).resolves.toBeNull();
   });
+
+  it('se rinde si el servidor no contesta, en vez de esperar para siempre', async () => {
+    jest.useFakeTimers();
+    // Un servidor inalcanzable: `fetch` no resuelve nunca y solo termina cuando
+    // se aborta la señal que se le pasó.
+    fetchMock.mockImplementation(
+      (_url, init) =>
+        new Promise((_resolve, reject) => {
+          init.signal?.addEventListener('abort', () => reject(new Error('aborted')));
+        }),
+    );
+
+    const pending = apiRequest('/api/auth/register', { method: 'POST', body: {} }).catch((e: unknown) => e);
+    jest.advanceTimersByTime(15000);
+    const error = await pending;
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).code).toBe('network_error');
+    jest.useRealTimers();
+  });
+
+  it('quien llama puede cancelar antes del tiempo límite', async () => {
+    const controller = new AbortController();
+    fetchMock.mockImplementation(
+      (_url, init) =>
+        new Promise((_resolve, reject) => {
+          init.signal?.addEventListener('abort', () => reject(new Error('aborted')));
+        }),
+    );
+
+    const pending = apiRequest('/api/rooms', { signal: controller.signal }).catch((e: unknown) => e);
+    controller.abort();
+    const error = await pending;
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).code).toBe('aborted');
+  });
 });
