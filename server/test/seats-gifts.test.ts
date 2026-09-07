@@ -189,6 +189,24 @@ describe('regalos con destinatario', () => {
     );
   });
 
+  it('el evento lleva la ilustración del regalo, no solo el emoji', async () => {
+    const host = await createUser();
+    const viewer = await createUser();
+    const roomId = await openRoom(host.token);
+
+    await prisma.gift.update({ where: { code: 'test-simple' }, data: { image: 'lion-imperial' } });
+
+    const { data } = await api.request('POST', '/api/gifts/send', {
+      token: viewer.token,
+      body: { roomId, giftCode: 'test-simple' },
+    });
+
+    // Sin este campo la app no sabe que hay ilustración y dibuja el emoji.
+    assert.equal(data.giftSend.gift.image, 'lion-imperial');
+
+    await prisma.gift.update({ where: { code: 'test-simple' }, data: { image: null } });
+  });
+
   it('rechaza regalar a alguien que no está en la transmisión', async () => {
     const host = await createUser();
     const viewer = await createUser();

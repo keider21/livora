@@ -231,6 +231,8 @@ export async function sendGift(senderId: string, input: SendGiftInput) {
       code: gift.code,
       name: gift.name,
       emoji: gift.emoji,
+      // Sin esto la app no sabe que el regalo tiene ilustración y cae al emoji.
+      image: gift.image,
       tier: gift.tier,
       animation: gift.animation,
     },
