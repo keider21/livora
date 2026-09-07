@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Gift } from '../api/types';
 import { Avatar, Button } from './ui';
 import { colors, radius, spacing, tierColors, typography } from '../theme';
@@ -61,6 +62,7 @@ export function GiftPicker({
   onClose: () => void;
   onSend: (giftCode: string, quantity: number) => void;
 }) {
+  const insets = useSafeAreaInsets();
   const [selected, setSelected] = useState<Gift | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [tab, setTab] = useState<Tab>('lucky');
@@ -78,7 +80,7 @@ export function GiftPicker({
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} />
-      <View style={styles.sheet}>
+      <View style={[styles.sheet, { paddingBottom: spacing.lg + insets.bottom }]}>
         <View style={styles.header}>
           <View style={styles.headerTexts}>
             <Text style={typography.heading}>Enviar un regalo</Text>

@@ -1,5 +1,6 @@
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { SeatInfo } from '../realtime/events';
 import { Avatar } from './ui';
 import { colors, radius, spacing, typography } from '../theme';
@@ -25,10 +26,12 @@ export function SeatRequests({
   onReject: (userId: string) => void;
   onRemove: (userId: string) => void;
 }) {
+  const insets = useSafeAreaInsets();
+
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
-        <Pressable style={styles.sheet} onPress={(event) => event.stopPropagation()}>
+        <Pressable style={[styles.sheet, { paddingBottom: spacing.lg + insets.bottom }]} onPress={(event) => event.stopPropagation()}>
           <View style={styles.header}>
             <Text style={typography.heading}>Invitados</Text>
             <Pressable onPress={onClose} hitSlop={12} accessibilityLabel="Cerrar">

@@ -237,8 +237,9 @@ export default function RoomScreen() {
     }
   }
 
-  async function sendGift(giftCode: string, quantity: number) {
-    if (!id) return;
+  /** Devuelve si salió bien, para que el envío automático se pare al fallar. */
+  async function sendGift(giftCode: string, quantity: number): Promise<boolean> {
+    if (!id) return false;
     setSendingGift(true);
     try {
       // Sin destinatarios elegidos el servidor se lo da al anfitrión.
@@ -256,12 +257,26 @@ export default function RoomScreen() {
       // Con el candado echado la caja se queda abierta para seguir enviando;
       // sin él se cierra y aparece el botón de repetir sobre la pantalla.
       if (!giftLocked) setPickerOpen(false);
+      return true;
     } catch (error) {
       Alert.alert('No se pudo enviar', error instanceof ApiError ? error.message : 'Inténtalo de nuevo');
+      return false;
     } finally {
       setSendingGift(false);
     }
   }
+
+  // El botón de repetir guarda estas funciones en refs, así que tienen que
+  // mantener su identidad entre renders o reiniciarían la cuenta atrás.
+  const repetirUltimo = useCallback(async () => {
+    if (!lastGift) return false;
+    return sendGift(lastGift.gift.code, lastGift.quantity);
+    // `sendGift` se redefine en cada render pero siempre lee estado fresco, así
+    // que basta con depender del regalo que se repite.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastGift]);
+
+  const olvidarUltimo = useCallback(() => setLastGift(null), []);
 
   /**
    * Los participantes que pueden recibir un regalo: uno mismo el primero, luego
@@ -421,7 +436,9 @@ export default function RoomScreen() {
         )
       ) : null}
 
-      <SafeAreaView style={styles.overlay} pointerEvents="box-none">
+      {/* El borde inferior se gestiona a mano en la barra de abajo, junto con
+          el teclado; si lo aplicara también SafeAreaView se sumarían los dos. */}
+      <SafeAreaView style={styles.overlay} edges={['top', 'left', 'right']} pointerEvents="box-none">
         <View style={styles.topBar}>
           <View style={styles.hostChip}>
             {/* Tocar al anfitrión abre su perfil: nivel, biografía y directos. */}
@@ -486,7 +503,12 @@ export default function RoomScreen() {
         <View
           style={[
             styles.bottom,
-            { marginBottom: keyboard > 0 ? keyboard : 0, paddingBottom: keyboard > 0 ? spacing.sm : insets.bottom },
+            {
+              marginBottom: keyboard > 0 ? keyboard : 0,
+              // Con el teclado abierto manda el teclado; si no, se deja libre
+              // la barra de navegación del sistema más un respiro.
+              paddingBottom: keyboard > 0 ? spacing.sm : insets.bottom + spacing.sm,
+            },
           ]}
         >
           {chatHidden ? null : <ChatOverlay messages={messages} />}
@@ -497,8 +519,8 @@ export default function RoomScreen() {
               <QuickGift
                 gift={lastGift.gift}
                 quantity={lastGift.quantity}
-                onSend={() => void sendGift(lastGift.gift.code, lastGift.quantity)}
-                onExpire={() => setLastGift(null)}
+                onSend={repetirUltimo}
+                onExpire={olvidarUltimo}
               />
             </View>
           ) : null}

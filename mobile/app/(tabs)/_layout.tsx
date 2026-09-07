@@ -3,6 +3,7 @@ import { Tabs, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { buildInfo, isCiBuild } from '../../src/build-info';
 import { Pressable, StyleSheet, Text } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, gradients, radius } from '../../src/theme';
@@ -11,6 +12,7 @@ const LAST_SEEN_BUILD_KEY = 'livora.lastSeenBuild';
 
 export default function TabsLayout() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   // Tras instalar una APK nueva, la pantalla de novedades se abre sola una
   // vez. En compilaciones locales (build 0) no hay nada que anunciar.
@@ -29,7 +31,11 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: styles.bar,
+        // La barra dibuja por debajo de la del sistema, así que en los
+        // teléfonos con los tres botones hay que sumarle ese alto: sin esto
+        // los iconos quedaban justo encima de «atrás» e «inicio». Donde la
+        // navegación es por gestos el inset es 0 y no cambia nada.
+        tabBarStyle: [styles.bar, { height: BAR_HEIGHT + insets.bottom, paddingBottom: 8 + insets.bottom }],
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textFaint,
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
@@ -81,12 +87,13 @@ export default function TabsLayout() {
   );
 }
 
+/** Alto de la barra sin contar la navegación del sistema. */
+const BAR_HEIGHT = 66;
+
 const styles = StyleSheet.create({
   bar: {
     backgroundColor: colors.surface,
     borderTopColor: colors.border,
-    height: 66,
-    paddingBottom: 8,
     paddingTop: 6,
   },
   liveButton: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2 },
