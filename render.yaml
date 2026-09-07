@@ -1,20 +1,23 @@
 # Despliegue del backend de Livora Stream en Render (plan gratuito).
 #
 # Con esto el servidor vive en internet y la app funciona desde cualquier sitio,
-# también con datos móviles, sin depender de que haya un PC encendido.
+# también con datos móviles, sin depender de que haya un PC encendido en casa.
 #
 # Cómo usarlo:
 #   1. Crea una cuenta en https://render.com y conéctala a GitHub.
-#   2. New → Blueprint → elige el repositorio keider21/cecchi
-#      y la rama claude/kako-live-app-bet2no.
+#   2. New → Blueprint → elige el repositorio keider21/livora, rama main.
 #   3. Render lee este archivo y crea el servicio solo. Apply.
 #   4. Cuando termine, copia la URL que te dé (algo como
-#      https://livora-api.onrender.com) y pásamela: la dejo fija en la app
-#      para que no haya que configurar nada nunca más.
+#      https://livora-api.onrender.com) y pásamela: la dejo como dirección de
+#      fábrica de la APK y no hay que configurar nada nunca más.
 #
 # Aviso del plan gratuito: el servicio se duerme tras 15 minutos sin uso y la
 # primera petición después tarda ~30 s en despertarlo. Para probar es
 # suficiente.
+#
+# Aviso sobre el vídeo: esto publica la API y el chat, no el servidor de medios.
+# LiveKit necesita UDP y su propio despliegue, así que el vídeo se queda en modo
+# simulado hasta que haya un LiveKit accesible desde internet (paso 3.9).
 
 services:
   - type: web
@@ -22,16 +25,16 @@ services:
     runtime: node
     plan: free
     region: oregon
-    branch: claude/kako-live-app-bet2no
+    branch: main
 
     # --include=dev es necesario: TypeScript y tsx son dependencias de
     # desarrollo y hacen falta para compilar y para sembrar la base.
-    buildCommand: cd livora-stream/server && npm ci --include=dev && npx prisma generate && npm run build
+    buildCommand: cd server && npm ci --include=dev && npx prisma generate && npm run build
 
     # La base SQLite se recrea en cada despliegue (el disco del plan gratuito
     # es efímero), así que se siembra al arrancar para que siempre haya salas
     # y cuentas de prueba.
-    startCommand: cd livora-stream/server && npx prisma db push --skip-generate && npm run seed && npm start
+    startCommand: cd server && npx prisma db push --skip-generate && npm run seed && npm start
 
     healthCheckPath: /health
 
