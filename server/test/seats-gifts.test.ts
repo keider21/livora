@@ -70,21 +70,39 @@ async function openRoom(token: string) {
 
 describe('sorteo de los regalos con premio', () => {
   it('no devuelve nada cuando el regalo no tiene premio', () => {
-    assert.deepEqual(rollLucky(100, 0, ''), { multiplier: null, coins: 0 });
-    assert.deepEqual(rollLucky(100, 0.5, ''), { multiplier: null, coins: 0 });
+    assert.deepEqual(rollLucky(100, 1, 0, ''), { multiplier: null, coins: 0, wins: 0 });
+    assert.deepEqual(rollLucky(100, 1, 0.5, ''), { multiplier: null, coins: 0, wins: 0 });
   });
 
-  it('devuelve lo gastado por el multiplicador cuando toca', () => {
+  it('devuelve el precio de la unidad por el multiplicador cuando toca', () => {
     // El primer random decide si toca, el segundo elige multiplicador.
-    const secuencia = [0, 0];
-    let i = 0;
-    const roll = rollLucky(200, 0.5, '3,7', () => secuencia[i++] ?? 0);
+    const roll = rollLucky(200, 1, 0.5, '3,7', () => 0);
     assert.equal(roll.multiplier, 3);
     assert.equal(roll.coins, 600);
+    assert.equal(roll.wins, 1);
+  });
+
+  it('sortea una vez por unidad y suma los premios', () => {
+    // Con probabilidad 1 premian las 50 unidades: 50 × 10 × 2.
+    const roll = rollLucky(10, 50, 1, '2', () => 0);
+    assert.equal(roll.wins, 50);
+    assert.equal(roll.coins, 1000);
+  });
+
+  it('el multiplicador que informa es el mayor que salió', () => {
+    // Dos tiradas por unidad: la primera decide si toca, la segunda elige
+    // multiplicador. Aquí toca en las dos unidades, la primera saca ×3 y la
+    // segunda ×7.
+    const secuencia = [0, 0, 0, 0.9];
+    let i = 0;
+    const roll = rollLucky(100, 2, 1, '3,7', () => secuencia[i++] ?? 0);
+    assert.equal(roll.wins, 2);
+    assert.equal(roll.multiplier, 7, 'informa el mejor premio del paquete');
+    assert.equal(roll.coins, 1000, '300 de la primera más 700 de la segunda');
   });
 
   it('no premia si el azar queda por encima de la probabilidad', () => {
-    const roll = rollLucky(200, 0.1, '3,7', () => 0.9);
+    const roll = rollLucky(200, 1, 0.1, '3,7', () => 0.9);
     assert.equal(roll.multiplier, null);
     assert.equal(roll.coins, 0);
   });
@@ -159,23 +177,53 @@ describe('regalos con destinatario', () => {
 
     const { status, data } = await api.request('POST', '/api/gifts/send', {
       token: viewer.token,
-      body: { roomId, giftCode: 'test-simple', recipientId: extraño.id },
+      body: { roomId, giftCode: 'test-simple', recipientIds: [extraño.id] },
     });
 
     assert.equal(status, 400);
     assert.match(data.error.message, /no está en la transmisión/);
   });
 
-  it('nadie puede regalarse a sí mismo', async () => {
+  it('uno se puede regalar a sí mismo: las monedas pasan a diamantes propios', async () => {
     const host = await createUser();
     const roomId = await openRoom(host.token);
 
-    const { status } = await api.request('POST', '/api/gifts/send', {
+    const { status, data } = await api.request('POST', '/api/gifts/send', {
       token: host.token,
-      body: { roomId, giftCode: 'test-simple', recipientId: host.id },
+      body: { roomId, giftCode: 'test-simple', recipientIds: [host.id] },
     });
 
-    assert.equal(status, 400);
+    assert.equal(status, 201);
+    assert.equal(data.giftSend.recipient.id, host.id);
+    assert.equal(data.wallet.coins, 4990, 'gasta 10 de las 5000');
+
+    const yo = await prisma.user.findUnique({ where: { id: host.id } });
+    assert.equal(yo?.diamonds, 1, '10 monedas al 5% redondean a 1 diamante');
+  });
+
+  it('se puede regalar a varias personas a la vez y se cobra por cada una', async () => {
+    const host = await createUser();
+    const guest = await createUser();
+    const fan = await createUser();
+    const roomId = await openRoom(host.token);
+
+    await api.request('POST', `/api/rooms/${roomId}/seats/request`, { token: guest.token });
+    await api.request('POST', `/api/rooms/${roomId}/seats/${guest.id}/accept`, { token: host.token });
+
+    const { status, data } = await api.request('POST', '/api/gifts/send', {
+      token: fan.token,
+      // El propio emisor entra en la lista junto al anfitrión y al invitado.
+      body: { roomId, giftCode: 'test-simple', quantity: 2, recipientIds: [host.id, guest.id, fan.id] },
+    });
+
+    assert.equal(status, 201);
+    assert.equal(data.giftSends.length, 3);
+    // 10 monedas × 2 unidades × 3 destinatarios.
+    assert.equal(data.wallet.coins, 4940);
+    assert.deepEqual(
+      data.giftSends.map((g: { recipient: { id: string } }) => g.recipient.id).sort(),
+      [host.id, guest.id, fan.id].sort(),
+    );
   });
 });
 
@@ -203,7 +251,7 @@ describe('invitados en la tira lateral', () => {
     // Ya arriba, puede recibir regalos como el anfitrión.
     const regalo = await api.request('POST', '/api/gifts/send', {
       token: viewer.token,
-      body: { roomId, giftCode: 'test-simple', recipientId: guest.id },
+      body: { roomId, giftCode: 'test-simple', recipientIds: [guest.id] },
     });
     assert.equal(regalo.status, 201);
     assert.equal(regalo.data.giftSend.recipient.id, guest.id);
@@ -223,7 +271,7 @@ describe('invitados en la tira lateral', () => {
 
     const { status, data } = await api.request('POST', '/api/gifts/send', {
       token: host.token,
-      body: { roomId, giftCode: 'test-simple', recipientId: guest.id },
+      body: { roomId, giftCode: 'test-simple', recipientIds: [guest.id] },
     });
 
     assert.equal(status, 201);
@@ -262,7 +310,7 @@ describe('invitados en la tira lateral', () => {
     // Y al bajarse deja de poder recibir regalos.
     const regalo = await api.request('POST', '/api/gifts/send', {
       token: host.token,
-      body: { roomId, giftCode: 'test-simple', recipientId: guest.id },
+      body: { roomId, giftCode: 'test-simple', recipientIds: [guest.id] },
     });
     assert.equal(regalo.status, 400);
   });

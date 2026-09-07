@@ -42,8 +42,10 @@ export interface GiftEvent {
   diamondsEarned: number;
   /** Monedas devueltas al emisor por el premio, 0 si no tocó. */
   coinsRewarded: number;
-  /** Multiplicador que salió premiado, null si no hubo premio. */
+  /** El mayor multiplicador que salió, null si no hubo premio. */
   luckyMultiplier: number | null;
+  /** Cuántas unidades del envío salieron premiadas. */
+  luckyWins: number;
   createdAt: string;
   gift: { code: string; name: string; emoji: string; tier: string; animation: string };
   sender: { id: string; username: string; displayName: string; avatarUrl: string | null };

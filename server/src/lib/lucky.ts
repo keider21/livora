@@ -24,26 +24,47 @@ export function expectedReturn(chance: number, raw: string): number {
 }
 
 export interface LuckyRoll {
-  /** Multiplicador premiado, o null si no tocó. */
+  /** El mayor multiplicador que salió, o null si no tocó ninguno. */
   multiplier: number | null;
-  /** Monedas que se devuelven al emisor. */
+  /** Monedas que se devuelven al emisor, sumando todas las unidades premiadas. */
   coins: number;
+  /** Cuántas unidades del envío salieron premiadas. */
+  wins: number;
 }
 
 /**
- * `random` se inyecta para poder fijarlo en las pruebas; en producción es
- * `Math.random`.
+ * Sortea el premio **unidad por unidad**.
+ *
+ * Enviar 50 rosas son 50 sorteos independientes, y lo que toque en cada uno se
+ * suma. Antes se sorteaba una sola vez por envío, lo que hacía que mandar un
+ * paquete grande valiera lo mismo que mandar uno solo: con la probabilidad de
+ * la rosa, 50 unidades premian unas 16 veces de media en vez de una.
+ *
+ * `unitPrice` es lo que cuesta **una** unidad, porque el premio de cada una se
+ * calcula sobre su propio precio. `random` se inyecta para poder fijarlo en las
+ * pruebas; en producción es `Math.random`.
  */
 export function rollLucky(
-  coinsSpent: number,
+  unitPrice: number,
+  quantity: number,
   chance: number,
   raw: string,
   random: () => number = Math.random,
 ): LuckyRoll {
   const multipliers = parseMultipliers(raw);
-  if (multipliers.length === 0 || chance <= 0) return { multiplier: null, coins: 0 };
-  if (random() >= chance) return { multiplier: null, coins: 0 };
+  if (multipliers.length === 0 || chance <= 0) return { multiplier: null, coins: 0, wins: 0 };
 
-  const multiplier = multipliers[Math.floor(random() * multipliers.length)] ?? multipliers[0]!;
-  return { multiplier, coins: Math.round(coinsSpent * multiplier) };
+  let coins = 0;
+  let wins = 0;
+  let best: number | null = null;
+
+  for (let i = 0; i < quantity; i += 1) {
+    if (random() >= chance) continue;
+    const multiplier = multipliers[Math.floor(random() * multipliers.length)] ?? multipliers[0]!;
+    coins += Math.round(unitPrice * multiplier);
+    wins += 1;
+    if (best === null || multiplier > best) best = multiplier;
+  }
+
+  return { multiplier: best, coins, wins };
 }

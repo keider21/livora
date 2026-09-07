@@ -27,24 +27,31 @@
  */
 export const GIFT_CATALOG = [
   // 0,33 × 2 = 0,66
-  { code: 'rose', name: 'Rosa', emoji: '🌹', priceCoins: 10, tier: 'basic', animation: 'float', luckyChance: 0.33, luckyMultipliers: '2' },
+  { code: 'rose', name: 'Rosa', emoji: '🌹', priceCoins: 10, tier: 'basic', animation: 'float', luckyChance: 0.33, luckyMultipliers: '2', minFanLevel: 0 },
   // 0,30 × media(2, 3) = 0,75
-  { code: 'heart', name: 'Corazón', emoji: '💖', priceCoins: 25, tier: 'basic', animation: 'float', luckyChance: 0.3, luckyMultipliers: '2,3' },
+  { code: 'heart', name: 'Corazón', emoji: '💖', priceCoins: 25, tier: 'basic', animation: 'float', luckyChance: 0.3, luckyMultipliers: '2,3', minFanLevel: 0 },
   // 0,28 × media(2, 3) = 0,70
-  { code: 'beer', name: 'Cerveza', emoji: '🍺', priceCoins: 50, tier: 'basic', animation: 'float', luckyChance: 0.28, luckyMultipliers: '2,3' },
+  { code: 'beer', name: 'Cerveza', emoji: '🍺', priceCoins: 50, tier: 'basic', animation: 'float', luckyChance: 0.28, luckyMultipliers: '2,3', minFanLevel: 0 },
   // 0,22 × media(2, 3, 5) = 0,73
-  { code: 'crown', name: 'Corona', emoji: '👑', priceCoins: 199, tier: 'rare', animation: 'burst', luckyChance: 0.22, luckyMultipliers: '2,3,5' },
+  { code: 'crown', name: 'Corona', emoji: '👑', priceCoins: 199, tier: 'rare', animation: 'burst', luckyChance: 0.22, luckyMultipliers: '2,3,5', minFanLevel: 0 },
   // 0,15 × media(2, 4, 8) = 0,70
-  { code: 'fireworks', name: 'Fuegos artificiales', emoji: '🎆', priceCoins: 499, tier: 'rare', animation: 'burst', luckyChance: 0.15, luckyMultipliers: '2,4,8' },
+  { code: 'fireworks', name: 'Fuegos artificiales', emoji: '🎆', priceCoins: 499, tier: 'rare', animation: 'burst', luckyChance: 0.15, luckyMultipliers: '2,4,8', minFanLevel: 0 },
   // 0,10 × media(3, 5, 12) = 0,67
-  { code: 'ferrari', name: 'Deportivo', emoji: '🏎️', priceCoins: 1299, tier: 'epic', animation: 'fullscreen', luckyChance: 0.1, luckyMultipliers: '3,5,12' },
+  { code: 'ferrari', name: 'Deportivo', emoji: '🏎️', priceCoins: 1299, tier: 'epic', animation: 'fullscreen', luckyChance: 0.1, luckyMultipliers: '3,5,12', minFanLevel: 0 },
   // 0,06 × media(5, 10, 20) = 0,70
-  { code: 'yacht', name: 'Yate', emoji: '🛥️', priceCoins: 2999, tier: 'epic', animation: 'fullscreen', luckyChance: 0.06, luckyMultipliers: '5,10,20' },
+  { code: 'yacht', name: 'Yate', emoji: '🛥️', priceCoins: 2999, tier: 'epic', animation: 'fullscreen', luckyChance: 0.06, luckyMultipliers: '5,10,20', minFanLevel: 0 },
   // 0,03 × media(10, 25, 50) = 0,85
-  { code: 'castle', name: 'Castillo', emoji: '🏰', priceCoins: 9999, tier: 'legendary', animation: 'fullscreen', luckyChance: 0.03, luckyMultipliers: '10,25,50' },
+  { code: 'castle', name: 'Castillo', emoji: '🏰', priceCoins: 9999, tier: 'legendary', animation: 'fullscreen', luckyChance: 0.03, luckyMultipliers: '10,25,50', minFanLevel: 0 },
 
-  // Exclusivos: sin premio, solo espectáculo.
-  { code: 'phoenix', name: 'Fénix', emoji: '🦅', priceCoins: 25_000, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '' },
-  { code: 'galaxy', name: 'Galaxia', emoji: '🌌', priceCoins: 60_000, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '' },
-  { code: 'dragon', name: 'Dragón', emoji: '🐉', priceCoins: 150_000, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '' },
+  // Exclusivos: sin premio, solo espectáculo, y el 75% en diamantes para quien
+  // los recibe. Se envían de uno en uno.
+  { code: 'phoenix', name: 'Fénix', emoji: '🦅', priceCoins: 25_000, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 0 },
+  { code: 'galaxy', name: 'Galaxia', emoji: '🌌', priceCoins: 60_000, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 0 },
+  { code: 'dragon', name: 'Dragón', emoji: '🐉', priceCoins: 150_000, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 0 },
+
+  // Club de fans: se desbloquean por lo gastado con ese anfitrión, así que solo
+  // los ve quien ya lleva tiempo con él. Como los exclusivos, dejan el 75%.
+  { code: 'fan-bracelet', name: 'Pulsera de fan', emoji: '📿', priceCoins: 500, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 1 },
+  { code: 'fan-jacket', name: 'Chaqueta del club', emoji: '🧥', priceCoins: 5_000, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 3 },
+  { code: 'fan-throne', name: 'Trono del club', emoji: '🪑', priceCoins: 40_000, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 5 },
 ];

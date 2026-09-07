@@ -140,6 +140,10 @@ model Gift {
   /// Se sortea uno al azar cuando toca premio.
   luckyMultipliers String @default("")
 
+  /// Nivel de club de fans que hay que tener con el anfitrión para poder
+  /// enviarlo. 0 significa que lo puede enviar cualquiera.
+  minFanLevel Int @default(0)
+
   sends GiftSend[]
 }
 

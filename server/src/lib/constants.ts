@@ -53,6 +53,27 @@ export const CURRENCY = {
 export const DIAMONDS_PER_COIN = 0.05;
 
 /**
+ * Los regalos exclusivos son la excepción: dejan el 75% en diamantes. No
+ * premian nunca y cuestan decenas de miles de monedas, así que su gracia es
+ * justamente que quien los recibe se lleva casi todo.
+ */
+export const DIAMONDS_PER_COIN_EXCLUSIVE = 0.75;
+
+/** Tier de los regalos exclusivos, que cobran la tasa de arriba. */
+export const GIFT_TIER_EXCLUSIVE = 'exclusive';
+
+/**
+ * Club de fans: monedas que hay que haber gastado con un anfitrión para llegar
+ * a cada nivel. El nivel es cuántos umbrales se han superado, así que gastar
+ * 10.000 monedas con alguien deja en nivel 3.
+ */
+export const FAN_LEVEL_THRESHOLDS = [1_000, 5_000, 10_000, 50_000, 100_000, 500_000] as const;
+
+export function fanLevelFromCoins(coins: number): number {
+  return FAN_LEVEL_THRESHOLDS.filter((threshold) => coins >= threshold).length;
+}
+
+/**
  * Diamantes y monedas valen lo mismo en dólares (100.000 de cada = 10 USD), de
  * modo que el cambio es 1:1. Solo existe en un sentido, de diamantes a monedas:
  * las monedas se compran y no se pueden convertir en diamantes, porque si no
