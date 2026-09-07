@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1002,
-  "commit": "d4115cb",
+  "buildNumber": 1003,
+  "commit": "66e2f22",
   "branch": "main",
-  "builtAt": "2026-09-07T06:37:01.907Z",
+  "builtAt": "2026-09-07T07:16:53.789Z",
   "changes": [
+    "Un anuncio por destinatario, y cantidad libre en la caja",
     "Premio gordo de ×500 y probabilidades más bajas",
     "Controles de cámara en la tuerca de abajo, y compilación local rápida",
     "Los regalos repetidos se acumulan en un solo anuncio",
@@ -18,7 +19,6 @@
     "La APK trae la dirección del servidor de fábrica",
     "Publica la Release sola en cada compilación",
     "Las peticiones se rinden a los 15 s en vez de colgarse",
-    "Deja el vídeo de LiveKit listo para la prueba en teléfonos",
-    "Cierra la Fase 10: la APK funciona en el teléfono"
+    "Deja el vídeo de LiveKit listo para la prueba en teléfonos"
   ]
 }
