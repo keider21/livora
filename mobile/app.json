@@ -28,6 +28,7 @@
     "newArchEnabled": true,
     "plugins": [
       "expo-router",
+      "expo-video",
       "./plugins/with-cleartext-traffic",
       [
         "@livekit/react-native-expo-plugin",

@@ -3,7 +3,8 @@ import { Animated, Dimensions, Easing, StyleSheet, Text, View } from 'react-nati
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import type { GiftEvent } from '../realtime/events';
-import { giftArt } from './gift-art';
+import { giftAsset } from './gift-art';
+import { GiftVideo } from './gift-video';
 import { colors, radius, spacing } from '../theme';
 
 /**
@@ -31,6 +32,8 @@ import { colors, radius, spacing } from '../theme';
 
 const { width: ANCHO, height: ALTO } = Dimensions.get('window');
 const DURACION = 4200;
+/** Tope para los clips: si uno no avisa de que terminó, se retira igual. */
+const VIDEO_MAXIMO = 12000;
 const RAYOS = 14;
 const PARTICULAS = 16;
 
@@ -53,8 +56,11 @@ export function GiftAura({ event, onDone }: { event: GiftEvent; onDone: () => vo
   const orbit = useRef(new Animated.Value(0)).current;
 
   const tema = TEMAS[event.gift.code] ?? TEMA_POR_DEFECTO;
-  // Los regalos con ilustración la dibujan en grande; el resto, su emoji.
-  const arte = giftArt(event.gift.image);
+  // Con vídeo manda el vídeo: trae su propio movimiento y su propio sonido, así
+  // que añadirle rayos y partículas encima solo lo ensuciaría. Sin vídeo se
+  // monta la escena de siempre con la ilustración o el emoji.
+  const recurso = giftAsset(event.gift.image);
+  const arte = recurso?.image ?? null;
 
   const rayos = useMemo(() => Array.from({ length: RAYOS }, (_, i) => (i / RAYOS) * 360), []);
   const particulas = useMemo(
@@ -68,6 +74,9 @@ export function GiftAura({ event, onDone }: { event: GiftEvent; onDone: () => vo
   );
 
   useEffect(() => {
+    // Con vídeo, quien decide cuándo acaba es el propio clip.
+    if (recurso?.video) return;
+
     progress.setValue(0);
     spin.setValue(0);
     orbit.setValue(0);
@@ -96,7 +105,7 @@ export function GiftAura({ event, onDone }: { event: GiftEvent; onDone: () => vo
       orbita.stop();
       maestro.stop();
     };
-  }, [event.id, onDone, orbit, progress, spin]);
+  }, [event.id, onDone, orbit, progress, spin, recurso]);
 
   /** Atajo: valor que sube en un tramo, se mantiene, y baja al final. */
   const tramo = (entra: number, sale: number) =>
@@ -112,6 +121,26 @@ export function GiftAura({ event, onDone }: { event: GiftEvent; onDone: () => vo
   const placa = tramo(0.32, 0.9);
 
   const giroRayos = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+
+  if (recurso?.video) {
+    return (
+      <View style={styles.container} pointerEvents="none">
+        <View style={[StyleSheet.absoluteFill, styles.velo]} />
+        <GiftVideo source={recurso.video} fallbackMs={VIDEO_MAXIMO} onDone={onDone} />
+
+        <View style={styles.placaContenedor}>
+          <View style={[styles.placa, { borderColor: tema.principal }]}>
+            <Text style={[styles.remitente, { color: tema.principal }]} numberOfLines={1}>
+              {event.sender.displayName}
+            </Text>
+            <Text style={styles.detalle} numberOfLines={1}>
+              envió {event.gift.name} a {event.recipient.displayName}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container} pointerEvents="none">
