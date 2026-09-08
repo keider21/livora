@@ -28,8 +28,12 @@
  * - 2026-09-08: se baja al 4% y se añade el escalón ×50 → 0,77.
  * - 2026-09-08: probabilidades fijadas a mano por escalón, sin ×100 → 0,45.
  * - 2026-09-08: el ×500 sube a 0,099% (0,080% en los caros) → 0,63 y 0,53.
- * - 2026-09-08: sube la base a 0,80 y aparecen las rachas (lib/lucky-window).
- * - 2026-09-08: la base sube al tope, 1,50% → 0,84, con 0,98 de media.
+ * - 2026-09-08: sube la base a 0,80 y aparecen las rachas globales.
+ * - 2026-09-08: la base sube a 1,50% → 0,84.
+ * - 2026-09-08: se quitan las rachas globales. Doblaban para todos a la vez, así
+ *   que bastaba con guardar castillos para esos minutos y soltarlos de golpe. La
+ *   variación se queda en la suerte personal, que no se puede cronometrar porque
+ *   cada cuenta lleva la suya.
  *
  * El ×500 manda en la media: aporta 49.500 de los 62.980 puntos del reparto de
  * los baratos. Por eso subir su probabilidad obliga a bajar el resto, y por eso
@@ -67,25 +71,23 @@ const PROBABILIDAD_ALTOS = 0.0148;
 /**
  * Probabilidad de premio por unidad: la suma de los cuatro escalones.
  *
- * **Está en su techo.** Con la media de multiplicadores en 55,88 y las rachas
- * doblando la probabilidad un 17% del tiempo, el retorno medio sale
- * `probabilidad × 55,88 × 1,17`, y eso pasa de 1 a partir del 1,53%. Aquí queda
- * en 1,50%: retorno 0,84 fuera de racha, 1,68 durante, y 0,98 de media.
+ * Con la media de multiplicadores en 55,88, el retorno sale `probabilidad ×
+ * 55,88` y pasa de 1 a partir del 1,79%. Aquí queda en 1,50%: retorno 0,84.
  *
- * Para dar más margen hay que tocar otra cosa: bajar el multiplicador de racha
- * de 2 a 1,5 dejaría subir la probabilidad hasta el 1,74%, y acortar las rachas
- * también libera espacio.
+ * La suerte personal (`lib/lucky-mood`) lo mueve entre 0,17 y 1,51 según el
+ * momento de cada cuenta, pero se reparte alrededor de 1, así que esta cifra
+ * sigue siendo la del conjunto.
  */
 const PROBABILIDAD = 0.015;
 
 export const GIFT_CATALOG = [
-  // 0,015 × 55,88 = 0,84 fuera de racha, 1,68 durante
+  // 0,015 × 55,88 = 0,84
   { code: 'rose', name: 'Rosa', emoji: '🌹', priceCoins: 10, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'heart', name: 'Corazón', emoji: '💖', priceCoins: 25, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'beer', name: 'Cerveza', emoji: '🍺', priceCoins: 50, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'crown', name: 'Corona', emoji: '👑', priceCoins: 199, image: null, tier: 'rare', animation: 'burst', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'fireworks', name: 'Fuegos artificiales', emoji: '🎆', priceCoins: 499, image: null, tier: 'rare', animation: 'burst', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  // 0,0148 × 48,28 = 0,71 fuera de racha, 1,43 durante
+  // 0,0148 × 48,28 = 0,71
   { code: 'ferrari', name: 'Deportivo', emoji: '🏎️', priceCoins: 1299, image: null, tier: 'epic', animation: 'fullscreen', luckyChance: PROBABILIDAD_ALTOS, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
   { code: 'yacht', name: 'Yate', emoji: '🛥️', priceCoins: 2999, image: null, tier: 'epic', animation: 'fullscreen', luckyChance: PROBABILIDAD_ALTOS, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
   { code: 'castle', name: 'Castillo', emoji: '🏰', priceCoins: 9999, image: null, tier: 'legendary', animation: 'fullscreen', luckyChance: PROBABILIDAD_ALTOS, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },

@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import { after, before, describe, it } from 'node:test';
 import { prisma } from '../src/lib/prisma';
 import { expectedReturn, parseMultipliers, rollLucky } from '../src/lib/lucky';
-import { MULTIPLICADOR_RACHA, hayRacha, ventanasDe } from '../src/lib/lucky-window';
 import { factorSuerte } from '../src/lib/lucky-mood';
 import { GIFT_CATALOG } from '../src/lib/gift-catalog';
 import { startTestApi, uniqueName, type TestApi } from './helpers';
@@ -26,8 +25,7 @@ before(async () => {
     update: { priceCoins: 10, isActive: true, luckyChance: 0, luckyMultipliers: '' },
   });
   // La probabilidad va muy por encima de 1 a propósito: al sortear se multiplica
-  // por la racha global y por la suerte personal de quien envía, que puede bajar
-  // hasta 0,2. Con `luckyChance: 1` este regalo dejaría de premiar siempre y la
+  // por la suerte personal de quien envía, que puede bajar hasta 0,2. Con `luckyChance: 1` este regalo dejaría de premiar siempre y la
   // prueba de economía fallaría de vez en cuando, sin que nada estuviera roto.
   await prisma.gift.upsert({
     where: { code: 'test-lucky' },
@@ -182,59 +180,15 @@ describe('sorteo de los regalos con premio', () => {
   });
 });
 
-describe('rachas de suerte', () => {
-  it('hay cuatro por hora y no se solapan', () => {
-    for (const hora of [0, 12345, 480_000]) {
-      const ventanas = ventanasDe(hora);
-      assert.equal(ventanas.length, 4);
-
-      for (let i = 1; i < ventanas.length; i += 1) {
-        assert.ok(
-          ventanas[i]!.inicio >= ventanas[i - 1]!.fin,
-          `la ventana ${i} empieza antes de que acabe la anterior`,
-        );
-      }
-    }
-  });
-
-  it('duran entre dos y tres minutos y caben en la hora', () => {
-    for (const ventana of ventanasDe(987_654)) {
-      const duracion = ventana.fin - ventana.inicio;
-      assert.ok(duracion >= 2 && duracion <= 3, `dura ${duracion} minutos`);
-      assert.ok(ventana.fin <= 60, 'se sale de la hora');
-    }
-  });
-
-  it('la misma hora da siempre las mismas ventanas', () => {
-    // Se calculan de la hora, no se guardan: así un reinicio del servidor no
-    // cambia lo que estaba pasando ni hacen falta temporizadores.
-    assert.deepEqual(ventanasDe(555_555), ventanasDe(555_555));
-    assert.notDeepEqual(ventanasDe(555_555), ventanasDe(555_556));
-  });
-
-  it('ocupan alrededor del 17% del tiempo', () => {
-    // Es el dato del que depende el retorno medio: si subiera, la economía
-    // dejaría de cerrar aunque la probabilidad base no cambiara.
-    let conRacha = 0;
-    const muestras = 60 * 24;
-    const inicio = Date.UTC(2026, 0, 1);
-
-    for (let minuto = 0; minuto < muestras; minuto += 1) {
-      if (hayRacha(new Date(inicio + minuto * 60_000))) conRacha += 1;
-    }
-
-    const proporcion = conRacha / muestras;
-    assert.ok(proporcion > 0.13 && proporcion < 0.21, `salió ${(proporcion * 100).toFixed(1)}%`);
-  });
-
-  it('el retorno medio de cada regalo, contando las rachas, sigue por debajo de 1', () => {
-    // La probabilidad base está pegada a su techo, así que esta es la prueba
-    // que avisa si un retoque del catálogo saca la economía de cuadre.
+describe('economía de los regalos', () => {
+  it('el retorno de cada regalo está por debajo de 1', () => {
+    // La suerte personal se reparte alrededor de 1, así que el retorno del
+    // catálogo es el del conjunto: esta es la prueba que avisa si un retoque
+    // saca la economía de cuadre.
     for (const gift of GIFT_CATALOG) {
       if (!gift.luckyChance) continue;
-      const base = expectedReturn(gift.luckyChance, gift.luckyMultipliers);
-      const medio = base * (1 - 0.17) + base * MULTIPLICADOR_RACHA * 0.17;
-      assert.ok(medio < 1, `${gift.code} devuelve ${medio.toFixed(2)} de media contando rachas`);
+      const retorno = expectedReturn(gift.luckyChance, gift.luckyMultipliers);
+      assert.ok(retorno < 1, `${gift.code} devuelve ${retorno.toFixed(2)} de media`);
     }
   });
 });
@@ -283,12 +237,12 @@ describe('suerte personal', () => {
     assert.notEqual(factorSuerte('luna', momento), factorSuerte('dani', momento));
   });
 
-  it('una cuenta caliente en racha global recupera más del triple', () => {
-    // Es el momento que hace que la mecánica enganche: la suerte personal en su
-    // máximo y la racha global a la vez.
+  it('separa mucho el mejor momento del peor', () => {
+    // Es lo que hace que la mecánica enganche: rachas buenas de verdad y malas
+    // de verdad, en vez de que todos acaben siempre en la media.
     const base = expectedReturn(0.015, '10:900,20:64,50:64,500:99');
-    assert.ok(base * 1.8 * MULTIPLICADOR_RACHA > 3, 'el mejor momento debería pasar de ×3');
-    assert.ok(base * 0.2 < 0.2, 'el peor momento debería devolver muy poco');
+    assert.ok(base * 1.8 > 1.4, 'en caliente debería devolver más de lo gastado');
+    assert.ok(base * 0.2 < 0.2, 'en frío debería devolver muy poco');
   });
 });
 
