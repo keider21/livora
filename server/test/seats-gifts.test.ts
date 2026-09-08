@@ -142,13 +142,36 @@ describe('sorteo de los regalos con premio', () => {
     assert.equal(expectedReturn(1, '2:99,500:1').toFixed(2), '6.98');
   });
 
-  it('ningún regalo del catálogo es rentable de enviar', () => {
+  /**
+   * El retorno pasó de 1 el 2026-09-07 por decisión del usuario: premio en un
+   * 33% de los envíos con un mínimo de ×10. Esas dos cifras juntas fuerzan un
+   * retorno de 4 como poco, así que las monedas dejan de ser escasas.
+   *
+   * La prueba ya no exige que sea menor que 1; fija los valores acordados para
+   * que un retoque del catálogo no los mueva sin querer.
+   */
+  it('el retorno de cada regalo es el documentado', () => {
+    const esperado: Record<string, number> = {
+      rose: 4.41, heart: 4.41, beer: 4.41, crown: 4.41, fireworks: 4.41,
+      ferrari: 3.84, yacht: 3.84, castle: 3.84,
+    };
+
     for (const gift of GIFT_CATALOG) {
       const retorno = expectedReturn(gift.luckyChance, gift.luckyMultipliers);
-      assert.ok(
-        retorno < 1,
-        `${gift.code} devuelve ${retorno.toFixed(2)} de media: enviarlo saldría rentable`,
+      const previsto = esperado[gift.code] ?? 0;
+      assert.equal(
+        Number(retorno.toFixed(2)),
+        previsto,
+        `${gift.code} devuelve ${retorno.toFixed(2)} y estaba documentado ${previsto}`,
       );
+    }
+  });
+
+  it('el premio más pequeño es ×10, como se pidió', () => {
+    for (const gift of GIFT_CATALOG) {
+      if (!gift.luckyChance) continue;
+      const menor = Math.min(...parseMultipliers(gift.luckyMultipliers).map((m) => m.multiplier));
+      assert.ok(menor >= 10, `${gift.code} puede premiar con ×${menor}, por debajo del mínimo`);
     }
   });
 });

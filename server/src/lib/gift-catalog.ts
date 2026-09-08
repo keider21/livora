@@ -5,58 +5,62 @@
  *
  * `luckyChance` y `luckyMultipliers` son los regalos que devuelven monedas al
  * emisor. Al enviarlos se sortea una vez **por unidad** y, si toca, vuelven
- * `precio de la unidad × multiplicador`.
+ * `precio de la unidad × multiplicador`. Lo que se enseña en pantalla es la
+ * **suma** de los multiplicadores que salieron: dos aciertos de ×500 son ×1000.
  *
- * Los multiplicadores llevan peso (`"2:850,5:130,50:18,500:2"`): el ×500 existe
- * en casi todos, pero con un peso mínimo. Sin pesos, con todos igual de
- * probables, un ×500 dispararía el retorno esperado muy por encima de 1 y
- * enviar el regalo saldría rentable.
+ * Los multiplicadores llevan peso (`"10:930,25:45,500:3"`): el ×10 sale casi
+ * siempre y el premio gordo es rarísimo. Sin pesos, con todos igual de
+ * probables, el ×500 dominaría la media.
  *
- * La **tasa de retorno esperada** (probabilidad × media ponderada) va anotada al
- * lado de cada uno y siempre queda por debajo de 1. La prueba «ningún regalo del
- * catálogo es rentable» lo vigila.
+ * ## La tasa de retorno, y por qué aquí pasa de 1
  *
- * El premio gordo se paga sobre el precio de la unidad, así que escala solo con
- * el valor del regalo: un ×500 devuelve 5.000 monedas en una rosa y 5.000.000 en
- * un castillo. Por eso los caros llevan un tope más bajo.
+ * Retorno esperado = `luckyChance × media ponderada de los multiplicadores`.
+ * Por encima de 1, enviar un regalo devuelve más monedas de las que cuesta.
  *
- * Historial de ajustes:
- * - 2026-09-06: los básicos estaban a 0% y parecía que la mecánica no existía.
- * - 2026-09-07: se añade el ×500 y se bajan las probabilidades, a petición del
- *   usuario. Los básicos pasan de ~30% a ~18%.
+ * Hasta el 2026-09-07 todos estaban por debajo de 1. **Por decisión del usuario
+ * ese día**, la mecánica pasa a premiar un 33% de las veces con un mínimo de
+ * ×10, y esas dos cifras juntas fuerzan un retorno de 4 como poco: con premio
+ * uno de cada tres envíos y el más pequeño pagando diez veces, no hay reparto
+ * de pesos que baje de ahí.
  *
- * ## Regalos exclusivos y de club de fans
+ * Consecuencias, que el usuario conoce y aceptó:
  *
- * Los de tier `exclusive` **no premian nunca** a propósito: son los caros de
- * vitrina, dejan el 75% en diamantes a quien los recibe y lo que ofrecen es la
- * animación `aura`. Los del club se desbloquean por lo gastado con ese
- * anfitrión (`minFanLevel`).
+ * - Las monedas dejan de ser un recurso escaso. Quien envía sin parar acaba con
+ *   más de las que compró.
+ * - Como se puede regalar a uno mismo, el bucle no tiene techo: gastar y
+ *   recuperar más deja además un 5% en diamantes cada vuelta, y los diamantes
+ *   se retiran como dinero.
+ *
+ * Para volver a una economía cerrada basta con bajar `luckyChance`: al 8% el
+ * retorno queda en ~1,07, y al 7% en ~0,94. La prueba «retorno documentado»
+ * vigila que estos números no cambien por accidente.
  */
 
-/** Reparto de premios de los regalos baratos: mucho ×2, rarísimo ×500. */
-const PREMIOS_BAJOS = '2:850,5:130,50:18,500:2';
-/** Los medios pagan más en las cifras altas porque su unidad ya cuesta. */
-const PREMIOS_MEDIOS = '2:870,5:110,30:18,300:2';
-/** Los caros topan más abajo: un ×500 sobre 9.999 monedas son 5 millones. */
-const PREMIOS_ALTOS = '2:900,5:85,20:14,100:1';
+/**
+ * Reparto de premios. El ×10 sale en la gran mayoría de los aciertos; los
+ * escalones altos existen para que el contador de pantalla pueda dispararse.
+ * Media ponderada: 13,375.
+ */
+const PREMIOS = '10:930,25:45,50:15,100:7,500:3';
+
+/**
+ * Los regalos caros pagan sobre una unidad que ya vale mucho, así que su tope
+ * baja a ×100: un ×500 sobre 9.999 monedas serían cinco millones de golpe.
+ * Media ponderada: 11,65.
+ */
+const PREMIOS_ALTOS = '10:940,25:40,50:15,100:5';
 
 export const GIFT_CATALOG = [
-  // 0,18 × 4,25 = 0,77
-  { code: 'rose', name: 'Rosa', emoji: '🌹', priceCoins: 10, image: null, tier: 'basic', animation: 'float', luckyChance: 0.18, luckyMultipliers: PREMIOS_BAJOS, minFanLevel: 0 },
-  // 0,17 × 4,25 = 0,72
-  { code: 'heart', name: 'Corazón', emoji: '💖', priceCoins: 25, image: null, tier: 'basic', animation: 'float', luckyChance: 0.17, luckyMultipliers: PREMIOS_BAJOS, minFanLevel: 0 },
-  // 0,16 × 4,25 = 0,68
-  { code: 'beer', name: 'Cerveza', emoji: '🍺', priceCoins: 50, image: null, tier: 'basic', animation: 'float', luckyChance: 0.16, luckyMultipliers: PREMIOS_BAJOS, minFanLevel: 0 },
-  // 0,20 × 3,43 = 0,69
-  { code: 'crown', name: 'Corona', emoji: '👑', priceCoins: 199, image: null, tier: 'rare', animation: 'burst', luckyChance: 0.2, luckyMultipliers: PREMIOS_MEDIOS, minFanLevel: 0 },
-  // 0,19 × 3,43 = 0,65
-  { code: 'fireworks', name: 'Fuegos artificiales', emoji: '🎆', priceCoins: 499, image: null, tier: 'rare', animation: 'burst', luckyChance: 0.19, luckyMultipliers: PREMIOS_MEDIOS, minFanLevel: 0 },
-  // 0,25 × 2,60 = 0,65
-  { code: 'ferrari', name: 'Deportivo', emoji: '🏎️', priceCoins: 1299, image: null, tier: 'epic', animation: 'fullscreen', luckyChance: 0.25, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
-  // 0,24 × 2,60 = 0,62
-  { code: 'yacht', name: 'Yate', emoji: '🛥️', priceCoins: 2999, image: null, tier: 'epic', animation: 'fullscreen', luckyChance: 0.24, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
-  // 0,22 × 2,60 = 0,57
-  { code: 'castle', name: 'Castillo', emoji: '🏰', priceCoins: 9999, image: null, tier: 'legendary', animation: 'fullscreen', luckyChance: 0.22, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
+  // 0,33 × 13,375 = 4,41
+  { code: 'rose', name: 'Rosa', emoji: '🌹', priceCoins: 10, image: null, tier: 'basic', animation: 'float', luckyChance: 0.33, luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'heart', name: 'Corazón', emoji: '💖', priceCoins: 25, image: null, tier: 'basic', animation: 'float', luckyChance: 0.33, luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'beer', name: 'Cerveza', emoji: '🍺', priceCoins: 50, image: null, tier: 'basic', animation: 'float', luckyChance: 0.33, luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'crown', name: 'Corona', emoji: '👑', priceCoins: 199, image: null, tier: 'rare', animation: 'burst', luckyChance: 0.33, luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'fireworks', name: 'Fuegos artificiales', emoji: '🎆', priceCoins: 499, image: null, tier: 'rare', animation: 'burst', luckyChance: 0.33, luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  // 0,33 × 11,65 = 3,84
+  { code: 'ferrari', name: 'Deportivo', emoji: '🏎️', priceCoins: 1299, image: null, tier: 'epic', animation: 'fullscreen', luckyChance: 0.33, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
+  { code: 'yacht', name: 'Yate', emoji: '🛥️', priceCoins: 2999, image: null, tier: 'epic', animation: 'fullscreen', luckyChance: 0.33, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
+  { code: 'castle', name: 'Castillo', emoji: '🏰', priceCoins: 9999, image: null, tier: 'legendary', animation: 'fullscreen', luckyChance: 0.33, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
 
   // Exclusivos: sin premio, solo espectáculo, y el 75% en diamantes para quien
   // los recibe. Se envían de uno en uno.

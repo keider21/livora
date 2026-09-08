@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1008,
-  "commit": "50db6d8",
+  "buildNumber": 1009,
+  "commit": "c373854",
   "branch": "main",
-  "builtAt": "2026-09-08T04:35:18.929Z",
+  "builtAt": "2026-09-08T04:44:49.835Z",
   "changes": [
+    "Contador de premio acumulado sobre el anuncio del regalo",
     "Las escenas de los exclusivos hacen cola y terminan enteras",
     "El contador de compilaciones sobrevive al prebuild",
     "Comprime los clips de los regalos antes de empaquetarlos",
@@ -18,7 +19,6 @@
     "Controles de cámara en la tuerca de abajo, y compilación local rápida",
     "Los regalos repetidos se acumulan en un solo anuncio",
     "El envío automático se para de verdad, y los botones del sistema dejan de estorbar",
-    "Caja de regalos nueva, corazones al tocar y arreglos de pantalla",
-    "Regalos a varias personas, a uno mismo, y premio por unidad"
+    "Caja de regalos nueva, corazones al tocar y arreglos de pantalla"
   ]
 }
