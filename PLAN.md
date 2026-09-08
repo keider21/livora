@@ -328,8 +328,30 @@ invitados.
 | 11.6 El anfitrión gestiona las solicitudes de subir | ⚠️ | `components/seat-requests.tsx`, con contador de pendientes en la barra. **Falta:** verlo en el teléfono (11.7) |
 | 11.7 Prueba en dos teléfonos: subir a alguien, regalarle y ver la explosión | ⏳ | Va junto con 3.8. **Criterio de hecho:** el invitado se oye, recibe el regalo y el premio se ve en ambos teléfonos |
 
+
 ---
----
+
+## Fase 12 — Lo que Kako tiene y a Livora le falta ⏳
+
+Del análisis de catorce capturas de Kako Live 2.8.5 que pasó el usuario el
+2026-09-08. Ordenado por lo que más movería la aguja, no por dificultad.
+
+Ya cubierto de esas capturas: salario del host (11.x), monedas y diamantes
+separados, paquetes de recarga, niveles con XP, perfil con seguidores y bio,
+regalos de la suerte con multiplicadores, cofres y canje de diamantes.
+
+| Paso | Estado | Notas |
+| --- | --- | --- |
+| 12.1 Recompensa por duración en directo | ⏳ | El segundo sueldo, aparte del de regalos: 3 h válidas cuentan como día cumplido y con 6 días a la semana se cobra un extra. **Es lo que hace que un anfitrión abra la app aunque no espere regalos**, y las horas ya se miden en `salary.service`. Lo más barato de construir con más efecto |
+| 12.2 VIP de pago | ⏳ | Suscripción con privilegios cosméticos: medalla, marco de perfil, emblema, burbuja de chat, marco de conexión, regalos exclusivos. Ingreso recurrente sin coste variable, que es lo contrario del salario |
+| 12.3 Privilegios por nivel | ⏳ | Efectos de entrada a la sala al llegar a ciertos niveles (25, 32, 41, 51 en Kako). Da motivo para gastar más allá del regalo puntual |
+| 12.4 Retiro de diamantes | ⏳ | Hoy solo se cambian por monedas: no hay forma de sacar dinero, y sin eso el salario del host es un número que no se cobra. Necesita KYC (6.3) y una pasarela de pagos |
+| 12.5 Vídeos cortos en el perfil | ⏳ | Pestaña tipo TikTok. Es lo que retiene a quien entra y no hay nadie en directo |
+| 12.6 PK entre anfitriones | ⏳ | Dos hosts compiten y los espectadores votan con regalos, con reparto de bote. Es el formato que más regalos genera en estas apps |
+| 12.7 Detalles de identidad | ⏳ | ID numérico copiable, sello de anfitrión verificado, lista de deseos, ranking de magnates |
+| 12.8 Ajustes que faltan | ⏳ | Idioma, apariencia, notificaciones, y los textos legales: acuerdo de usuario, privacidad y acuerdo del anfitrión. **Los tres textos legales son requisito de Google Play**, no un adorno |
+
+------
 
 ## Cómo mantener este plan
 

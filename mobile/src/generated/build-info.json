@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1018,
-  "commit": "0cadccc",
+  "buildNumber": 1019,
+  "commit": "e5f0c29",
   "branch": "main",
-  "builtAt": "2026-09-08T08:40:36.274Z",
+  "builtAt": "2026-09-08T08:43:42.568Z",
   "changes": [
+    "Paquete de recarga grande y reinicio de datos de prueba",
     "bronce, plata y oro",
     "La meta del día, en el perfil",
     "Salario diario para los anfitriones",
@@ -18,7 +19,6 @@
     "El fondo va por regalos enviados, y los premios gordos aguantan",
     "Probabilidades fijadas escalón por escalón",
     "Baja el ×10 y añade el escalón ×50",
-    "El color de categoría al fondo del anuncio, y premios que no producen monedas",
-    "La marca del premio es por envío: suma dentro, sustituye fuera"
+    "El color de categoría al fondo del anuncio, y premios que no producen monedas"
   ]
 }
