@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1010,
-  "commit": "caf2881",
+  "buildNumber": 1011,
+  "commit": "dd2cf91",
   "branch": "main",
-  "builtAt": "2026-09-08T04:54:40.248Z",
+  "builtAt": "2026-09-08T05:07:38.925Z",
   "changes": [
+    "Escalones de premio fijos y la marca dentro del anuncio",
     "Premio en el 33% de los envíos, con mínimo de ×10",
     "Contador de premio acumulado sobre el anuncio del regalo",
     "Las escenas de los exclusivos hacen cola y terminan enteras",
@@ -18,7 +19,6 @@
     "Un anuncio por destinatario, y cantidad libre en la caja",
     "Premio gordo de ×500 y probabilidades más bajas",
     "Controles de cámara en la tuerca de abajo, y compilación local rápida",
-    "Los regalos repetidos se acumulan en un solo anuncio",
-    "El envío automático se para de verdad, y los botones del sistema dejan de estorbar"
+    "Los regalos repetidos se acumulan en un solo anuncio"
   ]
 }

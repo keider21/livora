@@ -48,20 +48,26 @@ import { colors, formatCount, radius, scrim, spacing } from '../../src/theme';
 
 const MAX_MESSAGES = 120;
 
-/** Un regalo en pantalla: el último evento y lo acumulado de esa combinación. */
+/** Un regalo en pantalla: el último evento y lo que lleva esa combinación. */
 interface Announcement {
   /** regalo | remitente | destinatario */
   key: string;
   event: GiftEvent;
   quantity: number;
-  coins: number;
   wins: number;
   /**
-   * El multiplicador del último premio, que es lo que se enseña. No se acumula
-   * a propósito: el usuario quiere ver «×500» cuando sale un ×500, no la suma
-   * de todo lo que lleva la racha.
+   * Lo que se enseña del premio: la suma de los multiplicadores **de un solo
+   * envío**, y las monedas que dejó ese envío.
+   *
+   * Dentro de un paquete sí se suman —si de 50 rosas premian dos, una ×10 y
+   * otra ×500, se ve ×510— pero entre paquetes no se acumula: el siguiente que
+   * premie sustituye lo que hubiera. Si un paquete no premia, se mantiene lo
+   * anterior en vez de dejar el hueco vacío.
    */
-  multiplier: number;
+  times: number;
+  coins: number;
+  /** Sube en cada premio nuevo; reinicia la animación de la marca. */
+  luckyRound: number;
   /** Sube en cada repetición; reinicia las animaciones. */
   round: number;
 }
@@ -230,20 +236,22 @@ export default function RoomScreen() {
               ...existente,
               event,
               quantity: existente.quantity + event.quantity,
-              coins: existente.coins + event.coinsRewarded,
               wins: existente.wins + event.luckyWins,
-              // Se queda el del último envío que premió; si este no premió, se
-              // mantiene el anterior para que la marca no desaparezca a mitad.
-              multiplier: event.luckyMultiplier ?? existente.multiplier,
+              // El premio de este envío sustituye al del anterior; si este no
+              // premió, se mantiene lo que hubiera para no dejar el hueco.
+              times: event.luckyTimes > 0 ? event.luckyTimes : existente.times,
+              coins: event.luckyTimes > 0 ? event.coinsRewarded : existente.coins,
+              luckyRound: existente.luckyRound + (event.luckyTimes > 0 ? 1 : 0),
               round: existente.round + 1,
             }
           : {
               key,
               event,
               quantity: event.quantity,
-              coins: event.coinsRewarded,
               wins: event.luckyWins,
-              multiplier: event.luckyMultiplier ?? 0,
+              times: event.luckyTimes,
+              coins: event.coinsRewarded,
+              luckyRound: 0,
               round: 0,
             };
 
@@ -593,7 +601,8 @@ export default function RoomScreen() {
                 comboKey={item.round}
                 coinsRewarded={item.coins}
                 wins={item.wins}
-                multiplier={item.multiplier}
+                times={item.times}
+                luckyRound={item.luckyRound}
                 onDone={() => hideAnnouncement(item.key)}
               />
             ))}

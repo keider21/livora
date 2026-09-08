@@ -15,7 +15,7 @@ import { spacing } from '../theme';
  * propósito para que no cambie de color a cada rato: la mayoría de premios son
  * bajos y deben verse iguales entre sí.
  */
-export function LuckyCounter({ multiplier }: { multiplier: number }) {
+export function LuckyCounter({ multiplier, round }: { multiplier: number; round: number }) {
   const pop = useRef(new Animated.Value(0)).current;
   const brillo = useRef(new Animated.Value(0)).current;
 
@@ -32,7 +32,9 @@ export function LuckyCounter({ multiplier }: { multiplier: number }) {
     ]);
     animacion.start();
     return () => animacion.stop();
-  }, [multiplier, pop, brillo]);
+    // `round` entra en las dependencias para que dos premios seguidos con la
+    // misma cifra vuelvan a animarse en vez de quedarse quietos.
+  }, [multiplier, round, pop, brillo]);
 
   const escala = pop.interpolate({ inputRange: [0, 0.5, 1], outputRange: [1, 1.05, 1.5] });
   const paleta = paletaPara(multiplier);

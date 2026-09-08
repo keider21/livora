@@ -26,7 +26,8 @@ export function GiftAnimation({
   comboKey,
   coinsRewarded,
   wins,
-  multiplier,
+  times,
+  luckyRound,
   onDone,
 }: {
   event: GiftEvent;
@@ -38,8 +39,13 @@ export function GiftAnimation({
   coinsRewarded: number;
   /** Cuántas unidades premiaron para este destinatario. */
   wins: number;
-  /** Multiplicador del último premio; 0 si todavía no ha tocado ninguno. */
-  multiplier: number;
+  /**
+   * Suma de los multiplicadores del último envío que premió, que es la cifra
+   * que se enseña. 0 mientras no haya tocado ninguno.
+   */
+  times: number;
+  /** Sube con cada premio nuevo; relanza la animación de la marca. */
+  luckyRound: number;
   onDone: () => void;
 }) {
   const progress = useRef(new Animated.Value(0)).current;
@@ -89,9 +95,9 @@ export function GiftAnimation({
           {/* La marca del premio va aquí dentro, bajo el nombre, en vez de en
               una placa aparte encima del anuncio. Cada destinatario tiene su
               propio sorteo, así que esta es la suya. */}
-          {multiplier > 0 ? (
+          {times > 0 ? (
             <View style={styles.premio}>
-              <LuckyCounter multiplier={multiplier} />
+              <LuckyCounter multiplier={times} round={luckyRound} />
               <Text style={styles.monedas} numberOfLines={1}>
                 +{coinsRewarded.toLocaleString('es')}
               </Text>
