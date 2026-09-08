@@ -56,8 +56,12 @@ interface Announcement {
   quantity: number;
   coins: number;
   wins: number;
-  /** Suma de los multiplicadores premiados: el número grande en pantalla. */
-  times: number;
+  /**
+   * El multiplicador del último premio, que es lo que se enseña. No se acumula
+   * a propósito: el usuario quiere ver «×500» cuando sale un ×500, no la suma
+   * de todo lo que lleva la racha.
+   */
+  multiplier: number;
   /** Sube en cada repetición; reinicia las animaciones. */
   round: number;
 }
@@ -228,7 +232,9 @@ export default function RoomScreen() {
               quantity: existente.quantity + event.quantity,
               coins: existente.coins + event.coinsRewarded,
               wins: existente.wins + event.luckyWins,
-              times: existente.times + event.luckyTimes,
+              // Se queda el del último envío que premió; si este no premió, se
+              // mantiene el anterior para que la marca no desaparezca a mitad.
+              multiplier: event.luckyMultiplier ?? existente.multiplier,
               round: existente.round + 1,
             }
           : {
@@ -237,7 +243,7 @@ export default function RoomScreen() {
               quantity: event.quantity,
               coins: event.coinsRewarded,
               wins: event.luckyWins,
-              times: event.luckyTimes,
+              multiplier: event.luckyMultiplier ?? 0,
               round: 0,
             };
 
@@ -587,7 +593,7 @@ export default function RoomScreen() {
                 comboKey={item.round}
                 coinsRewarded={item.coins}
                 wins={item.wins}
-                times={item.times}
+                multiplier={item.multiplier}
                 onDone={() => hideAnnouncement(item.key)}
               />
             ))}

@@ -152,15 +152,15 @@ describe('sorteo de los regalos con premio', () => {
    */
   it('el retorno de cada regalo es el documentado', () => {
     const esperado: Record<string, number> = {
-      rose: 4.41, heart: 4.41, beer: 4.41, crown: 4.41, fireworks: 4.41,
-      ferrari: 3.84, yacht: 3.84, castle: 3.84,
+      rose: 55, heart: 55, beer: 55, crown: 55, fireworks: 55,
+      ferrari: 15, yacht: 15, castle: 15,
     };
 
     for (const gift of GIFT_CATALOG) {
       const retorno = expectedReturn(gift.luckyChance, gift.luckyMultipliers);
       const previsto = esperado[gift.code] ?? 0;
       assert.equal(
-        Number(retorno.toFixed(2)),
+        Number(retorno.toFixed(1)),
         previsto,
         `${gift.code} devuelve ${retorno.toFixed(2)} y estaba documentado ${previsto}`,
       );

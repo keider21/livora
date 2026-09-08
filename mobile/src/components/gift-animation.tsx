@@ -26,7 +26,7 @@ export function GiftAnimation({
   comboKey,
   coinsRewarded,
   wins,
-  times,
+  multiplier,
   onDone,
 }: {
   event: GiftEvent;
@@ -38,8 +38,8 @@ export function GiftAnimation({
   coinsRewarded: number;
   /** Cuántas unidades premiaron para este destinatario. */
   wins: number;
-  /** Suma de los multiplicadores premiados, el número grande. */
-  times: number;
+  /** Multiplicador del último premio; 0 si todavía no ha tocado ninguno. */
+  multiplier: number;
   onDone: () => void;
 }) {
   const progress = useRef(new Animated.Value(0)).current;
@@ -75,12 +75,9 @@ export function GiftAnimation({
 
   return (
     <Animated.View style={[styles.container, { opacity: progress, transform: [{ translateX }, { scale }] }]}>
-      {/* El acumulado va encima del anuncio, como en las apps del sector: la
-          cifra sustituye a la anterior en vez de apilarse otro aviso. */}
-      {times > 0 ? <LuckyCounter times={times} coins={coinsRewarded} /> : null}
-
       <View style={[styles.badge, isBig && styles.badgeBig]}>
         <Text style={[styles.emoji, isBig && styles.emojiBig]}>{event.gift.emoji}</Text>
+
         <View style={styles.texts}>
           <Text style={styles.sender} numberOfLines={1}>
             {event.sender.displayName}
@@ -88,14 +85,20 @@ export function GiftAnimation({
           <Text style={styles.gift} numberOfLines={1}>
             {event.gift.name} · para {event.recipient.displayName}
           </Text>
-          {/* Cada destinatario tiene su propio sorteo, así que su premio se
-              cuenta arriba y no se mezcla con el de al lado. */}
-          {wins > 0 ? (
-            <Text style={styles.reward} numberOfLines={1}>
-              🍀 {wins} {wins === 1 ? 'premio' : 'premios'}
-            </Text>
+
+          {/* La marca del premio va aquí dentro, bajo el nombre, en vez de en
+              una placa aparte encima del anuncio. Cada destinatario tiene su
+              propio sorteo, así que esta es la suya. */}
+          {multiplier > 0 ? (
+            <View style={styles.premio}>
+              <LuckyCounter multiplier={multiplier} />
+              <Text style={styles.monedas} numberOfLines={1}>
+                +{coinsRewarded.toLocaleString('es')}
+              </Text>
+            </View>
           ) : null}
         </View>
+
         <Animated.Text style={[styles.quantity, { transform: [{ scale: pop }] }]}>
           ×{comboQuantity}
         </Animated.Text>
@@ -120,9 +123,10 @@ const styles = StyleSheet.create({
   badgeBig: { backgroundColor: 'rgba(255,210,74,0.30)', borderColor: colors.accent },
   emoji: { fontSize: 26 },
   emojiBig: { fontSize: 38 },
-  texts: { maxWidth: 170 },
+  texts: { maxWidth: 190, gap: 1 },
+  premio: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: 1 },
+  monedas: { color: colors.coin, fontSize: 11, fontWeight: '800' },
   sender: { color: colors.text, fontWeight: '700', fontSize: 13 },
   gift: { color: colors.textMuted, fontWeight: '600', fontSize: 11 },
-  reward: { color: colors.coin, fontWeight: '800', fontSize: 11 },
   quantity: { color: colors.accent, fontWeight: '800', fontSize: 20 },
 });
