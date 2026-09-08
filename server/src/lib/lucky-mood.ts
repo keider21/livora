@@ -8,8 +8,8 @@
  * que revienta todo y ratos en los que no cae nada.
  *
  * Aquí eso se consigue con un factor que multiplica la probabilidad de premio y
- * que **va y viene despacio**, distinto para cada cuenta. En frío baja a 0,5 y
- * cuesta que toque; en caliente sube a 2 y explota sin parar.
+ * que **va y viene despacio**, distinto para cada cuenta. En frío baja a 0,6 y
+ * cuesta que toque; en caliente sube a 2,2 y explota sin parar.
  *
  * ## Por qué el rato bueno dura poco
  *
@@ -26,8 +26,8 @@
  * ## Por qué la media sale 1
  *
  * El suelo y el techo los eligió el usuario; el **exponente** es el que sale de
- * despejar la media. Con 0,5 y 2 en los extremos y este reparto de ondas, 1,74
- * es el valor que deja la media del factor en 1, y eso es lo que hace que la
+ * despejar la media. Con 0,6 y 2,2 en los extremos y este reparto de ondas,
+ * 2,325 es el valor que deja la media del factor en 1, y eso es lo que hace que la
  * suerte personal **añada variación sin mover el retorno a largo plazo**. Si se
  * toca cualquiera de las otras constantes hay que recalcularlo; la prueba «la
  * media del factor es 1» lo vigila.
@@ -53,11 +53,11 @@ const PESO_RAPIDA = 0.3;
  * Cuánto se estira la parte alta de la curva. Por encima de 1 los valores
  * grandes escasean, que es lo que acorta el rato bueno.
  */
-const EXPONENTE = 1.74;
+const EXPONENTE = 2.325;
 
 /** Extremos del factor. Ver «Por qué la media sale 1» antes de tocarlos. */
-const MINIMO = 0.5;
-const MAXIMO = 2.0;
+const MINIMO = 0.6;
+const MAXIMO = 2.2;
 
 /**
  * Número estable entre 0 y 1 a partir de un texto y un tramo.
@@ -100,7 +100,7 @@ function onda(semilla: string, milisegundos: number, tramoMs: number): number {
 /**
  * Factor de suerte de una cuenta en un instante dado.
  *
- * Va de 0,5 a 2 y se mueve en curva: la suerte sube y baja suave en vez de a
+ * Va de 0,6 a 2,2 y se mueve en curva: la suerte sube y baja suave en vez de a
  * saltos, pero el rato bueno es corto. Cada cuenta lleva la suya.
  */
 export function factorSuerte(userId: string, ahora: Date = new Date()): number {

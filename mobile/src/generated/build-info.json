@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1025,
-  "commit": "1933dfb",
+  "buildNumber": 1026,
+  "commit": "21865d0",
   "branch": "main",
-  "builtAt": "2026-09-08T22:27:24.128Z",
+  "builtAt": "2026-09-08T22:59:25.357Z",
   "changes": [
+    "Los cofres pasan a ser regalos, y se ajusta la suerte",
     "Ilustraciones de verdad para los regalos y seis exclusivos nuevos",
     "Los regalos de la suerte devuelven menos: 0,84 baja a 0,70",
     "Los cofres son tres casillas más de la pestaña Suerte",
@@ -18,7 +19,6 @@
     "Salario diario para los anfitriones",
     "Al volver a la app se vuelve a entrar en la sala",
     "Fuera las rachas globales",
-    "Suerte personal: cada cuenta tiene su propia racha",
-    "La probabilidad base sube a su techo"
+    "Suerte personal: cada cuenta tiene su propia racha"
   ]
 }

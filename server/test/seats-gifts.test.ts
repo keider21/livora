@@ -165,9 +165,9 @@ describe('sorteo de los regalos con premio', () => {
    */
   it('el retorno de cada regalo es el documentado', () => {
     const esperado: Record<string, number> = {
-      clap: 0.5, wink: 0.5, star: 0.5, candy: 0.5,
-      rose: 0.5, heart: 0.5, beer: 0.5, crown: 0.5, fireworks: 0.5,
-      ferrari: 0.4, yacht: 0.4, castle: 0.4,
+      clap: 0.7, wink: 0.7, star: 0.7, candy: 0.7,
+      rose: 0.7, heart: 0.7, beer: 0.7, crown: 0.7, fireworks: 0.7,
+      ferrari: 0.6, yacht: 0.6, castle: 0.6,
     };
 
     for (const gift of GIFT_CATALOG) {
@@ -229,12 +229,21 @@ describe('economía de los regalos', () => {
       const media = escalones.reduce((total, e) => total + e.weight * e.multiplier, 0) / pesos;
 
       // Es el coste real de la mecánica: el anfitrión recibe esa cifra en valor
-      // de regalo, y con ella su 5% en diamantes y su avance hacia la meta. Por
-      // encima de seis veces, el cofre se comería el margen del salario.
-      assert.ok(media > 3 && media < 6, `${cofre.code} entrega ×${media.toFixed(2)} de media`);
+      // de regalo, y con ella su 5% en diamantes y su avance hacia la meta.
+      //
+      // El punto de ruptura está en ×13: ahí, llenar la meta más alta a base de
+      // cofres cuesta menos de lo que se paga en salario más diamantes y la
+      // plataforma pierde dinero. El tope se queda en 8 para dejar margen a los
+      // retoques sin tener que rehacer esta cuenta cada vez.
+      assert.ok(media > 3 && media < 8, `${cofre.code} entrega ×${media.toFixed(2)} de media`);
 
       const menor = Math.min(...escalones.map((e) => e.multiplier));
       assert.ok(menor >= 3, `${cofre.code} puede quedarse en ×${menor}`);
+
+      // Diez cofres seguidos sin pasar del segundo peldaño es lo que hace que
+      // el cofre deje de tener gracia, y ya pasó una vez.
+      const altos = escalones.filter((e) => e.multiplier >= 10).reduce((t, e) => t + e.weight, 0) / pesos;
+      assert.ok(altos > 0.15, `${cofre.code} solo sube de ×10 el ${(altos * 100).toFixed(1)}% de las veces`);
     }
   });
 
@@ -281,10 +290,10 @@ describe('suerte personal', () => {
     assert.ok(media > 0.97 && media < 1.03, `la media salió ${media.toFixed(3)}`);
   });
 
-  it('se mueve entre 0,5 y 2', () => {
+  it('se mueve entre 0,6 y 2,2', () => {
     for (let paso = 0; paso < 500; paso += 1) {
       const factor = factorSuerte('luna', new Date(INICIO + paso * 7_000));
-      assert.ok(factor >= 0.5 && factor <= 2, `salió ${factor}`);
+      assert.ok(factor >= 0.6 && factor <= 2.2, `salió ${factor}`);
     }
   });
 
@@ -318,7 +327,7 @@ describe('suerte personal', () => {
     let anterior = factorSuerte('luna', new Date(INICIO));
     for (let segundo = 1; segundo < 300; segundo += 1) {
       const actual = factorSuerte('luna', new Date(INICIO + segundo * 1000));
-      assert.ok(Math.abs(actual - anterior) < 0.16, `saltó ${Math.abs(actual - anterior).toFixed(3)}`);
+      assert.ok(Math.abs(actual - anterior) < 0.2, `saltó ${Math.abs(actual - anterior).toFixed(3)}`);
       anterior = actual;
     }
   });
@@ -332,9 +341,9 @@ describe('suerte personal', () => {
   it('separa mucho el mejor momento del peor', () => {
     // Es lo que hace que la mecánica enganche: rachas buenas de verdad y malas
     // de verdad, en vez de que todos acaben siempre en la media.
-    const base = expectedReturn(0.0145, '10:950,20:80,50:64,500:50');
-    assert.ok(base * 2 > 0.95, 'en caliente casi se recupera lo gastado');
-    assert.ok(base * 0.5 < 0.3, 'en frío debería devolver bastante menos');
+    const base = expectedReturn(0.0145, '10:950,20:80,50:64,500:85');
+    assert.ok(base * 2.2 > 1.4, 'en caliente debería devolver más de lo gastado');
+    assert.ok(base * 0.6 < 0.45, 'en frío debería devolver bastante menos');
   });
 });
 
