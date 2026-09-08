@@ -32,8 +32,6 @@ import { colors, radius, spacing } from '../theme';
 
 const { width: ANCHO, height: ALTO } = Dimensions.get('window');
 const DURACION = 4200;
-/** Tope para los clips: si uno no avisa de que terminó, se retira igual. */
-const VIDEO_MAXIMO = 12000;
 const RAYOS = 14;
 const PARTICULAS = 16;
 
@@ -126,7 +124,7 @@ export function GiftAura({ event, onDone }: { event: GiftEvent; onDone: () => vo
     return (
       <View style={styles.container} pointerEvents="none">
         <View style={[StyleSheet.absoluteFill, styles.velo]} />
-        <GiftVideo source={recurso.video} fallbackMs={VIDEO_MAXIMO} onDone={onDone} />
+        <GiftVideo source={recurso.video} onDone={onDone} />
 
         <View style={styles.placaContenedor}>
           <View style={[styles.placa, { borderColor: tema.principal }]}>

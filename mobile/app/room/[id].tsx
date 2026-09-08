@@ -114,6 +114,18 @@ export default function RoomScreen() {
    */
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
 
+  /**
+   * Escena a pantalla completa en curso, y las que esperan turno.
+   *
+   * Los regalos exclusivos duran varios segundos y algunos son un vídeo con su
+   * propio audio, así que **no pueden pisarse**: la que está sonando termina y
+   * la siguiente espera. Va aparte de los anuncios de arriba, que duran dos
+   * segundos y se acumulan; cuando la escena colgaba de ellos, el vídeo del
+   * León se cortaba a la mitad y un segundo envío lo reiniciaba desde cero.
+   */
+  const [scene, setScene] = useState<GiftEvent | null>(null);
+  const sceneQueue = useRef<GiftEvent[]>([]);
+
   const isHost = Boolean(room && user && room.host.id === user.id);
 
   const pushMessage = useCallback((message: ChatMessage) => {
@@ -122,6 +134,11 @@ export default function RoomScreen() {
 
   const hideAnnouncement = useCallback((key: string) => {
     setAnnouncements((current) => current.filter((item) => item.key !== key));
+  }, []);
+
+  /** La escena avisa al terminar y entra la siguiente de la cola, si la hay. */
+  const nextScene = useCallback(() => {
+    setScene(sceneQueue.current.shift() ?? null);
   }, []);
 
   useEffect(() => {
@@ -182,6 +199,19 @@ export default function RoomScreen() {
     const onGift = (event: GiftEvent) => {
       if (event.roomId !== id) return;
       setRoom((current) => (current ? { ...current, totalDiamonds: event.roomTotalDiamonds } : current));
+
+      // Las escenas a pantalla completa hacen cola: la que esté sonando
+      // termina antes de empezar la siguiente. Como mucho tres esperando, para
+      // que una racha de envíos no deje la sala tapada un minuto.
+      if (event.gift.animation === 'aura') {
+        setScene((actual) => {
+          if (actual) {
+            sceneQueue.current = [...sceneQueue.current, event].slice(-3);
+            return actual;
+          }
+          return event;
+        });
+      }
 
       // Un anuncio por regalo, remitente y destinatario. La comparación va
       // dentro del actualizador porque al regalar a varios los eventos llegan
@@ -436,6 +466,8 @@ export default function RoomScreen() {
 
   const renderer = getStreamRenderer(credentials?.provider ?? 'mock');
   const ultimoAnuncio = announcements[announcements.length - 1] ?? null;
+  // Los exclusivos ya se ven en la escena; aquí solo van los demás.
+  const explosion = ultimoAnuncio && ultimoAnuncio.event.gift.animation !== 'aura' ? ultimoAnuncio : null;
 
   return (
     <View style={styles.fill}>
@@ -469,23 +501,23 @@ export default function RoomScreen() {
         <FloatingHeart key={heart.id} heart={heart} onDone={removeHeart} />
       ))}
 
-      {/* La explosión se pinta una sola vez, con el último anuncio: llenar la
-          pantalla con varias a la vez no dejaría ver nada. Los exclusivos no
-          explotan, muestran su aura. */}
-      {ultimoAnuncio ? (
-        ultimoAnuncio.event.gift.animation === 'aura' ? (
-          <GiftAura key={ultimoAnuncio.event.id} event={ultimoAnuncio.event} onDone={() => undefined} />
-        ) : (
-          <GiftBurst
-            // La clave incluye la ronda para que cada repetición relance la
-            // explosión desde cero en vez de esperar a que acabe la anterior.
-            key={`${ultimoAnuncio.key}-${ultimoAnuncio.round}`}
-            event={ultimoAnuncio.event}
-            coinsRewarded={ultimoAnuncio.coins}
-            wins={ultimoAnuncio.wins}
-            onDone={() => undefined}
-          />
-        )
+      {/* La escena de los exclusivos tiene su propia cola y decide cuándo
+          termina: el vídeo avisa al acabar, la animación por código al cerrar
+          su ciclo. */}
+      {scene ? <GiftAura key={scene.id} event={scene} onDone={nextScene} /> : null}
+
+      {/* La explosión de los regalos normales se pinta con el último anuncio:
+          llenar la pantalla con varias a la vez no dejaría ver nada. */}
+      {explosion ? (
+        <GiftBurst
+          // La clave incluye la ronda para que cada repetición relance la
+          // explosión desde cero en vez de esperar a que acabe la anterior.
+          key={`${explosion.key}-${explosion.round}`}
+          event={explosion.event}
+          coinsRewarded={explosion.coins}
+          wins={explosion.wins}
+          onDone={() => undefined}
+        />
       ) : null}
 
       {/* El borde inferior se gestiona a mano en la barra de abajo, junto con

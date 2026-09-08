@@ -1,8 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 
 const { width: ANCHO } = Dimensions.get('window');
+
+/** Tope mientras no se sabe cuánto dura el clip. */
+const RESPALDO_INICIAL_MS = 15000;
+/** Margen sobre la duración real, por si el aviso de fin llega tarde. */
+const MARGEN_MS = 1500;
 
 /**
  * Clip de un regalo, reproducido una vez sobre la transmisión.
@@ -12,33 +17,49 @@ const { width: ANCHO } = Dimensions.get('window');
  * `contain` dentro de un cuadrado en lugar de a pantalla completa, porque los
  * clips no tienen canal alfa y estirarlos taparía la transmisión por completo.
  *
- * `onDone` salta al terminar. Si el clip fallara al cargar, el temporizador de
- * respaldo evita que la escena se quede colgada tapando el directo.
+ * Quien decide cuándo termina es el propio clip. El respaldo por tiempo existe
+ * por si el aviso de fin no llegara: sin él, un vídeo que fallara al cargar
+ * dejaría la escena tapando el directo para siempre. En cuanto se conoce la
+ * duración real, ese respaldo se ajusta a ella en vez de esperar el tope.
  */
-export function GiftVideo({
-  source,
-  fallbackMs,
-  onDone,
-}: {
-  source: number;
-  /** Tiempo máximo antes de retirarlo aunque el vídeo no avise. */
-  fallbackMs: number;
-  onDone: () => void;
-}) {
+export function GiftVideo({ source, onDone }: { source: number; onDone: () => void }) {
   const player = useVideoPlayer(source, (instance) => {
     instance.loop = false;
     instance.muted = false;
     instance.play();
   });
 
+  // El temporizador se reprograma cuando se sabe la duración, así que vive en
+  // una ref para poder cancelarlo desde cualquier aviso.
+  const respaldo = useRef<ReturnType<typeof setTimeout>>(undefined);
+
   useEffect(() => {
-    const suscripcion = player.addListener('playToEnd', onDone);
-    const respaldo = setTimeout(onDone, fallbackMs);
+    function terminar() {
+      clearTimeout(respaldo.current);
+      onDone();
+    }
+
+    respaldo.current = setTimeout(terminar, RESPALDO_INICIAL_MS);
+
+    const fin = player.addListener('playToEnd', terminar);
+    const estado = player.addListener('statusChange', ({ status, error }) => {
+      // Si el clip no carga, la escena se retira en vez de quedarse en negro.
+      if (error || status === 'error') {
+        terminar();
+        return;
+      }
+      if (status === 'readyToPlay' && player.duration > 0) {
+        clearTimeout(respaldo.current);
+        respaldo.current = setTimeout(terminar, player.duration * 1000 + MARGEN_MS);
+      }
+    });
+
     return () => {
-      suscripcion.remove();
-      clearTimeout(respaldo);
+      clearTimeout(respaldo.current);
+      fin.remove();
+      estado.remove();
     };
-  }, [player, fallbackMs, onDone]);
+  }, [player, onDone]);
 
   return (
     <View style={styles.container} pointerEvents="none">
