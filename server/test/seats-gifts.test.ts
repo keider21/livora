@@ -3,6 +3,7 @@ import { after, before, describe, it } from 'node:test';
 import { prisma } from '../src/lib/prisma';
 import { expectedReturn, parseMultipliers, rollLucky } from '../src/lib/lucky';
 import { MULTIPLICADOR_RACHA, hayRacha, ventanasDe } from '../src/lib/lucky-window';
+import { factorSuerte } from '../src/lib/lucky-mood';
 import { GIFT_CATALOG } from '../src/lib/gift-catalog';
 import { startTestApi, uniqueName, type TestApi } from './helpers';
 
@@ -24,6 +25,10 @@ before(async () => {
     },
     update: { priceCoins: 10, isActive: true, luckyChance: 0, luckyMultipliers: '' },
   });
+  // La probabilidad va muy por encima de 1 a propósito: al sortear se multiplica
+  // por la racha global y por la suerte personal de quien envía, que puede bajar
+  // hasta 0,2. Con `luckyChance: 1` este regalo dejaría de premiar siempre y la
+  // prueba de economía fallaría de vez en cuando, sin que nada estuviera roto.
   await prisma.gift.upsert({
     where: { code: 'test-lucky' },
     create: {
@@ -33,10 +38,10 @@ before(async () => {
       priceCoins: 100,
       tier: 'rare',
       animation: 'burst',
-      luckyChance: 1,
+      luckyChance: 5,
       luckyMultipliers: '2',
     },
-    update: { priceCoins: 100, isActive: true, luckyChance: 1, luckyMultipliers: '2' },
+    update: { priceCoins: 100, isActive: true, luckyChance: 5, luckyMultipliers: '2' },
   });
 });
 
@@ -231,6 +236,59 @@ describe('rachas de suerte', () => {
       const medio = base * (1 - 0.17) + base * MULTIPLICADOR_RACHA * 0.17;
       assert.ok(medio < 1, `${gift.code} devuelve ${medio.toFixed(2)} de media contando rachas`);
     }
+  });
+});
+
+describe('suerte personal', () => {
+  const INICIO = Date.UTC(2026, 0, 1);
+
+  it('de media vale 1, así que no mueve el retorno a largo plazo', () => {
+    // Es lo que permite añadir variación sin descuadrar la economía: unos
+    // ganan más y otros menos, pero el conjunto no cambia.
+    let suma = 0;
+    let muestras = 0;
+
+    for (let usuario = 0; usuario < 300; usuario += 1) {
+      for (let paso = 0; paso < 120; paso += 1) {
+        suma += factorSuerte(`user${usuario}`, new Date(INICIO + paso * 45_000));
+        muestras += 1;
+      }
+    }
+
+    const media = suma / muestras;
+    assert.ok(media > 0.97 && media < 1.03, `la media salió ${media.toFixed(3)}`);
+  });
+
+  it('se mueve entre 0,2 y 1,8', () => {
+    for (let paso = 0; paso < 500; paso += 1) {
+      const factor = factorSuerte('luna', new Date(INICIO + paso * 20_000));
+      assert.ok(factor >= 0.2 && factor <= 1.8, `salió ${factor}`);
+    }
+  });
+
+  it('sube y baja despacio, sin saltos secos', () => {
+    // La curva se interpola entre tramos de minuto y medio: en un segundo la
+    // suerte no puede pasar de fría a caliente.
+    let anterior = factorSuerte('luna', new Date(INICIO));
+    for (let segundo = 1; segundo < 300; segundo += 1) {
+      const actual = factorSuerte('luna', new Date(INICIO + segundo * 1000));
+      assert.ok(Math.abs(actual - anterior) < 0.05, `saltó ${Math.abs(actual - anterior).toFixed(3)}`);
+      anterior = actual;
+    }
+  });
+
+  it('cada cuenta lleva la suya, y siempre la misma', () => {
+    const momento = new Date(INICIO + 7 * 60_000);
+    assert.equal(factorSuerte('luna', momento), factorSuerte('luna', momento));
+    assert.notEqual(factorSuerte('luna', momento), factorSuerte('dani', momento));
+  });
+
+  it('una cuenta caliente en racha global recupera más del triple', () => {
+    // Es el momento que hace que la mecánica enganche: la suerte personal en su
+    // máximo y la racha global a la vez.
+    const base = expectedReturn(0.015, '10:900,20:64,50:64,500:99');
+    assert.ok(base * 1.8 * MULTIPLICADOR_RACHA > 3, 'el mejor momento debería pasar de ×3');
+    assert.ok(base * 0.2 < 0.2, 'el peor momento debería devolver muy poco');
   });
 });
 
