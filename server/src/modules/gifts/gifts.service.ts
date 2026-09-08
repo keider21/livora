@@ -226,6 +226,7 @@ export async function sendGift(senderId: string, input: SendGiftInput) {
     coinsRewarded: envio.lucky.coins,
     luckyMultiplier: envio.lucky.multiplier,
     luckyWins: envio.lucky.wins,
+    luckyTimes: envio.lucky.times,
     createdAt: giftSend.createdAt.toISOString(),
     gift: {
       code: gift.code,

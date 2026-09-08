@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import type { GiftEvent } from '../realtime/events';
+import { LuckyCounter } from './lucky-counter';
 import { colors, radius, spacing } from '../theme';
 
 /** Lo que se espera sin recibir otro igual antes de retirar el anuncio. */
@@ -25,6 +26,7 @@ export function GiftAnimation({
   comboKey,
   coinsRewarded,
   wins,
+  times,
   onDone,
 }: {
   event: GiftEvent;
@@ -36,6 +38,8 @@ export function GiftAnimation({
   coinsRewarded: number;
   /** Cuántas unidades premiaron para este destinatario. */
   wins: number;
+  /** Suma de los multiplicadores premiados, el número grande. */
+  times: number;
   onDone: () => void;
 }) {
   const progress = useRef(new Animated.Value(0)).current;
@@ -71,6 +75,10 @@ export function GiftAnimation({
 
   return (
     <Animated.View style={[styles.container, { opacity: progress, transform: [{ translateX }, { scale }] }]}>
+      {/* El acumulado va encima del anuncio, como en las apps del sector: la
+          cifra sustituye a la anterior en vez de apilarse otro aviso. */}
+      {times > 0 ? <LuckyCounter times={times} coins={coinsRewarded} /> : null}
+
       <View style={[styles.badge, isBig && styles.badgeBig]}>
         <Text style={[styles.emoji, isBig && styles.emojiBig]}>{event.gift.emoji}</Text>
         <View style={styles.texts}>
@@ -81,10 +89,10 @@ export function GiftAnimation({
             {event.gift.name} · para {event.recipient.displayName}
           </Text>
           {/* Cada destinatario tiene su propio sorteo, así que su premio se
-              cuenta aquí y no en el de al lado. */}
+              cuenta arriba y no se mezcla con el de al lado. */}
           {wins > 0 ? (
             <Text style={styles.reward} numberOfLines={1}>
-              🍀 {wins} · +{coinsRewarded.toLocaleString('es')}
+              🍀 {wins} {wins === 1 ? 'premio' : 'premios'}
             </Text>
           ) : null}
         </View>
@@ -97,7 +105,7 @@ export function GiftAnimation({
 }
 
 const styles = StyleSheet.create({
-  container: { alignSelf: 'flex-start' },
+  container: { alignSelf: 'flex-start', gap: 2 },
   badge: {
     flexDirection: 'row',
     alignItems: 'center',

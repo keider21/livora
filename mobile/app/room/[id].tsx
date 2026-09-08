@@ -56,6 +56,8 @@ interface Announcement {
   quantity: number;
   coins: number;
   wins: number;
+  /** Suma de los multiplicadores premiados: el número grande en pantalla. */
+  times: number;
   /** Sube en cada repetición; reinicia las animaciones. */
   round: number;
 }
@@ -226,9 +228,18 @@ export default function RoomScreen() {
               quantity: existente.quantity + event.quantity,
               coins: existente.coins + event.coinsRewarded,
               wins: existente.wins + event.luckyWins,
+              times: existente.times + event.luckyTimes,
               round: existente.round + 1,
             }
-          : { key, event, quantity: event.quantity, coins: event.coinsRewarded, wins: event.luckyWins, round: 0 };
+          : {
+              key,
+              event,
+              quantity: event.quantity,
+              coins: event.coinsRewarded,
+              wins: event.luckyWins,
+              times: event.luckyTimes,
+              round: 0,
+            };
 
         const resto = current.filter((item) => item.key !== key);
         // Como mucho tres a la vez: más no caben y tapan el vídeo.
@@ -576,6 +587,7 @@ export default function RoomScreen() {
                 comboKey={item.round}
                 coinsRewarded={item.coins}
                 wins={item.wins}
+                times={item.times}
                 onDone={() => hideAnnouncement(item.key)}
               />
             ))}

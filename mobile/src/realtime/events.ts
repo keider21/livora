@@ -46,6 +46,11 @@ export interface GiftEvent {
   luckyMultiplier: number | null;
   /** Cuántas unidades del envío salieron premiadas. */
   luckyWins: number;
+  /**
+   * Suma de los multiplicadores que salieron: dos aciertos de ×500 son 1000.
+   * Es el número grande que se enseña en pantalla, el «×1000».
+   */
+  luckyTimes: number;
   createdAt: string;
   gift: { code: string; name: string; emoji: string; image: string | null; tier: string; animation: string };
   sender: { id: string; username: string; displayName: string; avatarUrl: string | null };

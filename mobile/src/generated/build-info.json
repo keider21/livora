@@ -1,10 +1,12 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1007,
-  "commit": "1bc4104",
+  "buildNumber": 1008,
+  "commit": "50db6d8",
   "branch": "main",
-  "builtAt": "2026-09-08T02:26:08.773Z",
+  "builtAt": "2026-09-08T04:35:18.929Z",
   "changes": [
+    "Las escenas de los exclusivos hacen cola y terminan enteras",
+    "El contador de compilaciones sobrevive al prebuild",
     "Comprime los clips de los regalos antes de empaquetarlos",
     "El León Imperial se reproduce en vídeo",
     "El evento del regalo lleva la ilustración",
@@ -17,8 +19,6 @@
     "Los regalos repetidos se acumulan en un solo anuncio",
     "El envío automático se para de verdad, y los botones del sistema dejan de estorbar",
     "Caja de regalos nueva, corazones al tocar y arreglos de pantalla",
-    "Regalos a varias personas, a uno mismo, y premio por unidad",
-    "Economía nueva, premios más frecuentes y regalos exclusivos",
-    "Corrige el blueprint de Render para este repositorio"
+    "Regalos a varias personas, a uno mismo, y premio por unidad"
   ]
 }

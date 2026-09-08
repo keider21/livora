@@ -52,6 +52,11 @@ export interface LuckyRoll {
   coins: number;
   /** Cuántas unidades del envío salieron premiadas. */
   wins: number;
+  /**
+   * Suma de los multiplicadores premiados: dos aciertos de ×500 son 1000. Es lo
+   * que se enseña en grande, no el mejor de ellos.
+   */
+  times: number;
 }
 
 /** Elige un multiplicador respetando los pesos. */
@@ -85,10 +90,11 @@ export function rollLucky(
   random: () => number = Math.random,
 ): LuckyRoll {
   const multipliers = parseMultipliers(raw);
-  if (multipliers.length === 0 || chance <= 0) return { multiplier: null, coins: 0, wins: 0 };
+  if (multipliers.length === 0 || chance <= 0) return { multiplier: null, coins: 0, wins: 0, times: 0 };
 
   let coins = 0;
   let wins = 0;
+  let times = 0;
   let best: number | null = null;
 
   for (let i = 0; i < quantity; i += 1) {
@@ -96,8 +102,9 @@ export function rollLucky(
     const multiplier = pickMultiplier(multipliers, random());
     coins += Math.round(unitPrice * multiplier);
     wins += 1;
+    times += multiplier;
     if (best === null || multiplier > best) best = multiplier;
   }
 
-  return { multiplier: best, coins, wins };
+  return { multiplier: best, coins, wins, times };
 }

@@ -70,8 +70,8 @@ async function openRoom(token: string) {
 
 describe('sorteo de los regalos con premio', () => {
   it('no devuelve nada cuando el regalo no tiene premio', () => {
-    assert.deepEqual(rollLucky(100, 1, 0, ''), { multiplier: null, coins: 0, wins: 0 });
-    assert.deepEqual(rollLucky(100, 1, 0.5, ''), { multiplier: null, coins: 0, wins: 0 });
+    assert.deepEqual(rollLucky(100, 1, 0, ''), { multiplier: null, coins: 0, wins: 0, times: 0 });
+    assert.deepEqual(rollLucky(100, 1, 0.5, ''), { multiplier: null, coins: 0, wins: 0, times: 0 });
   });
 
   it('devuelve el precio de la unidad por el multiplicador cuando toca', () => {
@@ -87,6 +87,17 @@ describe('sorteo de los regalos con premio', () => {
     const roll = rollLucky(10, 50, 1, '2', () => 0);
     assert.equal(roll.wins, 50);
     assert.equal(roll.coins, 1000);
+    // El número grande de pantalla: 50 aciertos de ×2 son «×100».
+    assert.equal(roll.times, 100);
+  });
+
+  it('las veces se suman entre sí: dos aciertos de ×500 son 1000', () => {
+    const secuencia = [0, 0.999, 0, 0.999];
+    let i = 0;
+    const roll = rollLucky(20, 2, 1, '2:99,500:1', () => secuencia[i++] ?? 0);
+    assert.equal(roll.wins, 2);
+    assert.equal(roll.times, 1000, 'lo que se enseña es la suma, no el mejor');
+    assert.equal(roll.coins, 20000, '20 monedas × 500, dos veces');
   });
 
   it('el multiplicador que informa es el mayor que salió', () => {
