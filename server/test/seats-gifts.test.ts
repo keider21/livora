@@ -3,8 +3,7 @@ import { after, before, describe, it } from 'node:test';
 import { prisma } from '../src/lib/prisma';
 import { expectedReturn, parseMultipliers, rollLucky } from '../src/lib/lucky';
 import { factorSuerte } from '../src/lib/lucky-mood';
-import { GIFT_CATALOG } from '../src/lib/gift-catalog';
-import { COFRES } from '../src/lib/chests';
+import { GIFT_CATALOG, SIN_ILUSTRACION } from '../src/lib/gift-catalog';
 import { startTestApi, uniqueName, type TestApi } from './helpers';
 
 let api: TestApi;
@@ -41,6 +40,15 @@ before(async () => {
       luckyMultipliers: '2',
     },
     update: { priceCoins: 100, isActive: true, luckyChance: 5, luckyMultipliers: '2' },
+  });
+
+  // El cofre de bronce tal cual está en el catálogo: los archivos de prueba
+  // corren en procesos aparte y este no puede dar por hecho que otro ya sembró.
+  const bronce = GIFT_CATALOG.find((gift) => gift.code === 'chest-bronze')!;
+  await prisma.gift.upsert({
+    where: { code: bronce.code },
+    create: bronce,
+    update: bronce,
   });
 });
 
@@ -157,11 +165,13 @@ describe('sorteo de los regalos con premio', () => {
    */
   it('el retorno de cada regalo es el documentado', () => {
     const esperado: Record<string, number> = {
-      rose: 0.7, heart: 0.7, beer: 0.7, crown: 0.7, fireworks: 0.7,
-      ferrari: 0.6, yacht: 0.6, castle: 0.6,
+      clap: 0.5, wink: 0.5, star: 0.5, candy: 0.5,
+      rose: 0.5, heart: 0.5, beer: 0.5, crown: 0.5, fireworks: 0.5,
+      ferrari: 0.4, yacht: 0.4, castle: 0.4,
     };
 
     for (const gift of GIFT_CATALOG) {
+      if (gift.tier === 'chest') continue;
       const retorno = expectedReturn(gift.luckyChance, gift.luckyMultipliers);
       const previsto = esperado[gift.code] ?? 0;
       assert.equal(
@@ -177,20 +187,16 @@ describe('sorteo de los regalos con premio', () => {
     // en `gift-art.ts`. Si se añade un regalo y se olvida, la casilla cae al
     // emoji sin avisar de nada, así que se comprueba aquí.
     for (const gift of GIFT_CATALOG) {
-      if (gift.minFanLevel > 0) continue;
+      if (gift.minFanLevel > 0 || SIN_ILUSTRACION.has(gift.code)) continue;
       assert.ok(gift.image, `${gift.code} no tiene ilustración`);
-    }
-  });
-
-  it('los cofres también llevan la suya', () => {
-    for (const cofre of COFRES) {
-      assert.ok(cofre.image, `${cofre.code} no tiene ilustración`);
     }
   });
 
   it('el premio más pequeño es ×10, como se pidió', () => {
     for (const gift of GIFT_CATALOG) {
-      if (!gift.luckyChance) continue;
+      // Los cofres empiezan en ×3: no son un premio sorpresa sobre el precio,
+      // son el propio regalo, y su escalera se lee entera en «Detalles».
+      if (!gift.luckyChance || gift.tier === 'chest') continue;
       const menor = Math.min(...parseMultipliers(gift.luckyMultipliers).map((m) => m.multiplier));
       assert.ok(menor >= 10, `${gift.code} puede premiar con ×${menor}, por debajo del mínimo`);
     }
@@ -203,10 +209,55 @@ describe('economía de los regalos', () => {
     // catálogo es el del conjunto: esta es la prueba que avisa si un retoque
     // saca la economía de cuadre.
     for (const gift of GIFT_CATALOG) {
-      if (!gift.luckyChance) continue;
+      // El cofre queda fuera: lo que le sale no vuelve a quien lo envía, se lo
+      // queda quien lo recibe. Ahí no se fabrican monedas, cambian de manos.
+      if (!gift.luckyChance || gift.tier === 'chest') continue;
       const retorno = expectedReturn(gift.luckyChance, gift.luckyMultipliers);
       assert.ok(retorno < 1, `${gift.code} devuelve ${retorno.toFixed(2)} de media`);
     }
+  });
+
+  it('los cofres siempre premian, y de tres a cinco veces lo que cuestan', () => {
+    const cofres = GIFT_CATALOG.filter((gift) => gift.tier === 'chest');
+    assert.equal(cofres.length, 3);
+
+    for (const cofre of cofres) {
+      assert.equal(cofre.luckyChance, 1, `${cofre.code} no premia siempre`);
+
+      const escalones = parseMultipliers(cofre.luckyMultipliers);
+      const pesos = escalones.reduce((total, e) => total + e.weight, 0);
+      const media = escalones.reduce((total, e) => total + e.weight * e.multiplier, 0) / pesos;
+
+      // Es el coste real de la mecánica: el anfitrión recibe esa cifra en valor
+      // de regalo, y con ella su 5% en diamantes y su avance hacia la meta. Por
+      // encima de seis veces, el cofre se comería el margen del salario.
+      assert.ok(media > 3 && media < 6, `${cofre.code} entrega ×${media.toFixed(2)} de media`);
+
+      const menor = Math.min(...escalones.map((e) => e.multiplier));
+      assert.ok(menor >= 3, `${cofre.code} puede quedarse en ×${menor}`);
+    }
+  });
+
+  it('el cofre no le devuelve nada a quien lo manda', async () => {
+    // Es la diferencia con el regalo de la suerte: aquí no se juega el saldo,
+    // se le regala a otro algo más grande de lo que costó.
+    const anfitrion = await createUser();
+    const sala = await openRoom(anfitrion.token);
+    const emisor = await createUser(50_000);
+
+    const { status, data } = await api.request('POST', '/api/gifts/send', {
+      token: emisor.token,
+      body: { roomId: sala, giftCode: 'chest-bronze', quantity: 1 },
+    });
+
+    assert.equal(status, 201);
+    assert.equal(data.wallet.coins, 49_000, 'solo se cobra el precio del cofre');
+    assert.ok(data.giftSend.coinsRewarded >= 3_000, 'y explota siempre');
+    assert.equal(
+      data.giftSend.diamondsEarned,
+      Math.round(data.giftSend.coinsRewarded * 0.05),
+      'los diamantes del anfitrión salen de lo que explotó, no del precio',
+    );
   });
 });
 
@@ -230,14 +281,14 @@ describe('suerte personal', () => {
     assert.ok(media > 0.97 && media < 1.03, `la media salió ${media.toFixed(3)}`);
   });
 
-  it('se mueve entre 0,35 y 1,8', () => {
+  it('se mueve entre 0,5 y 2', () => {
     for (let paso = 0; paso < 500; paso += 1) {
       const factor = factorSuerte('luna', new Date(INICIO + paso * 7_000));
-      assert.ok(factor >= 0.35 && factor <= 1.8, `salió ${factor}`);
+      assert.ok(factor >= 0.5 && factor <= 2, `salió ${factor}`);
     }
   });
 
-  it('el rato bueno dura unos diez segundos', () => {
+  it('el rato bueno dura unos quince segundos', () => {
     // Es el motivo de montar la curva con dos ondas. Si el tramo caliente
     // durase lo que el tramo entero se podría jugar sobre seguro: se nota que
     // premia, se dispara el automático y se para antes de que enfríe.
@@ -258,12 +309,12 @@ describe('suerte personal', () => {
     }
 
     const duracion = segundos / rachas;
-    assert.ok(duracion > 6 && duracion < 14, `las rachas calientes duran ${duracion.toFixed(1)} s`);
+    assert.ok(duracion > 11 && duracion < 19, `las rachas calientes duran ${duracion.toFixed(1)} s`);
   });
 
   it('sube y baja en curva, sin saltos secos', () => {
-    // Se interpola entre tramos de veinte y de diez segundos: en un segundo la
-    // suerte no puede pasar de fría a caliente.
+    // Se interpola entre tramos de veinticinco y de doce segundos: en un segundo
+    // la suerte no puede pasar de fría a caliente.
     let anterior = factorSuerte('luna', new Date(INICIO));
     for (let segundo = 1; segundo < 300; segundo += 1) {
       const actual = factorSuerte('luna', new Date(INICIO + segundo * 1000));
@@ -281,9 +332,9 @@ describe('suerte personal', () => {
   it('separa mucho el mejor momento del peor', () => {
     // Es lo que hace que la mecánica enganche: rachas buenas de verdad y malas
     // de verdad, en vez de que todos acaben siempre en la media.
-    const base = expectedReturn(0.0125, '10:900,20:64,50:64,500:99');
-    assert.ok(base * 1.8 > 1.2, 'en caliente debería devolver más de lo gastado');
-    assert.ok(base * 0.35 < 0.35, 'en frío debería devolver bastante menos');
+    const base = expectedReturn(0.0145, '10:950,20:80,50:64,500:50');
+    assert.ok(base * 2 > 0.95, 'en caliente casi se recupera lo gastado');
+    assert.ok(base * 0.5 < 0.3, 'en frío debería devolver bastante menos');
   });
 });
 

@@ -63,6 +63,29 @@ export default function ProfileScreen() {
     }
   }
 
+  /**
+   * Reinicio de datos, solo visible con la cuenta de pruebas. Probar la meta
+   * obliga a volver a cero muchas veces al día, y hacerlo desde la consola del
+   * ordenador rompe el ritmo de la prueba.
+   */
+  async function reiniciar() {
+    setBusy('reset');
+    try {
+      const { resumen } = await hostsApi.reset();
+      await refresh();
+      setTransactions([]);
+      Alert.alert(
+        'Datos reiniciados',
+        `${resumen.regalos} regalos y ${resumen.movimientos} movimientos borrados. ` +
+          `${resumen.cuentas} cuentas a 5.000 monedas y 0 diamantes.`,
+      );
+    } catch (error) {
+      Alert.alert('No se pudo reiniciar', error instanceof ApiError ? error.message : 'Inténtalo de nuevo');
+    } finally {
+      setBusy(null);
+    }
+  }
+
   async function exchangeAll() {
     if (!user || user.diamonds <= 0) return;
     setBusy('exchange');
@@ -181,6 +204,26 @@ export default function ProfileScreen() {
           variant="ghost"
           onPress={() => router.push(`/user/${user.username}`)}
         />
+        {/* Solo la cuenta de pruebas: el servidor lo vuelve a comprobar, esto
+            es únicamente para no enseñar un botón que va a dar 403. */}
+        {user.username === 'luna' ? (
+          <Button
+            label="Reiniciar metas y monedas"
+            variant="ghost"
+            loading={busy === 'reset'}
+            onPress={() =>
+              Alert.alert(
+                'Reiniciar datos',
+                'Borra los regalos, las metas, los diamantes y los movimientos de todas las cuentas, y deja 5.000 monedas en cada una. Las sesiones no se cierran.',
+                [
+                  { text: 'Cancelar', style: 'cancel' },
+                  { text: 'Reiniciar', style: 'destructive', onPress: () => void reiniciar() },
+                ],
+              )
+            }
+          />
+        ) : null}
+
         <Button label="Cerrar sesión" variant="danger" onPress={() => void logout()} />
       </ScrollView>
     </SafeAreaView>

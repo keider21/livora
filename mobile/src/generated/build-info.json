@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1024,
-  "commit": "26f7117",
+  "buildNumber": 1025,
+  "commit": "1933dfb",
   "branch": "main",
-  "builtAt": "2026-09-08T16:15:24.146Z",
+  "builtAt": "2026-09-08T22:27:24.128Z",
   "changes": [
+    "Ilustraciones de verdad para los regalos y seis exclusivos nuevos",
     "Los regalos de la suerte devuelven menos: 0,84 baja a 0,70",
     "Los cofres son tres casillas más de la pestaña Suerte",
     "El rato de buena suerte dura menos y el automático va más rápido",
@@ -18,7 +19,6 @@
     "Al volver a la app se vuelve a entrar en la sala",
     "Fuera las rachas globales",
     "Suerte personal: cada cuenta tiene su propia racha",
-    "La probabilidad base sube a su techo",
-    "Rachas de suerte: ratos en que los regalos premian el doble"
+    "La probabilidad base sube a su techo"
   ]
 }

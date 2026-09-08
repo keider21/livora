@@ -67,6 +67,12 @@ export const DIAMONDS_PER_COIN_EXCLUSIVE = 0.7;
 
 /** Tier de los regalos exclusivos, que cobran la tasa de arriba. */
 export const GIFT_TIER_EXCLUSIVE = 'exclusive';
+/**
+ * Los cofres son regalos con dos particularidades: **siempre** premian, y el
+ * premio no vuelve a quien envía sino que se lo lleva quien lo recibe, como si
+ * le hubieran mandado un regalo de ese tamaño.
+ */
+export const GIFT_TIER_CHEST = 'chest';
 
 /**
  * Club de fans: monedas que hay que haber gastado con un anfitrión para llegar

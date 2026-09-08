@@ -1,8 +1,6 @@
 import { apiRequest } from './client';
 import type { ChatMessage, GiftEvent, SeatsEvent } from '../realtime/events';
 import type {
-  Chest,
-  ChestOpenResult,
   CoinPackage,
   CurrentUser,
   Gift,
@@ -128,17 +126,17 @@ export const wallet = {
   transactions: () => apiRequest<{ transactions: Transaction[] }>('/api/wallet/transactions'),
 };
 
-export const chests = {
-  list: () => apiRequest<{ cofres: Chest[] }>('/api/chests'),
-  /** Cada cofre de la tanda se sortea por separado. */
-  open: (code: string, cantidad: number) =>
-    apiRequest<ChestOpenResult>('/api/chests/open', { method: 'POST', body: { code, cantidad } }),
-};
 
 export const hosts = {
   /** Progreso de hoy hacia la meta de salario, y lo cobrado los días anteriores. */
   salary: () =>
     apiRequest<{ progreso: SalaryProgress; historial: SalaryPayment[] }>('/api/hosts/me/salary'),
+  /** Solo funciona con la cuenta de pruebas; con cualquier otra devuelve 403. */
+  reset: () =>
+    apiRequest<{ resumen: { regalos: number; movimientos: number; salas: number; cuentas: number } }>(
+      '/api/hosts/me/reset',
+      { method: 'POST' },
+    ),
 };
 
 export const ranking = {

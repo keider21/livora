@@ -1,29 +1,22 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import type { GiftEvent } from '../realtime/events';
-import { colors, radius, spacing } from '../theme';
+import { colors } from '../theme';
 
 /**
  * Explosión del regalo: el emoji sale disparado en varias direcciones desde el
  * centro y se apaga. Cuanto más caro el regalo, más partículas y más lejos
  * llegan, que es lo que hace que un regalo grande se note.
+ *
+ * Aquí **no se escribe el premio**. Lo llevaba en el centro, y como el anuncio
+ * de abajo ya dice el multiplicador y las monedas, la misma cifra salía dos
+ * veces en pantalla a la vez. La explosión pone el golpe de efecto; el número lo
+ * pone el anuncio, que además se queda quieto y se puede leer.
  */
 const PARTICLES: Record<string, number> = { float: 6, burst: 12, fullscreen: 20 };
 const DISTANCE: Record<string, number> = { float: 90, burst: 150, fullscreen: 240 };
 
-export function GiftBurst({
-  event,
-  coinsRewarded,
-  wins,
-  onDone,
-}: {
-  event: GiftEvent;
-  /** Monedas ganadas en todo el combo, no solo en el último envío. */
-  coinsRewarded: number;
-  /** Cuántas unidades premiaron en total. */
-  wins: number;
-  onDone: () => void;
-}) {
+export function GiftBurst({ event, onDone }: { event: GiftEvent; onDone: () => void }) {
   const progress = useRef(new Animated.Value(0)).current;
   const count = PARTICLES[event.gift.animation] ?? PARTICLES.burst!;
   const distance = DISTANCE[event.gift.animation] ?? DISTANCE.burst!;
@@ -72,29 +65,6 @@ export function GiftBurst({
         </Animated.Text>
       ))}
 
-      {/* Si tocó premio, el aviso sale en el centro de la explosión. Con un
-          paquete grande no se enseña ×2 tres veces: se dice cuántas unidades
-          premiaron y el total de monedas ganadas, ya sumado. */}
-      {coinsRewarded > 0 ? (
-        <Animated.View
-          style={[
-            styles.reward,
-            {
-              opacity: progress.interpolate({ inputRange: [0, 0.2, 0.8, 1], outputRange: [0, 1, 1, 0] }),
-              transform: [
-                { scale: progress.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0.5, 1.15, 1] }) },
-              ],
-            },
-          ]}
-        >
-          <Text style={styles.rewardMultiplier}>
-            {wins > 1 ? `×${wins}` : `×${event.luckyMultiplier}`}
-          </Text>
-          <Text style={styles.rewardCoins}>
-            {wins > 1 ? `${wins} premios · ` : ''}+{coinsRewarded.toLocaleString('es')} monedas
-          </Text>
-        </Animated.View>
-      ) : null}
     </View>
   );
 }
@@ -102,15 +72,4 @@ export function GiftBurst({
 const styles = StyleSheet.create({
   container: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
   particle: { position: 'absolute', fontSize: 30 },
-  reward: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(5,10,7,0.82)',
-    borderWidth: 2,
-    borderColor: colors.coin,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-  },
-  rewardMultiplier: { color: colors.coin, fontSize: 34, fontWeight: '900' },
-  rewardCoins: { color: colors.text, fontSize: 13, fontWeight: '700' },
 });

@@ -4,6 +4,7 @@ import {
   CURRENCY,
   DIAMONDS_PER_COIN,
   DIAMONDS_PER_COIN_EXCLUSIVE,
+  GIFT_TIER_CHEST,
   GIFT_TIER_EXCLUSIVE,
   MESSAGE_TYPE,
   ROOM_STATUS,
@@ -84,6 +85,7 @@ export async function sendGift(senderId: string, input: SendGiftInput) {
   }
 
   const esExclusivo = gift.tier === GIFT_TIER_EXCLUSIVE;
+  const esCofre = gift.tier === GIFT_TIER_CHEST;
   // Los exclusivos son piezas únicas: se manda una a cada destinatario.
   const quantity = esExclusivo ? 1 : input.quantity;
 
@@ -117,18 +119,28 @@ export async function sendGift(senderId: string, input: SendGiftInput) {
   //
   // Se calcula una sola vez por envío: si se mirase el reloj en cada unidad, un
   // paquete grande podría caer a caballo entre dos momentos distintos.
-  const probabilidad = gift.luckyChance * factorSuerte(senderId);
+  //
+  // El cofre es la excepción: premia siempre, así que su probabilidad no la
+  // toca la suerte personal. Lo que cambia de un cofre a otro es cuál de los
+  // escalones sale, no si sale.
+  const probabilidad = esCofre ? 1 : gift.luckyChance * factorSuerte(senderId);
   const tasaDiamantes = esExclusivo ? DIAMONDS_PER_COIN_EXCLUSIVE : DIAMONDS_PER_COIN;
   const envios = recipients.map((recipient) => {
     const lucky = rollLucky(gift.priceCoins, quantity, probabilidad, gift.luckyMultipliers);
+    // Lo que vale el regalo para quien lo recibe. En un cofre es lo que salió al
+    // abrirlo, no lo que costó: por eso cuenta para su meta y por eso sus
+    // diamantes se calculan sobre esa cifra.
+    const valorEntregado = esCofre ? lucky.coins : coinsPorDestinatario;
     return {
       recipient,
       lucky,
-      diamondsEarned: Math.round(coinsPorDestinatario * tasaDiamantes),
+      valorEntregado,
+      diamondsEarned: Math.round(valorEntregado * tasaDiamantes),
     };
   });
 
-  const coinsRewarded = envios.reduce((total, envio) => total + envio.lucky.coins, 0);
+  // Del cofre no vuelve nada a quien lo envía: el premio se lo lleva el otro.
+  const coinsRewarded = esCofre ? 0 : envios.reduce((total, envio) => total + envio.lucky.coins, 0);
   const newXp = sender.xp + coinsSpent * XP_PER_COIN_SPENT;
 
   // Todo el movimiento económico ocurre en una sola transacción: o se cobra al
@@ -153,9 +165,9 @@ export async function sendGift(senderId: string, input: SendGiftInput) {
           senderId,
           receiverId: envio.recipient.id,
           quantity,
-          coinsSpent: coinsPorDestinatario,
+          coinsSpent: envio.valorEntregado,
           diamondsEarned: envio.diamondsEarned,
-          coinsRewarded: envio.lucky.coins,
+          coinsRewarded: esCofre ? 0 : envio.lucky.coins,
         },
       });
 
@@ -231,8 +243,9 @@ export async function sendGift(senderId: string, input: SendGiftInput) {
     id: giftSend.id,
     roomId: room.id,
     quantity,
-    coinsSpent: coinsPorDestinatario,
+    coinsSpent: envio.valorEntregado,
     diamondsEarned: envio.diamondsEarned,
+    /** En un cofre es lo que explotó, y se lo queda quien lo recibe. */
     coinsRewarded: envio.lucky.coins,
     luckyMultiplier: envio.lucky.multiplier,
     luckyWins: envio.lucky.wins,
@@ -260,7 +273,8 @@ export async function sendGift(senderId: string, input: SendGiftInput) {
   }
 
   // La barra de la meta se llena en directo. Solo cuenta lo que llega al
-  // anfitrión y solo si no es exclusivo, que es lo que mide el salario.
+  // anfitrión y solo si no es exclusivo, que es lo que mide el salario. El
+  // cofre sí cuenta, y por lo que explotó.
   if (!esExclusivo && recipientIds.includes(room.hostId)) {
     const meta = await progresoDelDia(room.hostId);
     emitToRoom(room.id, SOCKET_EVENTS.ROOM_GOAL, {

@@ -1,12 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { Chest, ChestOpenResult, Gift } from '../api/types';
+import type { Gift } from '../api/types';
 import { Image } from 'expo-image';
 import { Avatar, Button } from './ui';
-import { ApiError, chests as chestsApi } from '../api';
-import { useAuthStore } from '../store/auth-store';
 import { giftArt } from './gift-art';
 import { RechargeSheet } from './recharge-sheet';
 import { ChestDetails } from './chest-details';
@@ -44,16 +42,10 @@ function topMultiplier(raw: string): number {
   return valores.length ? Math.max(...valores) : 0;
 }
 
-/**
- * Una casilla de la rejilla. Los cofres se pintan como un regalo más de la
- * pestaña de Suerte, que es donde los pone Kako y donde tienen sentido: quien
- * está probando suerte con los regalos es quien va a probar el cofre.
- */
-type Casilla = { tipo: 'regalo'; gift: Gift } | { tipo: 'cofre'; cofre: Chest };
-
 function tabOf(gift: Gift): Tab {
   if (gift.minFanLevel > 0) return 'fanclub';
   if (gift.tier === 'exclusive') return 'exclusive';
+  // El cofre es un regalo de la suerte más, solo que siempre explota.
   return 'lucky';
 }
 
@@ -96,32 +88,19 @@ export function GiftPicker({
   const [customQuantity, setCustomQuantity] = useState('');
   const [recargaVisible, setRecargaVisible] = useState(false);
 
-  // Cofres: catálogo aparte del de regalos, pero se pintan en la misma rejilla.
-  const setWallet = useAuthStore((state) => state.setWallet);
-  const [cofres, setCofres] = useState<Chest[]>([]);
-  const [cofre, setCofre] = useState<Chest | null>(null);
-  const [abriendo, setAbriendo] = useState(false);
   const [detalles, setDetalles] = useState(false);
-  const [premio, setPremio] = useState<ChestOpenResult | null>(null);
 
-  useEffect(() => {
-    if (!visible || cofres.length > 0) return;
-    void chestsApi
-      .list()
-      .then((data) => setCofres(data.cofres))
-      .catch(() => undefined);
-  }, [visible, cofres.length]);
-
-  const visibles = useMemo(() => gifts.filter((gift) => tabOf(gift) === tab), [gifts, tab]);
-
-  // Los cofres abren la pestaña de Suerte, delante de los regalos.
-  const casillas = useMemo<Casilla[]>(
-    () => [
-      ...(tab === 'lucky' ? cofres.map((item): Casilla => ({ tipo: 'cofre', cofre: item })) : []),
-      ...visibles.map((gift): Casilla => ({ tipo: 'regalo', gift })),
-    ],
-    [tab, cofres, visibles],
+  // Los cofres abren la pestaña de Suerte, delante de los regalos: son lo más
+  // caro de la pestaña y lo que más mueve la meta del anfitrión.
+  const visibles = useMemo(
+    () =>
+      gifts
+        .filter((gift) => tabOf(gift) === tab)
+        .sort((a, b) => Number(b.tier === 'chest') - Number(a.tier === 'chest')),
+    [gifts, tab],
   );
+
+  const cofres = useMemo(() => gifts.filter((gift) => gift.tier === 'chest'), [gifts]);
 
   // Los exclusivos y los del club se mandan de uno en uno: el servidor ignora
   // la cantidad, así que aquí tampoco se ofrece.
@@ -131,27 +110,9 @@ export function GiftPicker({
   const escrita = Number(customQuantity);
   const cantidadReal = unitario ? 1 : Number.isFinite(escrita) && escrita > 0 ? Math.min(escrita, 999) : quantity;
   const bloqueado = selected ? selected.minFanLevel > fanLevel : false;
-  // El cofre no se le manda a nadie, así que no se multiplica por destinatarios.
-  const total = cofre
-    ? cofre.precio * cantidadReal
-    : selected
-      ? selected.priceCoins * cantidadReal * Math.max(1, selectedIds.length)
-      : 0;
+  const total = selected ? selected.priceCoins * cantidadReal * Math.max(1, selectedIds.length) : 0;
   const affordable = total <= coins;
-
-  const abrirCofre = useCallback(async () => {
-    if (!cofre) return;
-    setAbriendo(true);
-    try {
-      const data = await chestsApi.open(cofre.code, cantidadReal);
-      setPremio(data);
-      setWallet(data.wallet);
-    } catch (error) {
-      Alert.alert('No se pudo abrir', error instanceof ApiError ? error.message : 'Inténtalo de nuevo');
-    } finally {
-      setAbriendo(false);
-    }
-  }, [cofre, cantidadReal, setWallet]);
+  const esCofre = selected?.tier === 'chest';
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -221,11 +182,6 @@ export function GiftPicker({
               onPress={() => {
                 setTab(item.key);
                 setSelected(null);
-                // Los cofres solo salen en Suerte: si se cambia de pestaña con
-                // uno elegido, el pie seguiría hablando de un cofre que ya no
-                // se ve.
-                setCofre(null);
-                setPremio(null);
               }}
               style={[styles.tab, tab === item.key && styles.tabOn]}
             >
@@ -237,8 +193,8 @@ export function GiftPicker({
         </View>
 
         <FlatList
-          data={casillas}
-          keyExtractor={(item) => (item.tipo === 'cofre' ? `cofre:${item.cofre.code}` : item.gift.code)}
+          data={visibles}
+          keyExtractor={(item) => item.code}
           numColumns={4}
           columnWrapperStyle={{ gap: spacing.sm }}
           contentContainerStyle={{ gap: spacing.sm, paddingBottom: spacing.md }}
@@ -249,48 +205,12 @@ export function GiftPicker({
                 : 'No hay regalos en esta sección.'}
             </Text>
           }
-          renderItem={({ item: casilla }) => {
-            if (casilla.tipo === 'cofre') {
-              const item = casilla.cofre;
-              const elegido = cofre?.code === item.code;
-              return (
-                <Pressable
-                  onPress={() => {
-                    setCofre(item);
-                    setSelected(null);
-                    setPremio(null);
-                  }}
-                  style={[
-                    styles.gift,
-                    { borderColor: elegido ? colors.primary : colors.border },
-                    elegido && styles.giftSelected,
-                  ]}
-                >
-                  {giftArt(item.image) ? (
-                    <Image source={giftArt(item.image)!} style={styles.giftArt} contentFit="contain" />
-                  ) : (
-                    <Text style={styles.emoji}>{item.emoji}</Text>
-                  )}
-                  <Text style={styles.giftName} numberOfLines={1}>
-                    {item.nombre}
-                  </Text>
-                  <Text style={[styles.price, { color: colors.coin }]}>
-                    🪙 {item.precio.toLocaleString('es')}
-                  </Text>
-                </Pressable>
-              );
-            }
-
-            const item = casilla.gift;
+          renderItem={({ item }) => {
             const isSelected = selected?.code === item.code;
             const cerrado = item.minFanLevel > fanLevel;
             return (
               <Pressable
-                onPress={() => {
-                  setSelected(item);
-                  setCofre(null);
-                  setPremio(null);
-                }}
+                onPress={() => setSelected(item)}
                 style={[
                   styles.gift,
                   { borderColor: isSelected ? colors.primary : colors.border },
@@ -360,14 +280,10 @@ export function GiftPicker({
           </View>
         )}
 
-        {cofre ? (
+        {esCofre ? (
           <Pressable style={styles.cofrePista} onPress={() => setDetalles(true)}>
             <Text style={styles.luckyHint}>
-              {premio
-                ? premio.ganado > 0
-                  ? `🪙 +${premio.ganado.toLocaleString('es')} de ${premio.cantidad === 1 ? 'un cofre' : `${premio.cantidad} cofres`}`
-                  : 'Esta vez no tocó nada'
-                : `${cofre.nombre}: premia el ${cofre.probabilidad.toFixed(1)}% de las veces y el gordo son ${formatCount(Math.max(...cofre.premios))} monedas`}
+              {selected!.name} siempre explota, y lo que salga se lo lleva quien lo recibe
             </Text>
             <Text style={styles.detalles}>Detalles ›</Text>
           </Pressable>
@@ -393,11 +309,7 @@ export function GiftPicker({
 
         <Button
           label={
-            cofre
-              ? affordable
-                ? `Abrir por 🪙 ${total.toLocaleString('es')}`
-                : 'Recargar monedas'
-              : selected
+            selected
               ? bloqueado
                 ? `Necesitas ser fan nivel ${selected.minFanLevel}`
                 : affordable
@@ -405,17 +317,14 @@ export function GiftPicker({
                   : 'Recargar monedas'
               : 'Elige un regalo'
           }
-          loading={sending || abriendo}
-          disabled={cofre ? false : !selected || bloqueado || selectedIds.length === 0}
+          loading={sending}
+          disabled={!selected || bloqueado || selectedIds.length === 0}
           onPress={() => {
+            if (!selected) return;
             // Sin saldo el botón no se apaga: lleva a recargar, que es lo que
             // hace falta para poder enviarlo.
-            if (!affordable) {
-              setRecargaVisible(true);
-              return;
-            }
-            if (cofre) void abrirCofre();
-            else if (selected) onSend(selected.code, cantidadReal);
+            if (!affordable) setRecargaVisible(true);
+            else onSend(selected.code, cantidadReal);
           }}
         />
       </View>

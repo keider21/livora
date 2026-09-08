@@ -155,6 +155,16 @@ describe('tabla de salarios', () => {
   });
 });
 
+describe('reinicio desde la app', () => {
+  it('solo lo puede hacer la cuenta de pruebas', async () => {
+    // Borra lo acumulado de todo el mundo, así que la puerta no puede ser un
+    // permiso que alguien se gane: es una lista de usuarios escrita a mano.
+    const cualquiera = await crearUsuario();
+    const { status } = await api.request('POST', '/api/hosts/me/reset', { token: cualquiera.token });
+    assert.equal(status, 403);
+  });
+});
+
 describe('la meta dentro de la sala', () => {
   it('la sala trae la meta del anfitrión al abrirla', async () => {
     // La barra tiene que estar llena desde el primer fotograma: si esperase al

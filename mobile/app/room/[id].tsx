@@ -39,6 +39,7 @@ import { GiftAnimation } from '../../src/components/gift-animation';
 import { proteccionPremio } from '../../src/components/lucky-counter';
 import { GiftAura } from '../../src/components/gift-aura';
 import { GiftBurst } from '../../src/components/gift-burst';
+import { ChestOpen } from '../../src/components/chest-open';
 import { GoalBar } from '../../src/components/goal-bar';
 import { SalaryRules } from '../../src/components/salary-rules';
 import { GiftPicker, type GiftTarget } from '../../src/components/gift-picker';
@@ -241,7 +242,10 @@ export default function RoomScreen() {
       // Las escenas a pantalla completa hacen cola: la que esté sonando
       // termina antes de empezar la siguiente. Como mucho tres esperando, para
       // que una racha de envíos no deje la sala tapada un minuto.
-      if (event.gift.animation === 'aura') {
+      // Las escenas a pantalla completa son los exclusivos y los cofres: el
+      // cofre necesita su momento entero, abrirse y enseñar la cifra, y si se
+      // solapara con el siguiente no se leería ninguna.
+      if (event.gift.animation === 'aura' || event.gift.animation === 'chest') {
         setScene((actual) => {
           if (actual) {
             sceneQueue.current = [...sceneQueue.current, event].slice(-3);
@@ -530,7 +534,12 @@ export default function RoomScreen() {
   const renderer = getStreamRenderer(credentials?.provider ?? 'mock');
   const ultimoAnuncio = announcements[announcements.length - 1] ?? null;
   // Los exclusivos ya se ven en la escena; aquí solo van los demás.
-  const explosion = ultimoAnuncio && ultimoAnuncio.event.gift.animation !== 'aura' ? ultimoAnuncio : null;
+  const explosion =
+    ultimoAnuncio &&
+    ultimoAnuncio.event.gift.animation !== 'aura' &&
+    ultimoAnuncio.event.gift.animation !== 'chest'
+      ? ultimoAnuncio
+      : null;
 
   return (
     <View style={styles.fill}>
@@ -572,8 +581,6 @@ export default function RoomScreen() {
           // explosión desde cero en vez de esperar a que acabe la anterior.
           key={`${explosion.key}-${explosion.round}`}
           event={explosion.event}
-          coinsRewarded={explosion.coins}
-          wins={explosion.wins}
           onDone={() => undefined}
         />
       ) : null}
@@ -777,7 +784,13 @@ export default function RoomScreen() {
           todo lo demás hasta que termina. Tiene su propia cola y decide cuándo
           acaba: el vídeo avisa al final, la animación por código al cerrar su
           ciclo. No recoge toques, así que los botones siguen respondiendo. */}
-      {scene ? <GiftAura key={scene.id} event={scene} onDone={nextScene} /> : null}
+      {scene ? (
+        scene.gift.animation === 'chest' ? (
+          <ChestOpen key={scene.id} event={scene} onDone={nextScene} />
+        ) : (
+          <GiftAura key={scene.id} event={scene} onDone={nextScene} />
+        )
+      ) : null}
 
       <GiftPicker
         visible={pickerOpen}

@@ -8,30 +8,29 @@
  * que revienta todo y ratos en los que no cae nada.
  *
  * Aquí eso se consigue con un factor que multiplica la probabilidad de premio y
- * que **va y viene despacio**, distinto para cada cuenta. En frío baja al 0,35 y
- * casi no toca nada; en caliente sube a 1,8 y explota sin parar.
+ * que **va y viene despacio**, distinto para cada cuenta. En frío baja a 0,5 y
+ * cuesta que toque; en caliente sube a 2 y explota sin parar.
  *
  * ## Por qué el rato bueno dura poco
  *
- * La curva se monta con **dos ondas**: una lenta de veinte segundos, que marca
- * el humor general, y otra rápida de diez que la rompe por arriba. Con una sola
- * onda el tramo caliente duraba casi lo mismo que el tramo entero, y eso deja
- * jugar sobre seguro: se nota que está premiando, se dispara el automático y se
- * para antes de que se enfríe. Con las dos ondas el pico es estrecho, así que el
- * rato bueno **dura unos diez segundos** y se acaba antes de que dé tiempo a
- * exprimirlo.
+ * La curva se monta con **dos ondas**: una lenta de veinticinco segundos, que
+ * marca el humor general, y otra rápida de doce y medio que la rompe por arriba.
+ * Con una sola onda el tramo caliente duraba casi lo mismo que el tramo entero,
+ * y eso deja jugar sobre seguro: se nota que está premiando, se dispara el
+ * automático y se para antes de que se enfríe. Con las dos, el pico es estrecho
+ * y el rato bueno **dura unos quince segundos**.
  *
  * El exponente hace lo mismo por el lado del valor: estirar la parte alta de la
  * curva deja el máximo más arriba pero se pasa por él menos rato.
  *
  * ## Por qué la media sale 1
  *
- * El suelo no es un número redondo: sale de despejar la media. Con el techo, el
- * exponente y el reparto de las dos ondas ya fijados, `MINIMO` es el único valor
- * que deja la media del factor en 1, y eso es lo que hace que la suerte personal
- * **añada variación sin mover el retorno a largo plazo**. Si se toca cualquiera
- * de las otras constantes hay que recalcularlo; la prueba «la media del factor
- * es 1» lo vigila.
+ * El suelo y el techo los eligió el usuario; el **exponente** es el que sale de
+ * despejar la media. Con 0,5 y 2 en los extremos y este reparto de ondas, 1,74
+ * es el valor que deja la media del factor en 1, y eso es lo que hace que la
+ * suerte personal **añada variación sin mover el retorno a largo plazo**. Si se
+ * toca cualquiera de las otras constantes hay que recalcularlo; la prueba «la
+ * media del factor es 1» lo vigila.
  *
  * ## Por qué no se guarda nada
  *
@@ -44,21 +43,21 @@
  * Las dos ondas. La lenta manda —es el humor de la cuenta— y la rápida solo la
  * despeina lo justo para que los picos no se hagan mesetas.
  */
-const TRAMO_LENTO_MS = 20_000;
-const TRAMO_RAPIDO_MS = 10_000;
+const TRAMO_LENTO_MS = 25_000;
+const TRAMO_RAPIDO_MS = 12_500;
 
 /** Cuánto pesa la onda rápida. Más peso, picos más estrechos y más nerviosos. */
-const PESO_RAPIDA = 0.4;
+const PESO_RAPIDA = 0.3;
 
 /**
  * Cuánto se estira la parte alta de la curva. Por encima de 1 los valores
  * grandes escasean, que es lo que acorta el rato bueno.
  */
-const EXPONENTE = 1.2;
+const EXPONENTE = 1.74;
 
 /** Extremos del factor. Ver «Por qué la media sale 1» antes de tocarlos. */
-const MINIMO = 0.35;
-const MAXIMO = 1.8;
+const MINIMO = 0.5;
+const MAXIMO = 2.0;
 
 /**
  * Número estable entre 0 y 1 a partir de un texto y un tramo.
@@ -101,7 +100,7 @@ function onda(semilla: string, milisegundos: number, tramoMs: number): number {
 /**
  * Factor de suerte de una cuenta en un instante dado.
  *
- * Va de 0,35 a 1,8 y se mueve en curva: la suerte sube y baja suave en vez de a
+ * Va de 0,5 a 2 y se mueve en curva: la suerte sube y baja suave en vez de a
  * saltos, pero el rato bueno es corto. Cada cuenta lleva la suya.
  */
 export function factorSuerte(userId: string, ahora: Date = new Date()): number {
