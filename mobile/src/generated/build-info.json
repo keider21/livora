@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1020,
-  "commit": "f8f923c",
+  "buildNumber": 1021,
+  "commit": "7b99849",
   "branch": "main",
-  "builtAt": "2026-09-08T08:58:48.474Z",
+  "builtAt": "2026-09-08T15:24:11.633Z",
   "changes": [
+    "Los cofres pasan del perfil a la caja de regalos",
     "La meta se ve durante el directo y se recarga desde los regalos",
     "Fase 12: lo que Kako tiene y a Livora le falta",
     "Paquete de recarga grande y reinicio de datos de prueba",
@@ -18,7 +19,6 @@
     "Rachas de suerte: ratos en que los regalos premian el doble",
     "Los anuncios bajan, se encogen, y el exclusivo tapa lo demás",
     "La tarjeta del regalo entra una vez y se queda quieta",
-    "El fondo va por regalos enviados, y los premios gordos aguantan",
-    "Probabilidades fijadas escalón por escalón"
+    "El fondo va por regalos enviados, y los premios gordos aguantan"
   ]
 }

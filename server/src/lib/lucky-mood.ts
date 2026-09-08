@@ -9,14 +9,29 @@
  *
  * Aquí eso se consigue con un factor que multiplica la probabilidad de premio y
  * que **va y viene despacio**, distinto para cada cuenta. En frío baja al 0,35 y
- * casi no toca nada; en caliente sube a 1,65 y explota sin parar.
+ * casi no toca nada; en caliente sube a 1,8 y explota sin parar.
+ *
+ * ## Por qué el rato bueno dura poco
+ *
+ * La curva se monta con **dos ondas**: una lenta de veinte segundos, que marca
+ * el humor general, y otra rápida de diez que la rompe por arriba. Con una sola
+ * onda el tramo caliente duraba casi lo mismo que el tramo entero, y eso deja
+ * jugar sobre seguro: se nota que está premiando, se dispara el automático y se
+ * para antes de que se enfríe. Con las dos ondas el pico es estrecho, así que el
+ * rato bueno **dura unos diez segundos** y se acaba antes de que dé tiempo a
+ * exprimirlo.
+ *
+ * El exponente hace lo mismo por el lado del valor: estirar la parte alta de la
+ * curva deja el máximo más arriba pero se pasa por él menos rato.
  *
  * ## Por qué la media sale 1
  *
- * El factor se reparte alrededor de 1 a propósito: `MINIMO + n × (MAXIMO −
- * MINIMO)` con `n` centrado en 0,5 da media 1 exacta. Así la suerte personal
- * **añade variación sin mover el retorno a largo plazo**, que es lo que mantiene
- * la economía cerrada. La prueba «la media del factor es 1» lo vigila.
+ * El suelo no es un número redondo: sale de despejar la media. Con el techo, el
+ * exponente y el reparto de las dos ondas ya fijados, `MINIMO` es el único valor
+ * que deja la media del factor en 1, y eso es lo que hace que la suerte personal
+ * **añada variación sin mover el retorno a largo plazo**. Si se toca cualquiera
+ * de las otras constantes hay que recalcularlo; la prueba «la media del factor
+ * es 1» lo vigila.
  *
  * ## Por qué no se guarda nada
  *
@@ -26,22 +41,24 @@
  */
 
 /**
- * Cuánto dura cada tramo de la curva. A minuto y medio la suerte cambiaba
- * demasiado despacio: quien pillaba una racha fría se pasaba varios paquetes
- * enteros sin ver un premio.
+ * Las dos ondas. La lenta manda —es el humor de la cuenta— y la rápida solo la
+ * despeina lo justo para que los picos no se hagan mesetas.
  */
-const TRAMO_MS = 30_000;
+const TRAMO_LENTO_MS = 20_000;
+const TRAMO_RAPIDO_MS = 10_000;
+
+/** Cuánto pesa la onda rápida. Más peso, picos más estrechos y más nerviosos. */
+const PESO_RAPIDA = 0.4;
 
 /**
- * Extremos del factor. **La media de los dos tiene que ser 1**: es lo que hace
- * que la variación no mueva el retorno del conjunto, y cualquier cambio aquí
- * debe respetarlo.
- *
- * El suelo subió de 0,2 a 0,35 porque en frío se perdía demasiado. El techo baja
- * en la misma medida para conservar la media.
+ * Cuánto se estira la parte alta de la curva. Por encima de 1 los valores
+ * grandes escasean, que es lo que acorta el rato bueno.
  */
+const EXPONENTE = 1.2;
+
+/** Extremos del factor. Ver «Por qué la media sale 1» antes de tocarlos. */
 const MINIMO = 0.35;
-const MAXIMO = 1.65;
+const MAXIMO = 1.8;
 
 /**
  * Número estable entre 0 y 1 a partir de un texto y un tramo.
@@ -70,20 +87,31 @@ function suavizar(t: number): number {
   return t * t * (3 - 2 * t);
 }
 
+/** Una onda: ruido por tramos, interpolado para que no salte. */
+function onda(semilla: string, milisegundos: number, tramoMs: number): number {
+  const posicion = milisegundos / tramoMs;
+  const tramo = Math.floor(posicion);
+
+  const actual = ruido(semilla, tramo);
+  const siguiente = ruido(semilla, tramo + 1);
+
+  return actual + (siguiente - actual) * suavizar(posicion - tramo);
+}
+
 /**
  * Factor de suerte de una cuenta en un instante dado.
  *
- * Va de 0,35 a 1,65 y se mueve en curva: entre un tramo y el siguiente se
- * interpola, así que la suerte sube y baja suave en vez de a saltos. Cada cuenta
- * lleva la suya.
+ * Va de 0,35 a 1,8 y se mueve en curva: la suerte sube y baja suave en vez de a
+ * saltos, pero el rato bueno es corto. Cada cuenta lleva la suya.
  */
 export function factorSuerte(userId: string, ahora: Date = new Date()): number {
-  const posicion = ahora.getTime() / TRAMO_MS;
-  const tramo = Math.floor(posicion);
+  const milisegundos = ahora.getTime();
 
-  const actual = ruido(userId, tramo);
-  const siguiente = ruido(userId, tramo + 1);
-  const n = actual + (siguiente - actual) * suavizar(posicion - tramo);
+  const lenta = onda(userId, milisegundos, TRAMO_LENTO_MS);
+  // La onda rápida lleva su propia semilla: con la misma subirían y bajarían a la
+  // vez y no romperían nada.
+  const rapida = onda(`${userId}#rapida`, milisegundos, TRAMO_RAPIDO_MS);
+  const n = lenta * (1 - PESO_RAPIDA) + rapida * PESO_RAPIDA;
 
-  return MINIMO + n * (MAXIMO - MINIMO);
+  return MINIMO + Math.pow(n, EXPONENTE) * (MAXIMO - MINIMO);
 }

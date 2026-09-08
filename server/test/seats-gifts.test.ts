@@ -213,20 +213,44 @@ describe('suerte personal', () => {
     assert.ok(media > 0.97 && media < 1.03, `la media salió ${media.toFixed(3)}`);
   });
 
-  it('se mueve entre 0,35 y 1,65', () => {
+  it('se mueve entre 0,35 y 1,8', () => {
     for (let paso = 0; paso < 500; paso += 1) {
       const factor = factorSuerte('luna', new Date(INICIO + paso * 7_000));
-      assert.ok(factor >= 0.35 && factor <= 1.65, `salió ${factor}`);
+      assert.ok(factor >= 0.35 && factor <= 1.8, `salió ${factor}`);
     }
   });
 
+  it('el rato bueno dura unos diez segundos', () => {
+    // Es el motivo de montar la curva con dos ondas. Si el tramo caliente
+    // durase lo que el tramo entero se podría jugar sobre seguro: se nota que
+    // premia, se dispara el automático y se para antes de que enfríe.
+    let rachas = 0;
+    let segundos = 0;
+
+    for (let cuenta = 0; cuenta < 200; cuenta += 1) {
+      let seguidos = 0;
+      for (let segundo = 0; segundo < 600; segundo += 1) {
+        if (factorSuerte(`user${cuenta}`, new Date(INICIO + segundo * 1_000)) > 1.4) {
+          seguidos += 1;
+        } else if (seguidos > 0) {
+          rachas += 1;
+          segundos += seguidos;
+          seguidos = 0;
+        }
+      }
+    }
+
+    const duracion = segundos / rachas;
+    assert.ok(duracion > 6 && duracion < 14, `las rachas calientes duran ${duracion.toFixed(1)} s`);
+  });
+
   it('sube y baja en curva, sin saltos secos', () => {
-    // Se interpola entre tramos de treinta segundos: en un segundo la suerte no
-    // puede pasar de fría a caliente.
+    // Se interpola entre tramos de veinte y de diez segundos: en un segundo la
+    // suerte no puede pasar de fría a caliente.
     let anterior = factorSuerte('luna', new Date(INICIO));
     for (let segundo = 1; segundo < 300; segundo += 1) {
       const actual = factorSuerte('luna', new Date(INICIO + segundo * 1000));
-      assert.ok(Math.abs(actual - anterior) < 0.09, `saltó ${Math.abs(actual - anterior).toFixed(3)}`);
+      assert.ok(Math.abs(actual - anterior) < 0.16, `saltó ${Math.abs(actual - anterior).toFixed(3)}`);
       anterior = actual;
     }
   });
@@ -241,7 +265,7 @@ describe('suerte personal', () => {
     // Es lo que hace que la mecánica enganche: rachas buenas de verdad y malas
     // de verdad, en vez de que todos acaben siempre en la media.
     const base = expectedReturn(0.015, '10:900,20:64,50:64,500:99');
-    assert.ok(base * 1.65 > 1.3, 'en caliente debería devolver más de lo gastado');
+    assert.ok(base * 1.8 > 1.3, 'en caliente debería devolver más de lo gastado');
     assert.ok(base * 0.35 < 0.35, 'en frío debería devolver bastante menos');
   });
 });
