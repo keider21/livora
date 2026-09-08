@@ -7,6 +7,7 @@ import { Image } from 'expo-image';
 import { Avatar, Button } from './ui';
 import { giftArt } from './gift-art';
 import { RechargeSheet } from './recharge-sheet';
+import { ChestPanel } from './chest-panel';
 import { colors, radius, spacing, tierColors, typography } from '../theme';
 
 const QUANTITIES = [1, 5, 10, 50];
@@ -20,12 +21,15 @@ export interface GiftTarget {
   label: string;
 }
 
-type Tab = 'lucky' | 'exclusive' | 'fanclub';
+type Tab = 'lucky' | 'chests' | 'exclusive' | 'fanclub';
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'lucky', label: 'Suerte' },
+  // Los cofres van aquí y no en el perfil: es el mismo impulso que el regalo de
+  // la suerte, y en el perfil quedaban lejos del momento de jugárselo.
+  { key: 'chests', label: 'Cofres' },
   { key: 'exclusive', label: 'Exclusivos' },
-  { key: 'fanclub', label: 'Club de fans' },
+  { key: 'fanclub', label: 'Club' },
 ];
 
 /**
@@ -105,11 +109,16 @@ export function GiftPicker({
       <View style={[styles.sheet, { paddingBottom: spacing.lg + insets.bottom }]}>
         <View style={styles.header}>
           <View style={styles.headerTexts}>
-            <Text style={typography.heading}>Enviar un regalo</Text>
+            <Text style={typography.heading}>{tab === 'chests' ? 'Probar suerte' : 'Enviar un regalo'}</Text>
             <Text style={styles.recipient} numberOfLines={1}>
-              {selectedIds.length > 1 ? `para ${selectedIds.length} personas` : 'elige a quién'}
+              {tab === 'chests'
+                ? 'los cofres son solo para ti'
+                : selectedIds.length > 1
+                  ? `para ${selectedIds.length} personas`
+                  : 'elige a quién'}
             </Text>
           </View>
+          {tab === 'chests' ? null : (
           <Pressable
             onPress={onToggleLock}
             hitSlop={10}
@@ -122,6 +131,7 @@ export function GiftPicker({
               color={locked ? colors.onPrimary : colors.textMuted}
             />
           </Pressable>
+          )}
           {/* El saldo es el botón de recarga: quedarse corto pasa aquí dentro,
               y salir al perfil a por monedas corta el envío a medias. */}
           <Pressable
@@ -135,7 +145,9 @@ export function GiftPicker({
         </View>
 
         {/* Quién está en la sala. Se puede marcar a varios, y uno mismo sale
-            el primero para poder jugarse el saldo con los regalos de suerte. */}
+            el primero para poder jugarse el saldo con los regalos de suerte.
+            En los cofres no hay a quién elegir: se juega contra la casa. */}
+        {tab === 'chests' ? null : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.targets}>
           {targets.map((target) => {
             const marcado = selectedIds.includes(target.id);
@@ -159,6 +171,7 @@ export function GiftPicker({
             );
           })}
         </ScrollView>
+        )}
 
         <View style={styles.tabs}>
           {TABS.map((item) => (
@@ -170,11 +183,17 @@ export function GiftPicker({
               }}
               style={[styles.tab, tab === item.key && styles.tabOn]}
             >
-              <Text style={[styles.tabText, tab === item.key && styles.tabTextOn]}>{item.label}</Text>
+              <Text style={[styles.tabText, tab === item.key && styles.tabTextOn]} numberOfLines={1}>
+                {item.label}
+              </Text>
             </Pressable>
           ))}
         </View>
 
+        {tab === 'chests' ? (
+          <ChestPanel onRecharge={() => setRecargaVisible(true)} />
+        ) : (
+          <>
         <FlatList
           data={visibles}
           keyExtractor={(item) => item.code}
@@ -302,6 +321,8 @@ export function GiftPicker({
             else onSend(selected.code, cantidadReal);
           }}
         />
+          </>
+        )}
       </View>
 
       <RechargeSheet visible={recargaVisible} onClose={() => setRecargaVisible(false)} />
@@ -372,7 +393,7 @@ const styles = StyleSheet.create({
   tabs: { flexDirection: 'row', gap: spacing.xs },
   tab: { flex: 1, alignItems: 'center', paddingVertical: 6, borderRadius: radius.pill, backgroundColor: colors.surfaceAlt },
   tabOn: { backgroundColor: colors.primary },
-  tabText: { color: colors.textMuted, fontSize: 12, fontWeight: '700' },
+  tabText: { color: colors.textMuted, fontSize: 11, fontWeight: '700' },
   tabTextOn: { color: colors.onPrimary },
 
   gift: {

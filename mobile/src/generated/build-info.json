@@ -1,10 +1,12 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1019,
-  "commit": "e5f0c29",
+  "buildNumber": 1020,
+  "commit": "f8f923c",
   "branch": "main",
-  "builtAt": "2026-09-08T08:43:42.568Z",
+  "builtAt": "2026-09-08T08:58:48.474Z",
   "changes": [
+    "La meta se ve durante el directo y se recarga desde los regalos",
+    "Fase 12: lo que Kako tiene y a Livora le falta",
     "Paquete de recarga grande y reinicio de datos de prueba",
     "bronce, plata y oro",
     "La meta del día, en el perfil",
@@ -17,8 +19,6 @@
     "Los anuncios bajan, se encogen, y el exclusivo tapa lo demás",
     "La tarjeta del regalo entra una vez y se queda quieta",
     "El fondo va por regalos enviados, y los premios gordos aguantan",
-    "Probabilidades fijadas escalón por escalón",
-    "Baja el ×10 y añade el escalón ×50",
-    "El color de categoría al fondo del anuncio, y premios que no producen monedas"
+    "Probabilidades fijadas escalón por escalón"
   ]
 }
