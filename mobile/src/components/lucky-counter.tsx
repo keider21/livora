@@ -82,9 +82,9 @@ export function proteccionPremio(multiplier: number): number {
 
 /** Aspecto por tamaño de premio: cuanto más gordo, más grande y más llamativo. */
 function estiloPara(multiplier: number) {
-  if (multiplier >= 1000) return { ala: 15, placa: styles.placaDorada, numero: styles.numeroDorado };
-  if (multiplier >= 500) return { ala: 13, placa: styles.placaMorada, numero: styles.numeroMorado };
-  return { ala: 11, placa: styles.placaNormal, numero: styles.numeroNormal };
+  if (multiplier >= 1000) return { ala: 11, placa: styles.placaDorada, numero: styles.numeroDorado };
+  if (multiplier >= 500) return { ala: 9, placa: styles.placaMorada, numero: styles.numeroMorado };
+  return { ala: 7, placa: styles.placaNormal, numero: styles.numeroNormal };
 }
 
 /**
@@ -109,31 +109,31 @@ const styles = StyleSheet.create({
 
   // Premios pequeños: discreta, para que no compita con el fondo del anuncio.
   placaNormal: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 1,
+    paddingHorizontal: 4,
+    paddingVertical: 0,
     backgroundColor: 'rgba(5,10,7,0.9)',
     borderWidth: 1.5,
     borderColor: 'rgba(255,255,255,0.92)',
   },
-  numeroNormal: { color: '#FFFFFF', fontSize: 15 },
+  numeroNormal: { color: '#FFFFFF', fontSize: 10 },
 
   // Desde ×500: morado, más grande.
   placaMorada: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: 3,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 1,
     backgroundColor: '#5B1DB8',
     borderWidth: 2,
     borderColor: '#E0C3FF',
   },
-  numeroMorado: { color: '#F3E4FF', fontSize: 21 },
+  numeroMorado: { color: '#F3E4FF', fontSize: 15 },
 
   // Desde ×1000: dorado sobre negro, el más grande de todos.
   placaDorada: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: 4,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 2,
     backgroundColor: '#0B0700',
     borderWidth: 2.5,
     borderColor: '#FFD24A',
   },
-  numeroDorado: { color: '#FFD24A', fontSize: 27 },
+  numeroDorado: { color: '#FFD24A', fontSize: 19 },
 });

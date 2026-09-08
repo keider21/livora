@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1014,
-  "commit": "3823339",
+  "buildNumber": 1015,
+  "commit": "6bbbae6",
   "branch": "main",
-  "builtAt": "2026-09-08T06:02:57.319Z",
+  "builtAt": "2026-09-08T06:13:02.586Z",
   "changes": [
+    "La tarjeta del regalo entra una vez y se queda quieta",
     "El fondo va por regalos enviados, y los premios gordos aguantan",
     "Probabilidades fijadas escalón por escalón",
     "Baja el ×10 y añade el escalón ×50",
@@ -18,7 +19,6 @@
     "Comprime los clips de los regalos antes de empaquetarlos",
     "El León Imperial se reproduce en vídeo",
     "El evento del regalo lleva la ilustración",
-    "León Imperial: los regalos pueden traer ilustración propia",
-    "El chat y los regalos van en paneles separados"
+    "León Imperial: los regalos pueden traer ilustración propia"
   ]
 }

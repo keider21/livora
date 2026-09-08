@@ -145,26 +145,31 @@ export function GiftAnimation({
   );
 }
 
+/**
+ * Tamaños pensados para que la tarjeta ocupe poco: va sobre el vídeo y la gente
+ * ha venido a ver la transmisión, no los anuncios. Con tres a la vez apiladas,
+ * cualquier cosa más grande se come media pantalla.
+ */
 const styles = StyleSheet.create({
-  container: { alignSelf: 'flex-start', gap: 2 },
+  container: { alignSelf: 'flex-start' },
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: 5,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.35)',
     borderRadius: radius.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
   },
   badgeBig: { borderColor: colors.accent },
-  emoji: { fontSize: 26 },
-  emojiBig: { fontSize: 38 },
-  texts: { maxWidth: 190, gap: 1 },
-  premio: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: 1 },
-  monedas: { color: colors.coin, fontSize: 11, fontWeight: '800' },
+  emoji: { fontSize: 15 },
+  emojiBig: { fontSize: 20 },
+  texts: { maxWidth: 150 },
+  premio: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  monedas: { color: colors.coin, fontSize: 8, fontWeight: '800' },
   // Blanco puro sobre los fondos saturados, que ya son oscuros de por sí.
-  sender: { color: '#FFFFFF', fontWeight: '800', fontSize: 13 },
-  gift: { color: 'rgba(255,255,255,0.85)', fontWeight: '600', fontSize: 11 },
-  quantity: { color: colors.accent, fontWeight: '800', fontSize: 20 },
+  sender: { color: '#FFFFFF', fontWeight: '800', fontSize: 9 },
+  gift: { color: 'rgba(255,255,255,0.85)', fontWeight: '600', fontSize: 8 },
+  quantity: { color: colors.accent, fontWeight: '800', fontSize: 13 },
 });

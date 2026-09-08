@@ -551,11 +551,6 @@ export default function RoomScreen() {
         <FloatingHeart key={heart.id} heart={heart} onDone={removeHeart} />
       ))}
 
-      {/* La escena de los exclusivos tiene su propia cola y decide cuándo
-          termina: el vídeo avisa al acabar, la animación por código al cerrar
-          su ciclo. */}
-      {scene ? <GiftAura key={scene.id} event={scene} onDone={nextScene} /> : null}
-
       {/* La explosión de los regalos normales se pinta con el último anuncio:
           llenar la pantalla con varias a la vez no dejaría ver nada. */}
       {explosion ? (
@@ -617,20 +612,7 @@ export default function RoomScreen() {
         </View>
 
         <View style={styles.middle} pointerEvents="box-none">
-          <View style={styles.giftLayer} pointerEvents="none">
-            {announcements.map((item) => (
-              <GiftAnimation
-                key={item.key}
-                event={item.event}
-                comboQuantity={item.quantity}
-                comboKey={item.round}
-                coinsRewarded={item.coins}
-                times={item.times}
-                luckyRound={item.luckyRound}
-                onDone={() => hideAnnouncement(item.key)}
-              />
-            ))}
-          </View>
+          <View style={styles.middleHueco} />
 
           <SeatStrip
             seats={seats}
@@ -656,6 +638,24 @@ export default function RoomScreen() {
             },
           ]}
         >
+          {/* Los anuncios de regalo van justo encima del chat, pequeños: en el
+              centro tapaban el vídeo, que es lo que la gente ha venido a ver.
+              Como mucho tres a la vez, uno por cada remitente y destinatario. */}
+          <View style={styles.giftLayer} pointerEvents="none">
+            {announcements.map((item) => (
+              <GiftAnimation
+                key={item.key}
+                event={item.event}
+                comboQuantity={item.quantity}
+                comboKey={item.round}
+                coinsRewarded={item.coins}
+                times={item.times}
+                luckyRound={item.luckyRound}
+                onDone={() => hideAnnouncement(item.key)}
+              />
+            ))}
+          </View>
+
           {chatHidden ? null : <ChatOverlay messages={messages} />}
 
           {/* Repetir el último regalo sin volver a abrir la caja. */}
@@ -752,6 +752,13 @@ export default function RoomScreen() {
           </View>
         </View>
       </SafeAreaView>
+
+      {/* La escena de los exclusivos se pinta la última, así que tapa los
+          anuncios y los controles mientras dura: un regalo de esos manda sobre
+          todo lo demás hasta que termina. Tiene su propia cola y decide cuándo
+          acaba: el vídeo avisa al final, la animación por código al cerrar su
+          ciclo. No recoge toques, así que los botones siguen respondiendo. */}
+      {scene ? <GiftAura key={scene.id} event={scene} onDone={nextScene} /> : null}
 
       <GiftPicker
         visible={pickerOpen}
@@ -882,7 +889,11 @@ const styles = StyleSheet.create({
   },
 
   // Los anuncios se apilan: al regalar a varios hay uno por destinatario.
-  giftLayer: { paddingHorizontal: spacing.md, gap: spacing.xs },
+  // Los anuncios se apilan de abajo arriba, alineados a la izquierda como el
+  // chat que tienen debajo.
+  giftLayer: { gap: 3, alignItems: 'flex-start' },
+  /** Hueco a la izquierda para que la tira de invitados siga a la derecha. */
+  middleHueco: { flex: 1 },
 
   bottom: { padding: spacing.md, gap: spacing.sm },
   actionBar: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
