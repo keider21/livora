@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1021,
-  "commit": "7b99849",
+  "buildNumber": 1022,
+  "commit": "ba7d658",
   "branch": "main",
-  "builtAt": "2026-09-08T15:24:11.633Z",
+  "builtAt": "2026-09-08T15:33:30.119Z",
   "changes": [
+    "El rato de buena suerte dura menos y el automático va más rápido",
     "Los cofres pasan del perfil a la caja de regalos",
     "La meta se ve durante el directo y se recarga desde los regalos",
     "Fase 12: lo que Kako tiene y a Livora le falta",
@@ -18,7 +19,6 @@
     "La probabilidad base sube a su techo",
     "Rachas de suerte: ratos en que los regalos premian el doble",
     "Los anuncios bajan, se encogen, y el exclusivo tapa lo demás",
-    "La tarjeta del regalo entra una vez y se queda quieta",
-    "El fondo va por regalos enviados, y los premios gordos aguantan"
+    "La tarjeta del regalo entra una vez y se queda quieta"
   ]
 }
