@@ -625,7 +625,6 @@ export default function RoomScreen() {
                 comboQuantity={item.quantity}
                 comboKey={item.round}
                 coinsRewarded={item.coins}
-                wins={item.wins}
                 times={item.times}
                 luckyRound={item.luckyRound}
                 onDone={() => hideAnnouncement(item.key)}

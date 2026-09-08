@@ -9,26 +9,25 @@ import { colors, radius, spacing } from '../theme';
 const HOLD_BIG_MS = 2600;
 const HOLD_MS = 1500;
 
-
-
 /**
  * Anuncio del regalo en curso, arriba a la izquierda.
  *
- * Cuando llega el mismo regalo del mismo remitente no se apila otro anuncio:
- * el contador sube (×1, ×2, ×3…) y el tiempo de permanencia vuelve a empezar,
- * como el combo de las apps del sector. Antes cada envío entraba en una cola y
- * se reproducía entero, así que con el envío automático quedaban animaciones
- * saliendo mucho después de haber parado.
+ * **La tarjeta entra una sola vez y se queda quieta**: lo único que se mueve
+ * después son los números, que suben, y la marca del premio, que cambia cuando
+ * toca. Antes la entrada se relanzaba con cada envío, así que con el automático
+ * la tarjeta parecía reiniciarse sin parar y el texto se veía superpuesto.
+ *
+ * Lo que sí se reprograma en cada envío es la retirada: mientras siga llegando
+ * el mismo regalo, la tarjeta no se va.
  *
  * Los regalos `fullscreen` entran más grandes y aguantan más, igual que los
- * caros en esas apps.
+ * caros en las apps del sector.
  */
 export function GiftAnimation({
   event,
   comboQuantity,
   comboKey,
   coinsRewarded,
-  wins,
   times,
   luckyRound,
   onDone,
@@ -36,12 +35,10 @@ export function GiftAnimation({
   event: GiftEvent;
   /** Unidades acumuladas del combo, que es lo que se muestra. */
   comboQuantity: number;
-  /** Sube en cada repetición: reinicia la animación y la espera. */
+  /** Sube en cada repetición: aplaza la retirada y da un golpe al número. */
   comboKey: number;
   /** Monedas ganadas por este destinatario, ya sumadas. */
   coinsRewarded: number;
-  /** Cuántas unidades premiaron para este destinatario. */
-  wins: number;
   /**
    * Suma de los multiplicadores del último envío que premió, que es la cifra
    * que se enseña. 0 mientras no haya tocado ninguno.
@@ -55,21 +52,44 @@ export function GiftAnimation({
   const pop = useRef(new Animated.Value(1)).current;
   const isBig = event.gift.animation === 'fullscreen';
 
-  // La entrada y la retirada se reinician con cada repetición.
+  // El aviso de fin se guarda en una ref: el padre lo redefine en cada render y,
+  // si estuviera en las dependencias, la retirada se reprogramaría sin parar y
+  // la tarjeta no se iría nunca.
+  const onDoneRef = useRef(onDone);
   useEffect(() => {
-    progress.setValue(0);
-    const animation = Animated.sequence([
-      Animated.timing(progress, { toValue: 1, duration: 320, easing: Easing.out(Easing.back(1.6)), useNativeDriver: true }),
-      // Un premio gordo se queda más tiempo: con el envío automático, si no,
-      // desaparece antes de que a nadie le dé tiempo a leerlo.
-      Animated.delay(Math.max(isBig ? HOLD_BIG_MS : HOLD_MS, proteccionPremio(times))),
-      Animated.timing(progress, { toValue: 0, duration: 280, easing: Easing.in(Easing.ease), useNativeDriver: true }),
-    ]);
-    animation.start(({ finished }) => finished && onDone());
-    return () => animation.stop();
-  }, [event.gift.code, event.sender.id, comboKey, isBig, times, onDone, progress]);
+    onDoneRef.current = onDone;
+  }, [onDone]);
 
-  // Un golpe de escala en el número cada vez que sube, para que se note.
+  // Entrada: una sola vez, al aparecer.
+  useEffect(() => {
+    const entrada = Animated.timing(progress, {
+      toValue: 1,
+      duration: 320,
+      easing: Easing.out(Easing.back(1.6)),
+      useNativeDriver: true,
+    });
+    entrada.start();
+    return () => entrada.stop();
+  }, [progress]);
+
+  // Retirada: se aplaza con cada envío nuevo. Un premio gordo alarga la espera,
+  // porque si no desaparece antes de que dé tiempo a leerlo.
+  useEffect(() => {
+    const espera = Math.max(isBig ? HOLD_BIG_MS : HOLD_MS, proteccionPremio(times));
+    const timer = setTimeout(() => {
+      Animated.timing(progress, {
+        toValue: 0,
+        duration: 280,
+        easing: Easing.in(Easing.ease),
+        useNativeDriver: true,
+      }).start(({ finished }) => finished && onDoneRef.current());
+    }, espera);
+
+    return () => clearTimeout(timer);
+  }, [comboKey, isBig, times, progress]);
+
+  // Un golpe de escala en el número cada vez que sube, para que se note. Es lo
+  // único que se mueve de la tarjeta mientras siguen llegando envíos.
   useEffect(() => {
     if (comboKey === 0) return;
     pop.setValue(1);
@@ -105,9 +125,8 @@ export function GiftAnimation({
             {event.gift.name} · para {event.recipient.displayName}
           </Text>
 
-          {/* La marca del premio va aquí dentro, bajo el nombre, en vez de en
-              una placa aparte encima del anuncio. Cada destinatario tiene su
-              propio sorteo, así que esta es la suya. */}
+          {/* La marca del premio va aquí dentro, bajo el nombre. Cada
+              destinatario tiene su propio sorteo, así que esta es la suya. */}
           {times > 0 ? (
             <View style={styles.premio}>
               <LuckyCounter multiplier={times} round={luckyRound} />
