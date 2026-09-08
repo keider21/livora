@@ -141,6 +141,19 @@ export interface SalaryProgress {
   niveles: SalaryLevel[];
 }
 
+/**
+ * Lo que necesita la barra de meta que se ve durante el directo. Es el mismo
+ * contenido que llega por `room:goal`, sin la tabla de niveles, que no cambia.
+ */
+export interface RoomGoal {
+  luckyCoins: number;
+  nivel: number;
+  siguiente: SalaryLevel | null;
+  liveSeconds: number;
+  segundosMinimos: number;
+  cumpleHoras: boolean;
+}
+
 export interface SalaryPayment {
   id: string;
   day: string;

@@ -155,6 +155,26 @@ describe('tabla de salarios', () => {
   });
 });
 
+describe('la meta dentro de la sala', () => {
+  it('la sala trae la meta del anfitrión al abrirla', async () => {
+    // La barra tiene que estar llena desde el primer fotograma: si esperase al
+    // primer regalo, quien entra a mitad de directo la vería a cero.
+    const host = await crearUsuario();
+    await prepararDia(host.id, 400_000, 3);
+
+    const creada = await api.request('POST', '/api/rooms', {
+      token: host.token,
+      body: { title: 'Sala con meta' },
+    });
+    const { data } = await api.request('GET', `/api/rooms/${creada.data.room.id}`, { token: host.token });
+
+    assert.equal(data.meta.luckyCoins, 400_000);
+    assert.equal(data.meta.nivel, 2);
+    assert.equal(data.meta.siguiente.nivel, 3);
+    assert.equal(data.meta.niveles.length, NIVELES.length, 'la tabla entera, para pintar el detalle');
+  });
+});
+
 describe('progreso y liquidación del día', () => {
   it('suma los regalos de la suerte y las horas de directo', async () => {
     const host = await crearUsuario();

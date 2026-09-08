@@ -154,4 +154,40 @@ describe('tiempo real', () => {
       fanSocket.close();
     }
   });
+
+  it('la meta del anfitrión se refresca con cada regalo', async () => {
+    // La barra que se ve en directo se llena con este evento. Si no llegara,
+    // habría que salir de la sala y volver a entrar para verla moverse.
+    const host = await createUser();
+    const fan = await createUser();
+
+    const created = await api('/api/rooms', {
+      method: 'POST',
+      token: host.token,
+      body: { title: 'Sala con meta' },
+    });
+    const roomId = created.data.room.id as string;
+
+    const fanSocket = await connectClient(fan.token);
+    try {
+      const metaVista = waitFor<{ roomId: string; luckyCoins: number; segundosMinimos: number }>(
+        fanSocket,
+        SOCKET_EVENTS.ROOM_GOAL,
+        (payload) => payload.roomId === roomId,
+      );
+      fanSocket.emit(SOCKET_EVENTS.ROOM_JOIN, { roomId });
+
+      await api('/api/gifts/send', {
+        method: 'POST',
+        token: fan.token,
+        body: { roomId, giftCode: 'heart', quantity: 4 },
+      });
+
+      const meta = await metaVista;
+      assert.ok(meta.luckyCoins >= 100, `llegó ${meta.luckyCoins} en vez de las 100 del envío`);
+      assert.equal(meta.segundosMinimos, 7200);
+    } finally {
+      fanSocket.close();
+    }
+  });
 });

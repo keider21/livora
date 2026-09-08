@@ -6,6 +6,7 @@ import type { Gift } from '../api/types';
 import { Image } from 'expo-image';
 import { Avatar, Button } from './ui';
 import { giftArt } from './gift-art';
+import { RechargeSheet } from './recharge-sheet';
 import { colors, radius, spacing, tierColors, typography } from '../theme';
 
 const QUANTITIES = [1, 5, 10, 50];
@@ -83,6 +84,7 @@ export function GiftPicker({
   const [tab, setTab] = useState<Tab>('lucky');
   /** Cantidad escrita a mano; vacío significa que mandan los botones fijos. */
   const [customQuantity, setCustomQuantity] = useState('');
+  const [recargaVisible, setRecargaVisible] = useState(false);
 
   const visibles = useMemo(() => gifts.filter((gift) => tabOf(gift) === tab), [gifts, tab]);
 
@@ -120,7 +122,16 @@ export function GiftPicker({
               color={locked ? colors.onPrimary : colors.textMuted}
             />
           </Pressable>
-          <Text style={styles.balance}>🪙 {coins.toLocaleString('es')}</Text>
+          {/* El saldo es el botón de recarga: quedarse corto pasa aquí dentro,
+              y salir al perfil a por monedas corta el envío a medias. */}
+          <Pressable
+            onPress={() => setRecargaVisible(true)}
+            style={[styles.balanceBoton, !affordable && styles.balanceCorto]}
+            accessibilityLabel="Recargar monedas"
+          >
+            <Text style={styles.balance}>🪙 {coins.toLocaleString('es')}</Text>
+            <Ionicons name="add-circle" size={15} color={colors.coin} />
+          </Pressable>
         </View>
 
         {/* Quién está en la sala. Se puede marcar a varios, y uno mismo sale
@@ -278,14 +289,22 @@ export function GiftPicker({
                 ? `Necesitas ser fan nivel ${selected.minFanLevel}`
                 : affordable
                   ? `Enviar ${selected.emoji} por 🪙 ${total.toLocaleString('es')}`
-                  : 'Monedas insuficientes'
+                  : 'Recargar monedas'
               : 'Elige un regalo'
           }
           loading={sending}
-          disabled={!selected || !affordable || bloqueado || selectedIds.length === 0}
-          onPress={() => selected && onSend(selected.code, cantidadReal)}
+          disabled={!selected || bloqueado || selectedIds.length === 0}
+          onPress={() => {
+            if (!selected) return;
+            // Sin saldo el botón no se apaga: lleva a recargar, que es lo que
+            // hace falta para poder enviarlo.
+            if (!affordable) setRecargaVisible(true);
+            else onSend(selected.code, cantidadReal);
+          }}
         />
       </View>
+
+      <RechargeSheet visible={recargaVisible} onClose={() => setRecargaVisible(false)} />
     </Modal>
   );
 }
@@ -304,6 +323,18 @@ const styles = StyleSheet.create({
   headerTexts: { flexShrink: 1 },
   recipient: { color: colors.textMuted, fontSize: 12, fontWeight: '600' },
   balance: { color: colors.coin, fontWeight: '700' },
+  balanceBoton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+  },
+  // Sin saldo para lo que se está montando, el botón se marca solo.
+  balanceCorto: { borderColor: colors.coin, backgroundColor: 'rgba(255,210,74,0.12)' },
   lock: {
     width: 32,
     height: 32,

@@ -12,11 +12,11 @@
 | | |
 | --- | --- |
 | **Fase actual** | 3 — Vídeo real con LiveKit. La APK ya se instala y funciona en el teléfono |
-| **Paso actual** | **3.8** 🔄: vídeo real con LiveKit. La Fase 10 queda cerrada salvo 10.7 (Render, ⛔) |
-| **Última actualización** | 2026-09-06 |
+| **Paso actual** | **3.8** 🔄: vídeo real fuera de casa, bloqueado por el CGNAT del router. Mientras, avanza la Fase 11 (11.11 recién cerrado) |
+| **Última actualización** | 2026-09-08 |
 | **Rama** | `main` en `keider21/livora`, repositorio propio y público (el último commit lo dice `git log -1`) |
 | **Pull request** | Ninguno: se trabaja directo sobre `main` en el repositorio nuevo. El anterior ([keider21/cecchi#1](https://github.com/keider21/cecchi/pull/1)) queda histórico |
-| **Salud** | 75 pruebas en verde (42 servidor + 33 móvil) · TypeScript limpio en `server/` y `mobile/` · empaqueta para Android · `expo prebuild` acepta los plugins de LiveKit |
+| **Salud** | 113 pruebas en verde (76 servidor + 37 móvil) · TypeScript limpio en `server/` y `mobile/` · empaqueta para Android · `expo prebuild` acepta los plugins de LiveKit |
 
 **Lo último:** la APK funciona en el teléfono (build 106, 2026-09-06). Cerrada
 la Fase 10 salvo el despliegue público (10.7, ⛔ en el usuario). El backend local
@@ -327,6 +327,10 @@ invitados.
 | 11.5 Animación de explosión del regalo | ⚠️ | `components/gift-burst.tsx`: el emoji sale disparado en círculo, con más partículas y más alcance cuanto más caro, y el premio aparece en el centro. **Falta:** verlo en el teléfono (11.7). Cierra la **Falta** de 2.5 junto con 9.6 |
 | 11.6 El anfitrión gestiona las solicitudes de subir | ⚠️ | `components/seat-requests.tsx`, con contador de pendientes en la barra. **Falta:** verlo en el teléfono (11.7) |
 | 11.7 Prueba en dos teléfonos: subir a alguien, regalarle y ver la explosión | ⏳ | Va junto con 3.8. **Criterio de hecho:** el invitado se oye, recibe el regalo y el premio se ve en ambos teléfonos |
+| 11.8 Salario del anfitrión: tabla de 13 niveles, dos horas mínimas y corte a medianoche de Brasilia | ✅ | `lib/salary.ts` + `hosts/salary.service.ts`, con liquidación idempotente por `(hostId, día)` y un programador que también repasa al arrancar, por si el servidor estuvo apagado a la hora del corte. Solo cuentan los regalos de la suerte: los exclusivos ya dejan el 70% a quien los recibe. **Verificación:** 11 pruebas, dos de ellas vigilando que a la plataforma le salga a cuenta pagar cada nivel y que llegar a la meta con dinero propio nunca compense |
+| 11.9 Cofres de 1K, 5K y 10K | ✅ | `lib/chests.ts` con premios por franjas. Los tres devuelven ~0,88 de media, por el mismo motivo que los regalos. **Verificación:** 8 pruebas, incluida una simulación de 200.000 aperturas por cofre |
+| 11.10 La meta se ve y se llena durante el directo | ✅ | `components/goal-bar.tsx` bajo la ficha del anfitrión: nivel, monedas del tramo y barra que **vuelve a empezar al subir de nivel**, porque lo que empuja a regalar es lo poco que falta para el siguiente escalón, no el total del día. El evento `room:goal` la refresca con cada regalo y `GET /api/rooms/:id` la trae ya llena al entrar. Al tocarla, `components/salary-rules.tsx`: las reglas, la tabla entera, el tiempo de directo que falta y los días cobrados (los pagos, solo para el anfitrión). **Verificación:** 5 pruebas —el evento en tiempo real, la meta al abrir la sala y tres del cálculo del tramo |
+| 11.11 Recargar desde la caja de regalos | ✅ | `components/recharge-sheet.tsx`: el saldo de la caja es el botón, y sin monedas el botón de enviar lleva a recargar en vez de apagarse. Paquetes, formas de pago y el aviso de que **el cobro sigue simulado** (6.1) |
 
 
 ---

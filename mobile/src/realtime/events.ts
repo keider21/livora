@@ -15,6 +15,7 @@ export const SOCKET_EVENTS = {
   ROOM_LIKES: 'room:likes',
   ROOM_ENDED: 'room:ended',
   ROOM_SEATS: 'room:seats',
+  ROOM_GOAL: 'room:goal',
   WALLET_UPDATED: 'wallet:updated',
   ERROR: 'app:error',
 } as const;
@@ -79,6 +80,23 @@ export interface SeatsEvent {
   seats: SeatInfo[];
   /** Solicitudes sin responder. Solo llegan al anfitrión. */
   pending: SeatInfo[];
+}
+
+/**
+ * Meta de salario del anfitrión de la sala, para la barra que se llena en
+ * directo. Se manda a todos: llegar a la meta es cosa de la sala entera, no solo
+ * de quien transmite.
+ */
+export interface RoomGoalEvent {
+  roomId: string;
+  /** Monedas de regalos de la suerte que lleva el anfitrión hoy. */
+  luckyCoins: number;
+  nivel: number;
+  /** Meta y pago del siguiente nivel; null si ya está en el más alto. */
+  siguiente: { nivel: number; meta: number; salario: number } | null;
+  liveSeconds: number;
+  segundosMinimos: number;
+  cumpleHoras: boolean;
 }
 
 export interface ViewersEvent {

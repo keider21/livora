@@ -19,6 +19,7 @@ import { giftableUserIds } from '../rooms/seats.service';
 import { rollLucky } from '../../lib/lucky';
 import { factorSuerte } from '../../lib/lucky-mood';
 import { invalidateRankingCache } from '../ranking/ranking.service';
+import { progresoDelDia } from '../hosts/salary.service';
 import type { SendGiftInput } from './gifts.schema';
 
 const recipientSelect = { id: true, username: true, displayName: true, avatarUrl: true } as const;
@@ -256,6 +257,21 @@ export async function sendGift(senderId: string, input: SendGiftInput) {
 
   for (const payload of payloads) {
     emitToRoom(room.id, SOCKET_EVENTS.ROOM_GIFT, payload);
+  }
+
+  // La barra de la meta se llena en directo. Solo cuenta lo que llega al
+  // anfitrión y solo si no es exclusivo, que es lo que mide el salario.
+  if (!esExclusivo && recipientIds.includes(room.hostId)) {
+    const meta = await progresoDelDia(room.hostId);
+    emitToRoom(room.id, SOCKET_EVENTS.ROOM_GOAL, {
+      roomId: room.id,
+      luckyCoins: meta.luckyCoins,
+      nivel: meta.nivel,
+      siguiente: meta.siguiente,
+      liveSeconds: meta.liveSeconds,
+      segundosMinimos: meta.segundosMinimos,
+      cumpleHoras: meta.cumpleHoras,
+    });
   }
   emitToUser(senderId, SOCKET_EVENTS.WALLET_UPDATED, result.updatedSender);
   for (const registro of result.registros) {

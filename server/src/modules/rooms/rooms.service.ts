@@ -7,6 +7,7 @@ import { countRoomViewers, emitToRoom } from '../../realtime/bus';
 import { SOCKET_EVENTS, type ChatMessagePayload } from '../../realtime/events';
 import { roomSelect, toRoom } from './room.dto';
 import { clearSeats } from './seats.service';
+import { progresoDelDia } from '../hosts/salary.service';
 import type { CreateRoomInput, ListRoomsInput } from './rooms.schema';
 
 const MESSAGE_HISTORY = 50;
@@ -74,7 +75,7 @@ export async function getRoom(roomId: string, viewerId?: string) {
   const room = await prisma.room.findUnique({ where: { id: roomId }, select: roomSelect });
   if (!room) throw HttpError.notFound('La transmisión no existe');
 
-  const [messages, isFollowingHost] = await Promise.all([
+  const [messages, isFollowingHost, meta] = await Promise.all([
     recentMessages(roomId),
     viewerId
       ? prisma.follow.findUnique({
@@ -82,6 +83,7 @@ export async function getRoom(roomId: string, viewerId?: string) {
           select: { id: true },
         })
       : Promise.resolve(null),
+    progresoDelDia(room.host.id),
   ]);
 
   return {
@@ -89,6 +91,20 @@ export async function getRoom(roomId: string, viewerId?: string) {
     messages,
     isHost: viewerId === room.host.id,
     isFollowingHost: Boolean(isFollowingHost),
+    /**
+     * La meta del anfitrión al abrir la sala. Va aquí y no en una llamada aparte
+     * porque la barra tiene que estar llena desde el primer fotograma; a partir
+     * de ahí la mantiene al día el evento `room:goal`.
+     */
+    meta: {
+      luckyCoins: meta.luckyCoins,
+      nivel: meta.nivel,
+      siguiente: meta.siguiente,
+      liveSeconds: meta.liveSeconds,
+      segundosMinimos: meta.segundosMinimos,
+      cumpleHoras: meta.cumpleHoras,
+      niveles: meta.niveles,
+    },
   };
 }
 

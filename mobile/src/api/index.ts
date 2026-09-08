@@ -11,6 +11,8 @@ import type {
   PublicUser,
   RankingEntry,
   Room,
+  RoomGoal,
+  SalaryLevel,
   SalaryPayment,
   SalaryProgress,
   StreamCredentials,
@@ -53,6 +55,8 @@ export const rooms = {
       messages: ChatMessage[];
       isHost: boolean;
       isFollowingHost: boolean;
+      /** Meta de salario del anfitrión al abrir; luego la refresca `room:goal`. */
+      meta: RoomGoal & { niveles: SalaryLevel[] };
     }>(`/api/rooms/${roomId}`),
 
   join: (roomId: string) =>

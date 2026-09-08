@@ -12,12 +12,13 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { ApiError, gifts as giftsApi, rooms as roomsApi, users as usersApi } from '../../src/api';
-import type { Gift, Room, StreamCredentials } from '../../src/api/types';
+import type { Gift, Room, RoomGoal, SalaryLevel, StreamCredentials } from '../../src/api/types';
 import type {
   ChatMessage,
   GiftEvent,
   LikesEvent,
   RoomEndedEvent,
+  RoomGoalEvent,
   SeatInfo,
   SeatsEvent,
   ViewersEvent,
@@ -38,6 +39,8 @@ import { GiftAnimation } from '../../src/components/gift-animation';
 import { proteccionPremio } from '../../src/components/lucky-counter';
 import { GiftAura } from '../../src/components/gift-aura';
 import { GiftBurst } from '../../src/components/gift-burst';
+import { GoalBar } from '../../src/components/goal-bar';
+import { SalaryRules } from '../../src/components/salary-rules';
 import { GiftPicker, type GiftTarget } from '../../src/components/gift-picker';
 import { QuickGift } from '../../src/components/quick-gift';
 import { SeatRequests } from '../../src/components/seat-requests';
@@ -101,6 +104,9 @@ export default function RoomScreen() {
   const [viewers, setViewers] = useState(0);
   const [likes, setLikes] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [meta, setMeta] = useState<RoomGoal | null>(null);
+  const [niveles, setNiveles] = useState<SalaryLevel[]>([]);
+  const [reglasVisibles, setReglasVisibles] = useState(false);
   const [draft, setDraft] = useState('');
   const [giftCatalog, setGiftCatalog] = useState<Gift[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -185,6 +191,8 @@ export default function RoomScreen() {
         setViewers(detail.room.viewerCount);
         setLikes(detail.room.totalLikes);
         setIsFollowing(detail.isFollowingHost);
+        setMeta(detail.meta);
+        setNiveles(detail.meta.niveles);
 
         if (detail.room.status === 'live') {
           const joined = await roomsApi.join(id);
@@ -286,6 +294,9 @@ export default function RoomScreen() {
       });
     };
 
+    const onGoal = (event: RoomGoalEvent) => {
+      if (event.roomId === id) setMeta(event);
+    };
     const onViewers = (event: ViewersEvent) => {
       if (event.roomId === id) setViewers(event.count);
     };
@@ -316,6 +327,7 @@ export default function RoomScreen() {
 
     socket.on(SOCKET_EVENTS.ROOM_MESSAGE, onMessage);
     socket.on(SOCKET_EVENTS.ROOM_GIFT, onGift);
+    socket.on(SOCKET_EVENTS.ROOM_GOAL, onGoal);
     socket.on(SOCKET_EVENTS.ROOM_VIEWERS, onViewers);
     socket.on(SOCKET_EVENTS.ROOM_LIKES, onLikes);
     socket.on(SOCKET_EVENTS.ROOM_ENDED, onEnded);
@@ -325,7 +337,8 @@ export default function RoomScreen() {
     return () => {
       socket.off(SOCKET_EVENTS.ROOM_MESSAGE, onMessage);
       socket.off(SOCKET_EVENTS.ROOM_GIFT, onGift);
-      socket.off(SOCKET_EVENTS.ROOM_VIEWERS, onViewers);
+        socket.off(SOCKET_EVENTS.ROOM_GOAL, onGoal);
+    socket.off(SOCKET_EVENTS.ROOM_VIEWERS, onViewers);
       socket.off(SOCKET_EVENTS.ROOM_LIKES, onLikes);
       socket.off(SOCKET_EVENTS.ROOM_ENDED, onEnded);
       socket.off(SOCKET_EVENTS.ROOM_SEATS, onSeats);
@@ -569,6 +582,7 @@ export default function RoomScreen() {
           el teclado; si lo aplicara también SafeAreaView se sumarían los dos. */}
       <SafeAreaView style={styles.overlay} edges={['top', 'left', 'right']} pointerEvents="box-none">
         <View style={styles.topBar}>
+          <View style={styles.hostColumna}>
           <View style={styles.hostChip}>
             {/* Tocar al anfitrión abre su perfil: nivel, biografía y directos. */}
             <Pressable
@@ -593,6 +607,11 @@ export default function RoomScreen() {
                 </Text>
               </Pressable>
             ) : null}
+          </View>
+
+          {/* La meta, justo debajo del perfil y diminuta: se llena con cada
+              regalo y se toca para ver las reglas. */}
+          {meta ? <GoalBar meta={meta} niveles={niveles} onPress={() => setReglasVisibles(true)} /> : null}
           </View>
 
           <View style={styles.topRight}>
@@ -783,6 +802,16 @@ export default function RoomScreen() {
         onSend={sendGift}
       />
 
+      {meta ? (
+        <SalaryRules
+          visible={reglasVisibles}
+          meta={meta}
+          niveles={niveles}
+          esAnfitrion={isHost}
+          onClose={() => setReglasVisibles(false)}
+        />
+      ) : null}
+
       <SeatRequests
         visible={requestsOpen}
         pending={pendingSeats}
@@ -848,6 +877,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     gap: spacing.sm,
   },
+  hostColumna: { flexShrink: 1, gap: 3 },
   hostChip: {
     flexDirection: 'row',
     alignItems: 'center',
