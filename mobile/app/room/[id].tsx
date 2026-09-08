@@ -35,6 +35,7 @@ import { LiveKitHostControls } from '../../src/streaming/livekit-surface';
 import { useAuthStore } from '../../src/store/auth-store';
 import { ChatOverlay } from '../../src/components/chat-overlay';
 import { GiftAnimation } from '../../src/components/gift-animation';
+import { proteccionPremio } from '../../src/components/lucky-counter';
 import { GiftAura } from '../../src/components/gift-aura';
 import { GiftBurst } from '../../src/components/gift-burst';
 import { GiftPicker, type GiftTarget } from '../../src/components/gift-picker';
@@ -47,6 +48,18 @@ import { Avatar, Loader } from '../../src/components/ui';
 import { colors, formatCount, radius, scrim, spacing } from '../../src/theme';
 
 const MAX_MESSAGES = 120;
+
+/**
+ * Si el premio que acaba de llegar debe sustituir al que está en pantalla.
+ *
+ * Sí cuando es igual o mayor, o cuando al anterior ya se le pasó su tiempo de
+ * protección. No cuando es más pequeño y el anterior sigue fresco: un ×500
+ * merece unos segundos antes de que un ×10 lo tape.
+ */
+function sustituye(actual: Announcement, event: GiftEvent): boolean {
+  if (event.luckyTimes <= 0) return false;
+  return event.luckyTimes >= actual.times || Date.now() >= actual.luckyUntil;
+}
 
 /** Un regalo en pantalla: el último evento y lo que lleva esa combinación. */
 interface Announcement {
@@ -68,6 +81,11 @@ interface Announcement {
   coins: number;
   /** Sube en cada premio nuevo; reinicia la animación de la marca. */
   luckyRound: number;
+  /**
+   * Hasta cuándo está protegido el premio en pantalla. Uno más pequeño no lo
+   * sustituye antes de esa hora; uno más grande sí, al momento.
+   */
+  luckyUntil: number;
   /** Sube en cada repetición; reinicia las animaciones. */
   round: number;
 }
@@ -237,11 +255,17 @@ export default function RoomScreen() {
               event,
               quantity: existente.quantity + event.quantity,
               wins: existente.wins + event.luckyWins,
-              // El premio de este envío sustituye al del anterior; si este no
-              // premió, se mantiene lo que hubiera para no dejar el hueco.
-              times: event.luckyTimes > 0 ? event.luckyTimes : existente.times,
-              coins: event.luckyTimes > 0 ? event.coinsRewarded : existente.coins,
-              luckyRound: existente.luckyRound + (event.luckyTimes > 0 ? 1 : 0),
+              // El premio de este envío sustituye al anterior, salvo que el
+              // anterior siga protegido y este sea más pequeño: sin eso, con el
+              // automático un ×10 borraba el ×500 antes de que se leyera.
+              ...(sustituye(existente, event)
+                ? {
+                    times: event.luckyTimes,
+                    coins: event.coinsRewarded,
+                    luckyRound: existente.luckyRound + 1,
+                    luckyUntil: Date.now() + proteccionPremio(event.luckyTimes),
+                  }
+                : {}),
               round: existente.round + 1,
             }
           : {
@@ -252,6 +276,7 @@ export default function RoomScreen() {
               times: event.luckyTimes,
               coins: event.coinsRewarded,
               luckyRound: 0,
+              luckyUntil: Date.now() + proteccionPremio(event.luckyTimes),
               round: 0,
             };
 

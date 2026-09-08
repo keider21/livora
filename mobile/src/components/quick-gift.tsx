@@ -6,8 +6,12 @@ import { colors, radius, spacing } from '../theme';
 
 /** Cuánto dura la ventana para repetir el envío sin volver a abrir la caja. */
 const WINDOW_MS = 5000;
-/** Pausa entre envíos automáticos, contada **después** de que termine el anterior. */
-const AUTO_MS = 500;
+/**
+ * Pausa entre envíos automáticos, contada **después** de que termine el
+ * anterior. A 500 ms se sentía lento; con 150 el ritmo lo marca ya la red, no
+ * la espera, porque cada envío tarda su propio viaje de ida y vuelta.
+ */
+const AUTO_MS = 150;
 
 /**
  * Botón flotante para repetir el último regalo.

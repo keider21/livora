@@ -2,15 +2,14 @@ import { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { GiftEvent } from '../realtime/events';
-import { LuckyCounter, paletaPremio } from './lucky-counter';
+import { LuckyCounter, paletaEnvio, proteccionPremio } from './lucky-counter';
 import { colors, radius, spacing } from '../theme';
 
 /** Lo que se espera sin recibir otro igual antes de retirar el anuncio. */
 const HOLD_BIG_MS = 2600;
 const HOLD_MS = 1500;
 
-/** Fondo del anuncio mientras el regalo no ha premiado: el verde de la marca. */
-const SIN_PREMIO = ['rgba(0,230,118,0.55)', 'rgba(0,168,90,0.55)'] as const;
+
 
 /**
  * Anuncio del regalo en curso, arriba a la izquierda.
@@ -61,12 +60,14 @@ export function GiftAnimation({
     progress.setValue(0);
     const animation = Animated.sequence([
       Animated.timing(progress, { toValue: 1, duration: 320, easing: Easing.out(Easing.back(1.6)), useNativeDriver: true }),
-      Animated.delay(isBig ? HOLD_BIG_MS : HOLD_MS),
+      // Un premio gordo se queda más tiempo: con el envío automático, si no,
+      // desaparece antes de que a nadie le dé tiempo a leerlo.
+      Animated.delay(Math.max(isBig ? HOLD_BIG_MS : HOLD_MS, proteccionPremio(times))),
       Animated.timing(progress, { toValue: 0, duration: 280, easing: Easing.in(Easing.ease), useNativeDriver: true }),
     ]);
     animation.start(({ finished }) => finished && onDone());
     return () => animation.stop();
-  }, [event.gift.code, event.sender.id, comboKey, isBig, onDone, progress]);
+  }, [event.gift.code, event.sender.id, comboKey, isBig, times, onDone, progress]);
 
   // Un golpe de escala en el número cada vez que sube, para que se note.
   useEffect(() => {
@@ -85,10 +86,11 @@ export function GiftAnimation({
 
   return (
     <Animated.View style={[styles.container, { opacity: progress, transform: [{ translateX }, { scale }] }]}>
-      {/* El fondo lleva el color de la categoría del premio: cuanto más gordo,
-          más sube de tono. La marca del número va en oscuro encima. */}
+      {/* El fondo sube de tono con los regalos que lleva enviados la racha, no
+          con el premio: así quien manda mucho se distingue de lejos y el color
+          no va y viene con cada acierto. */}
       <LinearGradient
-        colors={times > 0 ? paletaPremio(times) : SIN_PREMIO}
+        colors={paletaEnvio(comboQuantity)}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[styles.badge, isBig && styles.badgeBig]}
