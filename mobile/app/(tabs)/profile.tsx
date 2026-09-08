@@ -3,8 +3,9 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ApiError, wallet as walletApi } from '../../src/api';
-import type { CoinPackage, Transaction } from '../../src/api/types';
+import { ApiError, hosts as hostsApi, wallet as walletApi } from '../../src/api';
+import { SalaryGoal } from '../../src/components/salary-goal';
+import type { CoinPackage, SalaryProgress, Transaction } from '../../src/api/types';
 import { useAuthStore } from '../../src/store/auth-store';
 import { Avatar, Button, Card } from '../../src/components/ui';
 import { versionLabel } from '../../src/build-info';
@@ -25,6 +26,8 @@ export default function ProfileScreen() {
   const setWallet = useAuthStore((state) => state.setWallet);
 
   const [packages, setPackages] = useState<CoinPackage[]>([]);
+  /** Meta de salario del día; `null` mientras no responde el servidor. */
+  const [salario, setSalario] = useState<SalaryProgress | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -38,6 +41,10 @@ export default function ProfileScreen() {
       void walletApi
         .transactions()
         .then((data) => setTransactions(data.transactions.slice(0, 8)))
+        .catch(() => undefined);
+      void hostsApi
+        .salary()
+        .then((data) => setSalario(data.progreso))
         .catch(() => undefined);
     }, [refresh]),
   );
@@ -96,6 +103,10 @@ export default function ProfileScreen() {
             <Stat label="XP" value={user.xp} />
           </View>
         </LinearGradient>
+
+        {/* La meta del día va justo bajo el perfil: es lo primero que quiere
+            ver quien transmite al abrir la app. */}
+        {salario ? <SalaryGoal progreso={salario} /> : null}
 
         <View style={styles.balances}>
           <Card style={styles.balanceCard}>

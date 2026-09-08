@@ -9,6 +9,8 @@ import type {
   PublicUser,
   RankingEntry,
   Room,
+  SalaryPayment,
+  SalaryProgress,
   StreamCredentials,
   Transaction,
   Wallet,
@@ -118,6 +120,12 @@ export const wallet = {
   exchange: (diamonds: number) =>
     apiRequest<{ wallet: Wallet; coins: number }>('/api/wallet/exchange', { method: 'POST', body: { diamonds } }),
   transactions: () => apiRequest<{ transactions: Transaction[] }>('/api/wallet/transactions'),
+};
+
+export const hosts = {
+  /** Progreso de hoy hacia la meta de salario, y lo cobrado los días anteriores. */
+  salary: () =>
+    apiRequest<{ progreso: SalaryProgress; historial: SalaryPayment[] }>('/api/hosts/me/salary'),
 };
 
 export const ranking = {

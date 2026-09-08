@@ -115,3 +115,38 @@ export interface Profile {
   isSelf: boolean;
   liveRoom: { id: string; title: string; viewerCount: number } | null;
 }
+
+/** Un escalón de la tabla de salarios de los anfitriones. */
+export interface SalaryLevel {
+  nivel: number;
+  /** Monedas de regalos de la suerte que hay que reunir en el día. */
+  meta: number;
+  /** Diamantes que se pagan al alcanzarla. */
+  salario: number;
+}
+
+export interface SalaryProgress {
+  /** Día del calendario en la zona del corte, como YYYY-MM-DD. */
+  dia: string;
+  /** Monedas gastadas por los espectadores en regalos de la suerte. */
+  luckyCoins: number;
+  liveSeconds: number;
+  /** Sin las horas mínimas no se cobra, por muchas monedas que se reúnan. */
+  cumpleHoras: boolean;
+  segundosMinimos: number;
+  nivel: number;
+  /** Lo que se cobraría si el día terminase ahora. */
+  salarioEstimado: number;
+  siguiente: SalaryLevel | null;
+  niveles: SalaryLevel[];
+}
+
+export interface SalaryPayment {
+  id: string;
+  day: string;
+  level: number;
+  luckyCoins: number;
+  liveSeconds: number;
+  diamonds: number;
+  paidAt: string;
+}
