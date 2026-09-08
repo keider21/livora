@@ -43,6 +43,34 @@ model User {
   following     Follow[]      @relation("Follower")
   followers     Follow[]      @relation("Following")
   seats         RoomSeat[]
+  salaries      HostSalary[]
+}
+
+/// Salario diario ya pagado a un anfitrión.
+///
+/// El progreso del día no se guarda: se calcula de los regalos y las
+/// transmisiones, que ya son la fuente de verdad. Aquí solo queda constancia de
+/// lo pagado, y la clave única por día es lo que impide pagar dos veces si la
+/// liquidación se lanza más de una vez.
+model HostSalary {
+  id     String @id @default(cuid())
+  hostId String
+  /// Día del calendario en la zona del corte, como YYYY-MM-DD.
+  day    String
+
+  level       Int
+  /// Monedas de regalos de la suerte reunidas ese día.
+  luckyCoins  Int
+  liveSeconds Int
+  /// Diamantes abonados.
+  diamonds    Int
+
+  paidAt DateTime @default(now())
+
+  host User @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
+  @@unique([hostId, day])
+  @@index([day])
 }
 
 model Follow {

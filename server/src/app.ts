@@ -9,6 +9,7 @@ import { usersRouter } from './modules/users/users.routes';
 import { roomsRouter } from './modules/rooms/rooms.routes';
 import { giftsRouter } from './modules/gifts/gifts.routes';
 import { walletRouter } from './modules/wallet/wallet.routes';
+import { hostsRouter } from './modules/hosts/hosts.routes';
 import { rankingRouter } from './modules/ranking/ranking.routes';
 
 export function createApp() {
@@ -34,6 +35,7 @@ export function createApp() {
   app.use('/api/rooms', roomsRouter);
   app.use('/api/gifts', giftsRouter);
   app.use('/api/wallet', walletRouter);
+  app.use('/api/hosts', hostsRouter);
   app.use('/api/ranking', rankingRouter);
 
   app.use(notFoundHandler);

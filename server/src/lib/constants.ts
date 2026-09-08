@@ -20,6 +20,7 @@ export const TRANSACTION_TYPE = {
   GIFT_SENT: 'gift_sent',
   GIFT_RECEIVED: 'gift_received',
   GIFT_REWARD: 'gift_reward',
+  SALARY: 'salary',
   EXCHANGE: 'exchange',
 } as const;
 
@@ -53,11 +54,14 @@ export const CURRENCY = {
 export const DIAMONDS_PER_COIN = 0.05;
 
 /**
- * Los regalos exclusivos son la excepción: dejan el 75% en diamantes. No
- * premian nunca y cuestan decenas de miles de monedas, así que su gracia es
- * justamente que quien los recibe se lleva casi todo.
+ * Los regalos exclusivos son la excepción: dejan el 70% en diamantes y la
+ * plataforma se queda el 30%. No premian nunca y cuestan decenas de miles de
+ * monedas, así que su gracia es que quien los recibe se lleva casi todo.
+ *
+ * **No cuentan para las metas de salario** (`lib/salary`), que se miden solo
+ * sobre los regalos de la suerte.
  */
-export const DIAMONDS_PER_COIN_EXCLUSIVE = 0.75;
+export const DIAMONDS_PER_COIN_EXCLUSIVE = 0.7;
 
 /** Tier de los regalos exclusivos, que cobran la tasa de arriba. */
 export const GIFT_TIER_EXCLUSIVE = 'exclusive';

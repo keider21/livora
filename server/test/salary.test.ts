@@ -1,0 +1,232 @@
+import assert from 'node:assert/strict';
+import { after, before, describe, it } from 'node:test';
+import { prisma } from '../src/lib/prisma';
+import { NIVELES, diaDe, limitesDelDia, nivelPara, siguienteNivel } from '../src/lib/salary';
+import { expectedReturn } from '../src/lib/lucky';
+import { GIFT_CATALOG } from '../src/lib/gift-catalog';
+import { liquidarDia, progresoDelDia } from '../src/modules/hosts/salary.service';
+import { startTestApi, uniqueName, type TestApi } from './helpers';
+
+let api: TestApi;
+
+before(async () => {
+  api = await startTestApi();
+
+  // Los archivos de prueba corren en procesos aparte sobre la misma base, así
+  // que este no puede dar por hecho que otro ya sembró el catálogo.
+  await prisma.gift.upsert({
+    where: { code: 'rose' },
+    create: { code: 'rose', name: 'Rosa', emoji: '🌹', priceCoins: 10, tier: 'basic', animation: 'float' },
+    update: {},
+  });
+  await prisma.gift.upsert({
+    where: { code: 'lion-imperial' },
+    create: {
+      code: 'lion-imperial',
+      name: 'León Imperial',
+      emoji: '🦁',
+      priceCoins: 10_000,
+      tier: 'exclusive',
+      animation: 'aura',
+    },
+    update: { tier: 'exclusive' },
+  });
+});
+
+after(async () => {
+  await api.close();
+  await prisma.$disconnect();
+});
+
+async function crearUsuario(coins = 5_000_000) {
+  const username = uniqueName('sal');
+  const { data } = await api.request('POST', '/api/auth/register', {
+    body: {
+      email: `${username}@test.local`,
+      username,
+      password: 'contrasena123',
+      displayName: `Host ${username}`,
+    },
+  });
+  await prisma.user.update({ where: { id: data.user.id }, data: { coins } });
+  return { token: data.token as string, id: data.user.id as string };
+}
+
+/**
+ * Deja a un anfitrión con un volumen de regalos concreto y las horas de directo
+ * que se pidan, escribiendo los registros directamente: enviar millones de
+ * monedas por la API tardaría demasiado.
+ */
+async function prepararDia(hostId: string, luckyCoins: number, horas: number, exclusivo = 0) {
+  const { desde } = limitesDelDia(diaDe());
+  const senderId = (await crearUsuario(0)).id;
+
+  const rosa = await prisma.gift.findUniqueOrThrow({ where: { code: 'rose' } });
+  const leon = await prisma.gift.findUniqueOrThrow({ where: { code: 'lion-imperial' } });
+
+  const sala = await prisma.room.create({
+    data: {
+      hostId,
+      title: 'Directo de prueba',
+      channel: `test-${Math.random()}`,
+      status: 'ended',
+      startedAt: new Date(desde.getTime() + 3600_000),
+      endedAt: new Date(desde.getTime() + 3600_000 + horas * 3600_000),
+    },
+  });
+
+  const registros = [];
+  if (luckyCoins > 0) {
+    registros.push({
+      giftId: rosa.id,
+      roomId: sala.id,
+      senderId,
+      receiverId: hostId,
+      quantity: 1,
+      coinsSpent: luckyCoins,
+      diamondsEarned: Math.round(luckyCoins * 0.05),
+      createdAt: new Date(desde.getTime() + 7200_000),
+    });
+  }
+  if (exclusivo > 0) {
+    registros.push({
+      giftId: leon.id,
+      roomId: sala.id,
+      senderId,
+      receiverId: hostId,
+      quantity: 1,
+      coinsSpent: exclusivo,
+      diamondsEarned: Math.round(exclusivo * 0.7),
+      createdAt: new Date(desde.getTime() + 7200_000),
+    });
+  }
+
+  if (registros.length > 0) await prisma.giftSend.createMany({ data: registros });
+}
+
+describe('tabla de salarios', () => {
+  it('las metas y los pagos siempre suben', () => {
+    for (let i = 1; i < NIVELES.length; i += 1) {
+      assert.ok(NIVELES[i]!.meta > NIVELES[i - 1]!.meta, `la meta del nivel ${i + 1} no sube`);
+      assert.ok(NIVELES[i]!.salario > NIVELES[i - 1]!.salario, `el salario del nivel ${i + 1} no sube`);
+    }
+  });
+
+  it('se cobra el nivel más alto alcanzado', () => {
+    assert.equal(nivelPara(149_999), null, 'por debajo de la primera meta no hay salario');
+    assert.equal(nivelPara(150_000)?.nivel, 1);
+    assert.equal(nivelPara(1_200_000)?.nivel, 4, 'pasa de 1.000.000 pero no llega a 1.500.000');
+    assert.equal(nivelPara(999_999_999)?.nivel, 13);
+  });
+
+  it('el siguiente nivel es el primero que aún no se alcanza', () => {
+    assert.equal(siguienteNivel(0)?.nivel, 1);
+    assert.equal(siguienteNivel(150_000)?.nivel, 2);
+    assert.equal(siguienteNivel(100_000_000), null, 'en el tope ya no hay siguiente');
+  });
+
+  it('a la plataforma le sale a cuenta pagar todos los niveles', () => {
+    // Es la comprobación que sostiene todo el sistema. El espectador recicla sus
+    // premios, así que para generar la meta solo recarga de verdad la parte que
+    // pierde; de ahí sale el ingreso con el que se paga el salario.
+    const rosa = GIFT_CATALOG.find((gift) => gift.code === 'rose')!;
+    const recargaReal = 1 - expectedReturn(rosa.luckyChance, rosa.luckyMultipliers);
+
+    for (const nivel of NIVELES) {
+      const ingreso = nivel.meta * recargaReal;
+      const costeDiamantes = nivel.meta * 0.05;
+      const margen = ingreso - costeDiamantes - nivel.salario;
+      assert.ok(margen > 0, `el nivel ${nivel.nivel} deja ${margen.toFixed(0)} de margen`);
+    }
+  });
+
+  it('llegar a la meta con dinero propio nunca compensa', () => {
+    // Sin esto, un anfitrión podría autoregalarse para cobrar el salario. La
+    // cuenta es la misma de arriba vista del otro lado: lo que gana la
+    // plataforma es exactamente lo que pierde quien lo intente.
+    const rosa = GIFT_CATALOG.find((gift) => gift.code === 'rose')!;
+    const recargaReal = 1 - expectedReturn(rosa.luckyChance, rosa.luckyMultipliers);
+
+    for (const nivel of NIVELES) {
+      const gasto = nivel.meta * recargaReal;
+      const recupera = nivel.meta * 0.05 + nivel.salario;
+      assert.ok(recupera < gasto, `en el nivel ${nivel.nivel} autoregalarse saldría a cuenta`);
+    }
+  });
+});
+
+describe('progreso y liquidación del día', () => {
+  it('suma los regalos de la suerte y las horas de directo', async () => {
+    const host = await crearUsuario();
+    await prepararDia(host.id, 400_000, 3);
+
+    const progreso = await progresoDelDia(host.id);
+    assert.equal(progreso.luckyCoins, 400_000);
+    assert.equal(progreso.liveSeconds, 3 * 3600);
+    assert.equal(progreso.cumpleHoras, true);
+    assert.equal(progreso.nivel, 2, '400.000 pasa la meta de 300.000');
+    assert.equal(progreso.salarioEstimado, 13_000);
+    assert.equal(progreso.siguiente?.nivel, 3);
+  });
+
+  it('los exclusivos no cuentan para la meta', async () => {
+    // Ya dejan el 70% a quien los recibe: contarlos aquí sería pagar dos veces.
+    const host = await crearUsuario();
+    await prepararDia(host.id, 100_000, 3, 5_000_000);
+
+    const progreso = await progresoDelDia(host.id);
+    assert.equal(progreso.luckyCoins, 100_000);
+    assert.equal(progreso.nivel, 0);
+  });
+
+  it('sin las dos horas de directo no se cobra', async () => {
+    const host = await crearUsuario();
+    await prepararDia(host.id, 5_000_000, 1);
+
+    const progreso = await progresoDelDia(host.id);
+    assert.equal(progreso.nivel, 7, 'la meta sí está alcanzada');
+    assert.equal(progreso.cumpleHoras, false);
+    assert.equal(progreso.salarioEstimado, 0, 'pero no se paga');
+
+    await liquidarDia(diaDe());
+    const pagado = await prisma.hostSalary.findUnique({
+      where: { hostId_day: { hostId: host.id, day: diaDe() } },
+    });
+    assert.equal(pagado, null);
+  });
+
+  it('paga los diamantes y deja el movimiento en el historial', async () => {
+    const host = await crearUsuario();
+    const antes = await prisma.user.findUniqueOrThrow({ where: { id: host.id } });
+    await prepararDia(host.id, 1_600_000, 4);
+
+    await liquidarDia(diaDe());
+
+    const despues = await prisma.user.findUniqueOrThrow({ where: { id: host.id } });
+    assert.equal(despues.diamonds - antes.diamonds, 28_000, 'nivel 5');
+
+    const movimiento = await prisma.transaction.findFirst({
+      where: { userId: host.id, type: 'salary' },
+    });
+    assert.equal(movimiento?.amount, 28_000);
+  });
+
+  it('lanzarla dos veces no paga dos veces', async () => {
+    // La liquidación corre también al arrancar el servidor, así que tiene que
+    // poder repetirse sin consecuencias.
+    const host = await crearUsuario();
+    await prepararDia(host.id, 700_000, 3);
+
+    await liquidarDia(diaDe());
+    const primero = await prisma.user.findUniqueOrThrow({ where: { id: host.id } });
+
+    await liquidarDia(diaDe());
+    const segundo = await prisma.user.findUniqueOrThrow({ where: { id: host.id } });
+
+    assert.equal(segundo.diamonds, primero.diamonds);
+    assert.equal(
+      await prisma.hostSalary.count({ where: { hostId: host.id, day: diaDe() } }),
+      1,
+    );
+  });
+});
