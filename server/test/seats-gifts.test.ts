@@ -222,10 +222,15 @@ describe('rachas de suerte', () => {
     assert.ok(proporcion > 0.13 && proporcion < 0.21, `salió ${(proporcion * 100).toFixed(1)}%`);
   });
 
-  it('el retorno medio contando las rachas sigue por debajo de 1', () => {
-    const base = expectedReturn(0.01432, '10:900,20:64,50:64,500:99');
-    const medio = base * (1 - 0.17) + base * MULTIPLICADOR_RACHA * 0.17;
-    assert.ok(medio < 1, `el retorno medio sale ${medio.toFixed(2)}`);
+  it('el retorno medio de cada regalo, contando las rachas, sigue por debajo de 1', () => {
+    // La probabilidad base está pegada a su techo, así que esta es la prueba
+    // que avisa si un retoque del catálogo saca la economía de cuadre.
+    for (const gift of GIFT_CATALOG) {
+      if (!gift.luckyChance) continue;
+      const base = expectedReturn(gift.luckyChance, gift.luckyMultipliers);
+      const medio = base * (1 - 0.17) + base * MULTIPLICADOR_RACHA * 0.17;
+      assert.ok(medio < 1, `${gift.code} devuelve ${medio.toFixed(2)} de media contando rachas`);
+    }
   });
 });
 
