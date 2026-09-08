@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { after, before, describe, it } from 'node:test';
 import { prisma } from '../src/lib/prisma';
 import { expectedReturn, parseMultipliers, rollLucky } from '../src/lib/lucky';
+import { MULTIPLICADOR_RACHA, hayRacha, ventanasDe } from '../src/lib/lucky-window';
 import { GIFT_CATALOG } from '../src/lib/gift-catalog';
 import { startTestApi, uniqueName, type TestApi } from './helpers';
 
@@ -152,8 +153,8 @@ describe('sorteo de los regalos con premio', () => {
    */
   it('el retorno de cada regalo es el documentado', () => {
     const esperado: Record<string, number> = {
-      rose: 0.6, heart: 0.6, beer: 0.6, crown: 0.6, fireworks: 0.6,
-      ferrari: 0.5, yacht: 0.5, castle: 0.5,
+      rose: 0.8, heart: 0.8, beer: 0.8, crown: 0.8, fireworks: 0.8,
+      ferrari: 0.7, yacht: 0.7, castle: 0.7,
     };
 
     for (const gift of GIFT_CATALOG) {
@@ -173,6 +174,58 @@ describe('sorteo de los regalos con premio', () => {
       const menor = Math.min(...parseMultipliers(gift.luckyMultipliers).map((m) => m.multiplier));
       assert.ok(menor >= 10, `${gift.code} puede premiar con ×${menor}, por debajo del mínimo`);
     }
+  });
+});
+
+describe('rachas de suerte', () => {
+  it('hay cuatro por hora y no se solapan', () => {
+    for (const hora of [0, 12345, 480_000]) {
+      const ventanas = ventanasDe(hora);
+      assert.equal(ventanas.length, 4);
+
+      for (let i = 1; i < ventanas.length; i += 1) {
+        assert.ok(
+          ventanas[i]!.inicio >= ventanas[i - 1]!.fin,
+          `la ventana ${i} empieza antes de que acabe la anterior`,
+        );
+      }
+    }
+  });
+
+  it('duran entre dos y tres minutos y caben en la hora', () => {
+    for (const ventana of ventanasDe(987_654)) {
+      const duracion = ventana.fin - ventana.inicio;
+      assert.ok(duracion >= 2 && duracion <= 3, `dura ${duracion} minutos`);
+      assert.ok(ventana.fin <= 60, 'se sale de la hora');
+    }
+  });
+
+  it('la misma hora da siempre las mismas ventanas', () => {
+    // Se calculan de la hora, no se guardan: así un reinicio del servidor no
+    // cambia lo que estaba pasando ni hacen falta temporizadores.
+    assert.deepEqual(ventanasDe(555_555), ventanasDe(555_555));
+    assert.notDeepEqual(ventanasDe(555_555), ventanasDe(555_556));
+  });
+
+  it('ocupan alrededor del 17% del tiempo', () => {
+    // Es el dato del que depende el retorno medio: si subiera, la economía
+    // dejaría de cerrar aunque la probabilidad base no cambiara.
+    let conRacha = 0;
+    const muestras = 60 * 24;
+    const inicio = Date.UTC(2026, 0, 1);
+
+    for (let minuto = 0; minuto < muestras; minuto += 1) {
+      if (hayRacha(new Date(inicio + minuto * 60_000))) conRacha += 1;
+    }
+
+    const proporcion = conRacha / muestras;
+    assert.ok(proporcion > 0.13 && proporcion < 0.21, `salió ${(proporcion * 100).toFixed(1)}%`);
+  });
+
+  it('el retorno medio contando las rachas sigue por debajo de 1', () => {
+    const base = expectedReturn(0.01432, '10:900,20:64,50:64,500:99');
+    const medio = base * (1 - 0.17) + base * MULTIPLICADOR_RACHA * 0.17;
+    assert.ok(medio < 1, `el retorno medio sale ${medio.toFixed(2)}`);
   });
 });
 

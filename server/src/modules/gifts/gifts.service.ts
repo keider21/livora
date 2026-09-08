@@ -17,6 +17,7 @@ import { SOCKET_EVENTS, type GiftEventPayload } from '../../realtime/events';
 import { postMessage } from '../rooms/rooms.service';
 import { giftableUserIds } from '../rooms/seats.service';
 import { rollLucky } from '../../lib/lucky';
+import { bonusRacha } from '../../lib/lucky-window';
 import { invalidateRankingCache } from '../ranking/ranking.service';
 import type { SendGiftInput } from './gifts.schema';
 
@@ -108,9 +109,14 @@ export async function sendGift(senderId: string, input: SendGiftInput) {
 
   // Cada destinatario tiene su propio sorteo, y dentro de él una tirada por
   // unidad, así que un paquete de 50 puede premiar muchas veces.
+  //
+  // Durante una racha la probabilidad se multiplica. Se calcula una sola vez por
+  // envío: si se mirase el reloj en cada unidad, un paquete grande podría caer a
+  // caballo entre dentro y fuera de la racha.
+  const probabilidad = gift.luckyChance * bonusRacha();
   const tasaDiamantes = esExclusivo ? DIAMONDS_PER_COIN_EXCLUSIVE : DIAMONDS_PER_COIN;
   const envios = recipients.map((recipient) => {
-    const lucky = rollLucky(gift.priceCoins, quantity, gift.luckyChance, gift.luckyMultipliers);
+    const lucky = rollLucky(gift.priceCoins, quantity, probabilidad, gift.luckyMultipliers);
     return {
       recipient,
       lucky,
