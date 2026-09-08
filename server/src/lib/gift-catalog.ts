@@ -25,9 +25,10 @@
  * - 2026-09-07: 33% de premio, mínimo ×10 → retorno 4,4.
  * - 2026-09-08: escalones ×10/20%, ×20/15%, ×500/10% → retorno 55.
  * - 2026-09-08: al ver que devolvía más de lo gastado, baja al 7% → 0,85.
+ * - 2026-09-08: se baja al 4% y se añade el escalón ×50 → 0,77.
  *
  * El precio de que el retorno cierre es que el ×500 se vuelve raro: sale una
- * de cada 13.000 unidades enviadas. No hay forma de que salga a menudo y que la
+ * de cada 4.600 unidades enviadas. No hay forma de que salga a menudo y que la
  * economía cierre a la vez, porque es él quien manda en la media.
  *
  * La prueba «retorno documentado» vigila que estos números no cambien por
@@ -35,39 +36,42 @@
  */
 
 /**
- * Escalones de premio, con su peso relativo. El ×10 se lleva la inmensa
- * mayoría; los escalones altos existen para que la cifra pueda dispararse de
- * vez en cuando.
+ * Escalones de premio, con su peso relativo: ×10, ×20, ×50, ×100 y ×500.
  *
- * Media ponderada: (10×100 + 20×8 + 100×1 + 500×0,12) / 109,12 = 12,10.
+ * El ×10 sigue siendo el más común, pero mucho menos dominante que antes: al
+ * quitarle peso, los escalones altos salen relativamente más y la cifra de
+ * pantalla se mueve más a menudo.
+ *
+ * Media ponderada: (10×100 + 20×22 + 50×8 + 100×4 + 500×0,7) / 134,7 = 19,23.
  */
-const PREMIOS = '10:100,20:8,100:1,500:0.12';
+const PREMIOS = '10:100,20:22,50:8,100:4,500:0.7';
 
 /**
  * Los caros pagan sobre una unidad que ya vale mucho, así que se quedan sin el
  * ×500: sobre 9.999 monedas serían cinco millones de golpe.
- * Media ponderada: (10×100 + 20×8 + 100×1) / 109 = 11,56.
+ * Media ponderada: (10×100 + 20×22 + 50×8 + 100×4) / 134 = 16,72.
  */
-const PREMIOS_ALTOS = '10:100,20:8,100:1';
+const PREMIOS_ALTOS = '10:100,20:22,50:8,100:4';
 
 /**
  * Probabilidad de premio por unidad.
  *
  * Con el mínimo en ×10, este número es el que decide si la economía cierra: por
- * encima del 9% el retorno pasa de 1 y enviar regalos produce monedas en vez de
- * gastarlas. Al 7% queda en 0,85, que deja premio en unas 3 o 4 unidades de
- * cada paquete de 50 y aun así el gasto es real.
+ * encima del 5% el retorno pasa de 1 y enviar regalos produce monedas en vez de
+ * gastarlas.
+ *
+ * Al 4% quedan unos 2 premios por cada paquete de 50, y el retorno en 0,77.
  */
-const PROBABILIDAD = 0.07;
+const PROBABILIDAD = 0.04;
 
 export const GIFT_CATALOG = [
-  // 0,07 × 12,10 = 0,85
+  // 0,04 × 19,23 = 0,77
   { code: 'rose', name: 'Rosa', emoji: '🌹', priceCoins: 10, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'heart', name: 'Corazón', emoji: '💖', priceCoins: 25, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'beer', name: 'Cerveza', emoji: '🍺', priceCoins: 50, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'crown', name: 'Corona', emoji: '👑', priceCoins: 199, image: null, tier: 'rare', animation: 'burst', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'fireworks', name: 'Fuegos artificiales', emoji: '🎆', priceCoins: 499, image: null, tier: 'rare', animation: 'burst', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  // 0,07 × 11,56 = 0,81
+  // 0,04 × 16,72 = 0,67
   { code: 'ferrari', name: 'Deportivo', emoji: '🏎️', priceCoins: 1299, image: null, tier: 'epic', animation: 'fullscreen', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
   { code: 'yacht', name: 'Yate', emoji: '🛥️', priceCoins: 2999, image: null, tier: 'epic', animation: 'fullscreen', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
   { code: 'castle', name: 'Castillo', emoji: '🏰', priceCoins: 9999, image: null, tier: 'legendary', animation: 'fullscreen', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },

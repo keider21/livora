@@ -153,7 +153,7 @@ describe('sorteo de los regalos con premio', () => {
   it('el retorno de cada regalo es el documentado', () => {
     const esperado: Record<string, number> = {
       rose: 0.8, heart: 0.8, beer: 0.8, crown: 0.8, fireworks: 0.8,
-      ferrari: 0.8, yacht: 0.8, castle: 0.8,
+      ferrari: 0.7, yacht: 0.7, castle: 0.7,
     };
 
     for (const gift of GIFT_CATALOG) {

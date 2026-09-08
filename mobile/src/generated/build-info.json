@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1012,
-  "commit": "7b21a6e",
+  "buildNumber": 1013,
+  "commit": "f4e5d3f",
   "branch": "main",
-  "builtAt": "2026-09-08T05:10:34.186Z",
+  "builtAt": "2026-09-08T05:24:49.200Z",
   "changes": [
+    "El color de categoría al fondo del anuncio, y premios que no producen monedas",
     "La marca del premio es por envío: suma dentro, sustituye fuera",
     "Escalones de premio fijos y la marca dentro del anuncio",
     "Premio en el 33% de los envíos, con mínimo de ×10",
@@ -18,7 +19,6 @@
     "El chat y los regalos van en paneles separados",
     "Escena por fases para los regalos exclusivos",
     "Un anuncio por destinatario, y cantidad libre en la caja",
-    "Premio gordo de ×500 y probabilidades más bajas",
-    "Controles de cámara en la tuerca de abajo, y compilación local rápida"
+    "Premio gordo de ×500 y probabilidades más bajas"
   ]
 }
