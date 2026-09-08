@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1000,
-  "commit": "8739172",
+  "buildNumber": 1007,
+  "commit": "1bc4104",
   "branch": "main",
-  "builtAt": "2026-09-07T22:53:09.242Z",
+  "builtAt": "2026-09-08T02:26:08.773Z",
   "changes": [
+    "Comprime los clips de los regalos antes de empaquetarlos",
     "El León Imperial se reproduce en vídeo",
     "El evento del regalo lleva la ilustración",
     "León Imperial: los regalos pueden traer ilustración propia",
@@ -18,7 +19,6 @@
     "Caja de regalos nueva, corazones al tocar y arreglos de pantalla",
     "Regalos a varias personas, a uno mismo, y premio por unidad",
     "Economía nueva, premios más frecuentes y regalos exclusivos",
-    "Corrige el blueprint de Render para este repositorio",
-    "Tira de invitados, regalos dirigidos y explosión en la app"
+    "Corrige el blueprint de Render para este repositorio"
   ]
 }

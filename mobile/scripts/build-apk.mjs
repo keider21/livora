@@ -25,6 +25,13 @@ import { fileURLToPath } from 'node:url';
 const mobileDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const androidDir = join(mobileDir, 'android');
 const gradleFile = join(androidDir, 'app', 'build.gradle');
+/**
+ * El contador vive fuera de `android/`, que `expo prebuild --clean` borra
+ * entero. Guardarlo dentro hacía que tras un --clean la numeración volviera
+ * atrás, y Android no instala encima una versión con número menor: la APK
+ * nueva no se podía instalar sobre la anterior.
+ */
+const contadorFile = join(mobileDir, '.build-number');
 
 const args = process.argv.slice(2);
 const clean = args.includes('--clean');
@@ -65,11 +72,15 @@ const necesitaPrebuild = clean || !existsSync(gradleFile);
 // El número de build sube solo, para que la APK nueva se pueda instalar encima
 // de la anterior. Las compilaciones locales empiezan en 1000 y así nunca chocan
 // con las de GitHub Actions, que van por la centena baja.
-let buildNumber = 1000;
-if (!necesitaPrebuild) {
-  const actual = /versionCode (\d+)/.exec(readFileSync(gradleFile, 'utf8'));
-  buildNumber = Math.max(1000, Number(actual?.[1] ?? 0) + 1);
-}
+//
+// Se toma el mayor entre el contador guardado y el que haya en build.gradle,
+// por si alguna vez se compiló sin pasar por aquí.
+const guardado = existsSync(contadorFile) ? Number(readFileSync(contadorFile, 'utf8').trim()) : 0;
+const enGradle = existsSync(gradleFile)
+  ? Number(/versionCode (\d+)/.exec(readFileSync(gradleFile, 'utf8'))?.[1] ?? 0)
+  : 0;
+const buildNumber = Math.max(1000, guardado, enGradle) + 1;
+writeFileSync(contadorFile, String(buildNumber));
 
 console.log(`\n▶ Compilando build ${buildNumber}${necesitaPrebuild ? ' (proyecto nativo desde cero)' : ''}\n`);
 
