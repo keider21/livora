@@ -1,10 +1,12 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1006,
-  "commit": "e775d4d",
+  "buildNumber": 1000,
+  "commit": "8739172",
   "branch": "main",
-  "builtAt": "2026-09-07T18:01:37.645Z",
+  "builtAt": "2026-09-07T22:53:09.242Z",
   "changes": [
+    "El León Imperial se reproduce en vídeo",
+    "El evento del regalo lleva la ilustración",
     "León Imperial: los regalos pueden traer ilustración propia",
     "El chat y los regalos van en paneles separados",
     "Escena por fases para los regalos exclusivos",
@@ -17,8 +19,6 @@
     "Regalos a varias personas, a uno mismo, y premio por unidad",
     "Economía nueva, premios más frecuentes y regalos exclusivos",
     "Corrige el blueprint de Render para este repositorio",
-    "Tira de invitados, regalos dirigidos y explosión en la app",
-    "Invitados en la tira lateral y regalos dirigidos, con premio",
-    "La APK trae la dirección del servidor de fábrica"
+    "Tira de invitados, regalos dirigidos y explosión en la app"
   ]
 }

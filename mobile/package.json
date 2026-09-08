@@ -45,7 +45,8 @@
     "typecheck": "tsc --noEmit",
     "start:clear": "expo start --clear",
     "test": "jest",
-    "apk": "node scripts/build-apk.mjs"
+    "apk": "node scripts/build-apk.mjs",
+    "gifts:optimize": "node scripts/optimize-gift-media.mjs"
   },
   "private": true
 }
