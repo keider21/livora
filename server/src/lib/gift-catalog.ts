@@ -17,59 +17,57 @@
  * Retorno esperado = `luckyChance × media ponderada de los multiplicadores`.
  * Por encima de 1, enviar un regalo devuelve más monedas de las que cuesta.
  *
- * Hasta el 2026-09-07 todos estaban por debajo de 1. Desde entonces el usuario
- * fija los escalones a mano para probar cómo se siente la mecánica, y el
- * retorno queda muy por encima: con ×500 saliendo una de cada diez unidades, la
- * media de los multiplicadores se dispara a 122 y el retorno a 55.
+ * El mínimo de ×10 obliga a que la probabilidad sea baja: con premios que
+ * pagan diez veces como poco, cualquier probabilidad por encima del 9% deja el
+ * retorno por encima de 1.
  *
- * Historial de ajustes:
+ * Historial de ajustes, todos a petición del usuario mientras probaba:
  * - 2026-09-07: 33% de premio, mínimo ×10 → retorno 4,4.
- * - 2026-09-08: escalones fijos ×10/20%, ×20/15%, ×500/10% → retorno 55.
+ * - 2026-09-08: escalones ×10/20%, ×20/15%, ×500/10% → retorno 55.
+ * - 2026-09-08: al ver que devolvía más de lo gastado, baja al 7% → 0,85.
  *
- * Consecuencias, que el usuario conoce y aceptó:
+ * El precio de que el retorno cierre es que el ×500 se vuelve raro: sale una
+ * de cada 13.000 unidades enviadas. No hay forma de que salga a menudo y que la
+ * economía cierre a la vez, porque es él quien manda en la media.
  *
- * - Las monedas dejan de ser un recurso escaso. Quien envía sin parar acaba con
- *   más de las que compró.
- * - Como se puede regalar a uno mismo, el bucle no tiene techo: gastar y
- *   recuperar más deja además un 5% en diamantes cada vuelta, y los diamantes
- *   se retiran como dinero.
- *
- * Para volver a una economía cerrada hay que bajar sobre todo el peso del ×500,
- * que es quien manda en la media: con `10:4,20:3,500:0.02` la media cae a 16 y
- * un `luckyChance` del 6% dejaría el retorno en ~0,95. La prueba «retorno
- * documentado» vigila que estos números no cambien por accidente.
+ * La prueba «retorno documentado» vigila que estos números no cambien por
+ * accidente.
  */
 
 /**
- * Escalones de premio y probabilidad de cada uno, por unidad enviada:
+ * Escalones de premio, con su peso relativo. El ×10 se lleva la inmensa
+ * mayoría; los escalones altos existen para que la cifra pueda dispararse de
+ * vez en cuando.
  *
- *   ×10 → 20%     ×20 → 15%     ×500 → 10%
- *
- * Suman un 45% de probabilidad de premio. Los pesos son relativos entre sí
- * (4:3:2), y el 45% va aparte en `luckyChance`.
- *
- * Media ponderada: (10×4 + 20×3 + 500×2) / 9 = 122,2.
+ * Media ponderada: (10×100 + 20×8 + 100×1 + 500×0,12) / 109,12 = 12,10.
  */
-const PREMIOS = '10:4,20:3,500:2';
+const PREMIOS = '10:100,20:8,100:1,500:0.12';
 
 /**
- * Los caros pagan sobre una unidad que ya vale mucho, así que su tope baja a
- * ×100: un ×500 sobre 9.999 monedas serían cinco millones de golpe.
- * Media ponderada: (10×4 + 20×3 + 100×2) / 9 = 33,3.
+ * Los caros pagan sobre una unidad que ya vale mucho, así que se quedan sin el
+ * ×500: sobre 9.999 monedas serían cinco millones de golpe.
+ * Media ponderada: (10×100 + 20×8 + 100×1) / 109 = 11,56.
  */
-const PREMIOS_ALTOS = '10:4,20:3,100:2';
+const PREMIOS_ALTOS = '10:100,20:8,100:1';
 
-/** Probabilidad de premio por unidad, la suma de los tres escalones. */
-const PROBABILIDAD = 0.45;
+/**
+ * Probabilidad de premio por unidad.
+ *
+ * Con el mínimo en ×10, este número es el que decide si la economía cierra: por
+ * encima del 9% el retorno pasa de 1 y enviar regalos produce monedas en vez de
+ * gastarlas. Al 7% queda en 0,85, que deja premio en unas 3 o 4 unidades de
+ * cada paquete de 50 y aun así el gasto es real.
+ */
+const PROBABILIDAD = 0.07;
 
 export const GIFT_CATALOG = [
-  // 0,45 × 122,2 = 55,0
+  // 0,07 × 12,10 = 0,85
   { code: 'rose', name: 'Rosa', emoji: '🌹', priceCoins: 10, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'heart', name: 'Corazón', emoji: '💖', priceCoins: 25, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'beer', name: 'Cerveza', emoji: '🍺', priceCoins: 50, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'crown', name: 'Corona', emoji: '👑', priceCoins: 199, image: null, tier: 'rare', animation: 'burst', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'fireworks', name: 'Fuegos artificiales', emoji: '🎆', priceCoins: 499, image: null, tier: 'rare', animation: 'burst', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  // 0,45 × 33,3 = 15,0
+  // 0,07 × 11,56 = 0,81
   { code: 'ferrari', name: 'Deportivo', emoji: '🏎️', priceCoins: 1299, image: null, tier: 'epic', animation: 'fullscreen', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
   { code: 'yacht', name: 'Yate', emoji: '🛥️', priceCoins: 2999, image: null, tier: 'epic', animation: 'fullscreen', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
   { code: 'castle', name: 'Castillo', emoji: '🏰', priceCoins: 9999, image: null, tier: 'legendary', animation: 'fullscreen', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },

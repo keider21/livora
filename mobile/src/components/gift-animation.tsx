@@ -1,12 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import type { GiftEvent } from '../realtime/events';
-import { LuckyCounter } from './lucky-counter';
+import { LuckyCounter, paletaPremio } from './lucky-counter';
 import { colors, radius, spacing } from '../theme';
 
 /** Lo que se espera sin recibir otro igual antes de retirar el anuncio. */
 const HOLD_BIG_MS = 2600;
 const HOLD_MS = 1500;
+
+/** Fondo del anuncio mientras el regalo no ha premiado: el verde de la marca. */
+const SIN_PREMIO = ['rgba(0,230,118,0.55)', 'rgba(0,168,90,0.55)'] as const;
 
 /**
  * Anuncio del regalo en curso, arriba a la izquierda.
@@ -81,7 +85,14 @@ export function GiftAnimation({
 
   return (
     <Animated.View style={[styles.container, { opacity: progress, transform: [{ translateX }, { scale }] }]}>
-      <View style={[styles.badge, isBig && styles.badgeBig]}>
+      {/* El fondo lleva el color de la categoría del premio: cuanto más gordo,
+          más sube de tono. La marca del número va en oscuro encima. */}
+      <LinearGradient
+        colors={times > 0 ? paletaPremio(times) : SIN_PREMIO}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.badge, isBig && styles.badgeBig]}
+      >
         <Text style={[styles.emoji, isBig && styles.emojiBig]}>{event.gift.emoji}</Text>
 
         <View style={styles.texts}>
@@ -108,7 +119,7 @@ export function GiftAnimation({
         <Animated.Text style={[styles.quantity, { transform: [{ scale: pop }] }]}>
           ×{comboQuantity}
         </Animated.Text>
-      </View>
+      </LinearGradient>
     </Animated.View>
   );
 }
@@ -119,20 +130,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    backgroundColor: 'rgba(0,230,118,0.28)',
     borderWidth: 1,
-    borderColor: colors.primary,
+    borderColor: 'rgba(255,255,255,0.35)',
     borderRadius: radius.pill,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
-  badgeBig: { backgroundColor: 'rgba(255,210,74,0.30)', borderColor: colors.accent },
+  badgeBig: { borderColor: colors.accent },
   emoji: { fontSize: 26 },
   emojiBig: { fontSize: 38 },
   texts: { maxWidth: 190, gap: 1 },
   premio: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: 1 },
   monedas: { color: colors.coin, fontSize: 11, fontWeight: '800' },
-  sender: { color: colors.text, fontWeight: '700', fontSize: 13 },
-  gift: { color: colors.textMuted, fontWeight: '600', fontSize: 11 },
+  // Blanco puro sobre los fondos saturados, que ya son oscuros de por sí.
+  sender: { color: '#FFFFFF', fontWeight: '800', fontSize: 13 },
+  gift: { color: 'rgba(255,255,255,0.85)', fontWeight: '600', fontSize: 11 },
   quantity: { color: colors.accent, fontWeight: '800', fontSize: 20 },
 });
