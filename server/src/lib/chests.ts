@@ -37,6 +37,8 @@ export interface Cofre {
   code: string;
   nombre: string;
   emoji: string;
+  /** Ilustración empaquetada en la app (`mobile/src/components/gift-art.ts`). */
+  image: string;
   /** Lo que cuesta abrirlo. */
   precio: number;
   premios: PremioCofre[];
@@ -47,6 +49,7 @@ export const COFRES: Cofre[] = [
     code: 'bronze',
     nombre: 'Cofre de bronce',
     emoji: '🟫',
+    image: 'chest-bronze',
     precio: 1_000,
     premios: [
       { monedas: 3_000, peso: 12 },
@@ -62,6 +65,7 @@ export const COFRES: Cofre[] = [
     code: 'silver',
     nombre: 'Cofre de plata',
     emoji: '⚪',
+    image: 'chest-silver',
     precio: 5_000,
     premios: [
       { monedas: 20_000, peso: 12 },
@@ -79,6 +83,7 @@ export const COFRES: Cofre[] = [
     code: 'gold',
     nombre: 'Cofre de oro',
     emoji: '🟡',
+    image: 'chest-gold',
     precio: 10_000,
     premios: [
       { monedas: 40_000, peso: 12 },

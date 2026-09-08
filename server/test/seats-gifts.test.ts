@@ -4,6 +4,7 @@ import { prisma } from '../src/lib/prisma';
 import { expectedReturn, parseMultipliers, rollLucky } from '../src/lib/lucky';
 import { factorSuerte } from '../src/lib/lucky-mood';
 import { GIFT_CATALOG } from '../src/lib/gift-catalog';
+import { COFRES } from '../src/lib/chests';
 import { startTestApi, uniqueName, type TestApi } from './helpers';
 
 let api: TestApi;
@@ -168,6 +169,22 @@ describe('sorteo de los regalos con premio', () => {
         previsto,
         `${gift.code} devuelve ${retorno.toFixed(2)} y estaba documentado ${previsto}`,
       );
+    }
+  });
+
+  it('todos los regalos de la caja llevan ilustración menos los del club', () => {
+    // El nombre de `image` es la clave con la que el teléfono busca el archivo
+    // en `gift-art.ts`. Si se añade un regalo y se olvida, la casilla cae al
+    // emoji sin avisar de nada, así que se comprueba aquí.
+    for (const gift of GIFT_CATALOG) {
+      if (gift.minFanLevel > 0) continue;
+      assert.ok(gift.image, `${gift.code} no tiene ilustración`);
+    }
+  });
+
+  it('los cofres también llevan la suya', () => {
+    for (const cofre of COFRES) {
+      assert.ok(cofre.image, `${cofre.code} no tiene ilustración`);
     }
   });
 

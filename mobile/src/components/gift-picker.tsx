@@ -266,14 +266,17 @@ export function GiftPicker({
                     elegido && styles.giftSelected,
                   ]}
                 >
-                  <Text style={styles.emoji}>{item.emoji}</Text>
+                  {giftArt(item.image) ? (
+                    <Image source={giftArt(item.image)!} style={styles.giftArt} contentFit="contain" />
+                  ) : (
+                    <Text style={styles.emoji}>{item.emoji}</Text>
+                  )}
                   <Text style={styles.giftName} numberOfLines={1}>
                     {item.nombre}
                   </Text>
                   <Text style={[styles.price, { color: colors.coin }]}>
                     🪙 {item.precio.toLocaleString('es')}
                   </Text>
-                  <Text style={styles.lucky}>🎁</Text>
                 </Pressable>
               );
             }
@@ -311,7 +314,7 @@ export function GiftPicker({
                     <Ionicons name="lock-closed" size={10} color={colors.text} />
                     <Text style={styles.lockedText}>{item.minFanLevel}</Text>
                   </View>
-                ) : item.tier === 'exclusive' ? (
+                ) : giftArt(item.image) ? null : item.tier === 'exclusive' ? (
                   <Text style={styles.lucky}>✨</Text>
                 ) : item.luckyChance > 0 ? (
                   <Text style={styles.lucky}>🍀</Text>
@@ -502,8 +505,8 @@ const styles = StyleSheet.create({
   },
   giftSelected: { backgroundColor: 'rgba(0,230,118,0.16)' },
   giftLocked: { opacity: 0.45 },
-  emoji: { fontSize: 26 },
-  giftArt: { width: 34, height: 34 },
+  emoji: { fontSize: 30 },
+  giftArt: { width: 52, height: 52 },
   giftName: { color: colors.text, fontSize: 10, fontWeight: '600' },
   price: { fontSize: 10, fontWeight: '700' },
   lucky: { position: 'absolute', top: 2, right: 4, fontSize: 11 },

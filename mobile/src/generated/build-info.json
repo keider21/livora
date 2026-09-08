@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1023,
-  "commit": "c753a55",
+  "buildNumber": 1024,
+  "commit": "26f7117",
   "branch": "main",
-  "builtAt": "2026-09-08T16:09:27.264Z",
+  "builtAt": "2026-09-08T16:15:24.146Z",
   "changes": [
+    "Los regalos de la suerte devuelven menos: 0,84 baja a 0,70",
     "Los cofres son tres casillas más de la pestaña Suerte",
     "El rato de buena suerte dura menos y el automático va más rápido",
     "Los cofres pasan del perfil a la caja de regalos",
@@ -18,7 +19,6 @@
     "Fuera las rachas globales",
     "Suerte personal: cada cuenta tiene su propia racha",
     "La probabilidad base sube a su techo",
-    "Rachas de suerte: ratos en que los regalos premian el doble",
-    "Los anuncios bajan, se encogen, y el exclusivo tapa lo demás"
+    "Rachas de suerte: ratos en que los regalos premian el doble"
   ]
 }

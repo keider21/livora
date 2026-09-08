@@ -12,6 +12,7 @@ export function listarCofres() {
       code: cofre.code,
       nombre: cofre.nombre,
       emoji: cofre.emoji,
+      image: cofre.image,
       precio: cofre.precio,
       premios: cofre.premios.map((premio) => premio.monedas),
       /** Probabilidad de que devuelva algo, para enseñarla sin engaños. */

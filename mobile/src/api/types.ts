@@ -169,6 +169,8 @@ export interface Chest {
   code: string;
   nombre: string;
   emoji: string;
+  /** Nombre de la ilustración empaquetada, igual que en los regalos. */
+  image: string;
   precio: number;
   /** Los premios posibles, de menor a mayor. */
   premios: number[];

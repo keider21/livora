@@ -31,6 +31,28 @@ const GIFT_ASSETS: Record<string, GiftAsset> = {
     image: require('../../assets/gifts/lion-imperial.png'),
     video: require('../../assets/gifts/lion-imperial.mp4'),
   },
+  rose: { image: require('../../assets/gifts/rose.png') },
+  heart: { image: require('../../assets/gifts/heart.png') },
+  beer: { image: require('../../assets/gifts/beer.png') },
+  crown: { image: require('../../assets/gifts/crown.png') },
+  fireworks: { image: require('../../assets/gifts/fireworks.png') },
+  ferrari: { image: require('../../assets/gifts/ferrari.png') },
+  yacht: { image: require('../../assets/gifts/yacht.png') },
+  castle: { image: require('../../assets/gifts/castle.png') },
+  // Los cofres se pintan en la misma rejilla que los regalos, así que su arte
+  // vive aquí también aunque su catálogo sea otro.
+  'chest-bronze': { image: require('../../assets/gifts/chest-bronze.png') },
+  'chest-silver': { image: require('../../assets/gifts/chest-silver.png') },
+  'chest-gold': { image: require('../../assets/gifts/chest-gold.png') },
+  phoenix: { image: require('../../assets/gifts/phoenix.png') },
+  galaxy: { image: require('../../assets/gifts/galaxy.png') },
+  dragon: { image: require('../../assets/gifts/dragon.png') },
+  'sea-king': { image: require('../../assets/gifts/sea-king.png') },
+  'celestial-tower': { image: require('../../assets/gifts/celestial-tower.png') },
+  tesla: { image: require('../../assets/gifts/tesla.png') },
+  universe: { image: require('../../assets/gifts/universe.png') },
+  'golden-city': { image: require('../../assets/gifts/golden-city.png') },
+  phenomenon: { image: require('../../assets/gifts/phenomenon.png') },
 };
 
 export function giftAsset(image: string | null | undefined): GiftAsset | null {
