@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma';
 import { GIFT_CATALOG } from '../lib/gift-catalog';
-import { streamProvider } from '../streaming';
+import { seedRooms } from './seed-rooms';
 
 const USERS = [
   { username: 'luna', displayName: 'Luna Ríos', country: 'CO', gender: 'female', bio: 'Canto cada noche a las 9 ✨' },
@@ -9,12 +9,6 @@ const USERS = [
   { username: 'sofi', displayName: 'Sofi Dance', country: 'AR', gender: 'female', bio: 'Bailando salsa y bachata' },
   { username: 'marco', displayName: 'Marco Gamer', country: 'ES', gender: 'male', bio: 'Retos y gameplay' },
   { username: 'keider', displayName: 'Keider', country: 'CO', gender: 'unspecified', bio: 'Probando Livora Stream' },
-];
-
-const ROOMS = [
-  { host: 'luna', title: 'Noche acústica 🎤', category: 'music' },
-  { host: 'sofi', title: 'Clase de bachata en vivo', category: 'dance' },
-  { host: 'marco', title: 'Ranked hasta diamante', category: 'game' },
 ];
 
 async function main() {
@@ -42,25 +36,7 @@ async function main() {
     });
   }
 
-  console.log('[seed] Abriendo transmisiones de ejemplo...');
-  for (const room of ROOMS) {
-    const host = await prisma.user.findUniqueOrThrow({ where: { username: room.host } });
-    const existing = await prisma.room.findFirst({ where: { hostId: host.id, status: 'live' } });
-    if (existing) continue;
-
-    const id = crypto.randomUUID();
-    await prisma.room.create({
-      data: {
-        id,
-        hostId: host.id,
-        title: room.title,
-        category: room.category,
-        channel: await streamProvider.createChannel(id),
-        viewerCount: Math.floor(Math.random() * 400) + 20,
-      },
-    });
-    await prisma.user.update({ where: { id: host.id }, data: { isHost: true } });
-  }
+  await seedRooms();
 
   const [users, rooms, gifts] = await Promise.all([
     prisma.user.count(),

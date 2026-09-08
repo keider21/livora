@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1017,
-  "commit": "e66ec4b",
+  "buildNumber": 1018,
+  "commit": "0cadccc",
   "branch": "main",
-  "builtAt": "2026-09-08T08:25:40.957Z",
+  "builtAt": "2026-09-08T08:40:36.274Z",
   "changes": [
+    "bronce, plata y oro",
     "La meta del día, en el perfil",
     "Salario diario para los anfitriones",
     "Al volver a la app se vuelve a entrar en la sala",
@@ -18,7 +19,6 @@
     "Probabilidades fijadas escalón por escalón",
     "Baja el ×10 y añade el escalón ×50",
     "El color de categoría al fondo del anuncio, y premios que no producen monedas",
-    "La marca del premio es por envío: suma dentro, sustituye fuera",
-    "Escalones de premio fijos y la marca dentro del anuncio"
+    "La marca del premio es por envío: suma dentro, sustituye fuera"
   ]
 }

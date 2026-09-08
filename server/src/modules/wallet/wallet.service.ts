@@ -18,6 +18,9 @@ export const COIN_PACKAGES = [
   { id: 'popular', coins: 50_000, priceUsd: 4.99, bonus: 2_500 },
   { id: 'pro', coins: 100_000, priceUsd: 9.99, bonus: 10_000 },
   { id: 'whale', coins: 500_000, priceUsd: 49.99, bonus: 75_000 },
+  // Paquete de pruebas: llegar a las metas altas o abrir tandas de cofres con
+  // los paquetes pequeños obliga a recargar decenas de veces seguidas.
+  { id: 'mega', coins: 5_000_000, priceUsd: 499.99, bonus: 1_000_000 },
 ] as const;
 
 export async function getWallet(userId: string) {
