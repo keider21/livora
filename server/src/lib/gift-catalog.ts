@@ -26,55 +26,50 @@
  * - 2026-09-08: escalones ×10/20%, ×20/15%, ×500/10% → retorno 55.
  * - 2026-09-08: al ver que devolvía más de lo gastado, baja al 7% → 0,85.
  * - 2026-09-08: se baja al 4% y se añade el escalón ×50 → 0,77.
+ * - 2026-09-08: probabilidades fijadas a mano por escalón, sin ×100 → 0,45.
  *
- * El precio de que el retorno cierre es que el ×500 se vuelve raro: sale una
- * de cada 4.600 unidades enviadas. No hay forma de que salga a menudo y que la
- * economía cierre a la vez, porque es él quien manda en la media.
+ * El ×500 manda en la media: aporta 8.000 de los 11.370 puntos del reparto. Por
+ * eso subir su peso obliga a bajar la probabilidad general, y por eso los
+ * regalos caros ya no llevan un tope aparte: con el retorno tan por debajo de 1,
+ * un ×500 sobre un castillo (5 millones de monedas) sale una de cada 1.560
+ * unidades y sigue costando más enviarlas que lo que paga.
  *
  * La prueba «retorno documentado» vigila que estos números no cambien por
  * accidente.
  */
 
 /**
- * Escalones de premio, con su peso relativo: ×10, ×20, ×50, ×100 y ×500.
+ * Escalones de premio y probabilidad de cada uno por unidad enviada, fijadas
+ * por el usuario el 2026-09-08:
  *
- * El ×10 sigue siendo el más común, pero mucho menos dominante que antes: al
- * quitarle peso, los escalones altos salen relativamente más y la cifra de
- * pantalla se mueve más a menudo.
+ *   ×10 → 0,9%     ×20 → 0,064%     ×50 → 0,064%     ×500 → 0,064%
  *
- * Media ponderada: (10×100 + 20×22 + 50×8 + 100×4 + 500×0,7) / 134,7 = 19,23.
+ * Los pesos son esas mismas cifras en proporción (225:16:16:16) y la suma,
+ * 1,092%, va aparte en `PROBABILIDAD`. El ×100 se quitó a petición suya.
+ *
+ * Media ponderada: (10×225 + 20×16 + 50×16 + 500×16) / 273 = 41,65.
  */
-const PREMIOS = '10:100,20:22,50:8,100:4,500:0.7';
+const PREMIOS = '10:225,20:16,50:16,500:16';
 
 /**
- * Los caros pagan sobre una unidad que ya vale mucho, así que se quedan sin el
- * ×500: sobre 9.999 monedas serían cinco millones de golpe.
- * Media ponderada: (10×100 + 20×22 + 50×8 + 100×4) / 134 = 16,72.
- */
-const PREMIOS_ALTOS = '10:100,20:22,50:8,100:4';
-
-/**
- * Probabilidad de premio por unidad.
+ * Probabilidad de premio por unidad: la suma de los cuatro escalones.
  *
- * Con el mínimo en ×10, este número es el que decide si la economía cierra: por
- * encima del 5% el retorno pasa de 1 y enviar regalos produce monedas en vez de
- * gastarlas.
- *
- * Al 4% quedan unos 2 premios por cada paquete de 50, y el retorno en 0,77.
+ * Con esta media de multiplicadores (41,65), el techo para que la economía
+ * cierre está en el 2,4%. Aquí queda en 1,092%, o sea retorno 0,45: un premio
+ * cada dos paquetes de 50, más o menos.
  */
-const PROBABILIDAD = 0.04;
+const PROBABILIDAD = 0.01092;
 
 export const GIFT_CATALOG = [
-  // 0,04 × 19,23 = 0,77
+  // 0,01092 × 41,65 = 0,45
   { code: 'rose', name: 'Rosa', emoji: '🌹', priceCoins: 10, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'heart', name: 'Corazón', emoji: '💖', priceCoins: 25, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'beer', name: 'Cerveza', emoji: '🍺', priceCoins: 50, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'crown', name: 'Corona', emoji: '👑', priceCoins: 199, image: null, tier: 'rare', animation: 'burst', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'fireworks', name: 'Fuegos artificiales', emoji: '🎆', priceCoins: 499, image: null, tier: 'rare', animation: 'burst', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  // 0,04 × 16,72 = 0,67
-  { code: 'ferrari', name: 'Deportivo', emoji: '🏎️', priceCoins: 1299, image: null, tier: 'epic', animation: 'fullscreen', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
-  { code: 'yacht', name: 'Yate', emoji: '🛥️', priceCoins: 2999, image: null, tier: 'epic', animation: 'fullscreen', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
-  { code: 'castle', name: 'Castillo', emoji: '🏰', priceCoins: 9999, image: null, tier: 'legendary', animation: 'fullscreen', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
+  { code: 'ferrari', name: 'Deportivo', emoji: '🏎️', priceCoins: 1299, image: null, tier: 'epic', animation: 'fullscreen', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'yacht', name: 'Yate', emoji: '🛥️', priceCoins: 2999, image: null, tier: 'epic', animation: 'fullscreen', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'castle', name: 'Castillo', emoji: '🏰', priceCoins: 9999, image: null, tier: 'legendary', animation: 'fullscreen', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
 
   // Exclusivos: sin premio, solo espectáculo, y el 75% en diamantes para quien
   // los recibe. Se envían de uno en uno.
