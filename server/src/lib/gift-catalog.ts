@@ -34,6 +34,8 @@
  *   que bastaba con guardar castillos para esos minutos y soltarlos de golpe. La
  *   variación se queda en la suerte personal, que no se puede cronometrar porque
  *   cada cuenta lleva la suya.
+ * - 2026-09-08: la base baja a 1,25% → 0,70, porque con 0,84 más el 5% en
+ *   diamantes quien se regalaba a sí mismo se mantenía casi sin gastar.
  *
  * El ×500 manda en la media: aporta 49.500 de los 62.980 puntos del reparto de
  * los baratos. Por eso subir su probabilidad obliga a bajar el resto, y por eso
@@ -66,22 +68,30 @@ const PREMIOS = '10:900,20:64,50:64,500:99';
 const PREMIOS_ALTOS = '10:900,20:64,50:64,500:80';
 
 /** Los caros van algo por debajo, para que no devuelvan tan rápido. */
-const PROBABILIDAD_ALTOS = 0.0148;
+const PROBABILIDAD_ALTOS = 0.0123;
 
 /**
  * Probabilidad de premio por unidad: la suma de los cuatro escalones.
  *
  * Con la media de multiplicadores en 55,88, el retorno sale `probabilidad ×
- * 55,88` y pasa de 1 a partir del 1,79%. Aquí queda en 1,50%: retorno 0,84.
+ * 55,88` y pasa de 1 a partir del 1,79%. Aquí queda en 1,25%: retorno 0,70.
  *
- * La suerte personal (`lib/lucky-mood`) lo mueve entre 0,17 y 1,51 según el
- * momento de cada cuenta, pero se reparte alrededor de 1, así que esta cifra
- * sigue siendo la del conjunto.
+ * ## Por qué bajó del 1,50% (2026-09-08)
+ *
+ * Con retorno 0,84 y el 5% que vuelve en diamantes, quien se regala a sí mismo
+ * recupera 0,89 de cada moneda y puede seguir jugando casi sin gastar. Repetido
+ * hasta agotar el saldo, eso convierte el **45% de una recarga en diamantes
+ * propios**, que son retirables: la recarga se transformaba en dinero de vuelta
+ * en vez de gastarse. A 0,70 el ciclo devuelve 0,75 y la fuga baja al 20%.
+ *
+ * La suerte personal (`lib/lucky-mood`) mueve la probabilidad real entre el
+ * 0,44% y el 2,25% según el momento de cada cuenta, pero se reparte alrededor
+ * de 1, así que esta cifra sigue siendo la del conjunto.
  */
-const PROBABILIDAD = 0.015;
+const PROBABILIDAD = 0.0125;
 
 export const GIFT_CATALOG = [
-  // 0,015 × 55,88 = 0,84
+  // 0,0125 × 55,88 = 0,70
   { code: 'rose', name: 'Rosa', emoji: '🌹', priceCoins: 10, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'heart', name: 'Corazón', emoji: '💖', priceCoins: 25, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'beer', name: 'Cerveza', emoji: '🍺', priceCoins: 50, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },

@@ -156,8 +156,8 @@ describe('sorteo de los regalos con premio', () => {
    */
   it('el retorno de cada regalo es el documentado', () => {
     const esperado: Record<string, number> = {
-      rose: 0.8, heart: 0.8, beer: 0.8, crown: 0.8, fireworks: 0.8,
-      ferrari: 0.7, yacht: 0.7, castle: 0.7,
+      rose: 0.7, heart: 0.7, beer: 0.7, crown: 0.7, fireworks: 0.7,
+      ferrari: 0.6, yacht: 0.6, castle: 0.6,
     };
 
     for (const gift of GIFT_CATALOG) {
@@ -264,8 +264,8 @@ describe('suerte personal', () => {
   it('separa mucho el mejor momento del peor', () => {
     // Es lo que hace que la mecánica enganche: rachas buenas de verdad y malas
     // de verdad, en vez de que todos acaben siempre en la media.
-    const base = expectedReturn(0.015, '10:900,20:64,50:64,500:99');
-    assert.ok(base * 1.8 > 1.3, 'en caliente debería devolver más de lo gastado');
+    const base = expectedReturn(0.0125, '10:900,20:64,50:64,500:99');
+    assert.ok(base * 1.8 > 1.2, 'en caliente debería devolver más de lo gastado');
     assert.ok(base * 0.35 < 0.35, 'en frío debería devolver bastante menos');
   });
 });

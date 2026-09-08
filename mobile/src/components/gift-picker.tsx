@@ -379,7 +379,8 @@ export function GiftPicker({
           </Text>
         ) : selected && selected.luckyChance > 0 ? (
           <Text style={styles.luckyHint}>
-            {selected.name} sortea premio en cada unidad: {Math.round(selected.luckyChance * 100)}% por unidad, y el
+            {selected.name} sortea premio en cada unidad:{' '}
+            {(selected.luckyChance * 100).toFixed(2).replace('.', ',')}% por unidad, y el
             gordo es ×{topMultiplier(selected.luckyMultipliers)} ({(
               selected.priceCoins * topMultiplier(selected.luckyMultipliers)
             ).toLocaleString('es')}{' '}
