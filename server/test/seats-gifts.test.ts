@@ -204,7 +204,7 @@ describe('suerte personal', () => {
 
     for (let usuario = 0; usuario < 300; usuario += 1) {
       for (let paso = 0; paso < 120; paso += 1) {
-        suma += factorSuerte(`user${usuario}`, new Date(INICIO + paso * 45_000));
+        suma += factorSuerte(`user${usuario}`, new Date(INICIO + paso * 17_000));
         muestras += 1;
       }
     }
@@ -213,20 +213,20 @@ describe('suerte personal', () => {
     assert.ok(media > 0.97 && media < 1.03, `la media salió ${media.toFixed(3)}`);
   });
 
-  it('se mueve entre 0,2 y 1,8', () => {
+  it('se mueve entre 0,35 y 1,65', () => {
     for (let paso = 0; paso < 500; paso += 1) {
-      const factor = factorSuerte('luna', new Date(INICIO + paso * 20_000));
-      assert.ok(factor >= 0.2 && factor <= 1.8, `salió ${factor}`);
+      const factor = factorSuerte('luna', new Date(INICIO + paso * 7_000));
+      assert.ok(factor >= 0.35 && factor <= 1.65, `salió ${factor}`);
     }
   });
 
-  it('sube y baja despacio, sin saltos secos', () => {
-    // La curva se interpola entre tramos de minuto y medio: en un segundo la
-    // suerte no puede pasar de fría a caliente.
+  it('sube y baja en curva, sin saltos secos', () => {
+    // Se interpola entre tramos de treinta segundos: en un segundo la suerte no
+    // puede pasar de fría a caliente.
     let anterior = factorSuerte('luna', new Date(INICIO));
     for (let segundo = 1; segundo < 300; segundo += 1) {
       const actual = factorSuerte('luna', new Date(INICIO + segundo * 1000));
-      assert.ok(Math.abs(actual - anterior) < 0.05, `saltó ${Math.abs(actual - anterior).toFixed(3)}`);
+      assert.ok(Math.abs(actual - anterior) < 0.09, `saltó ${Math.abs(actual - anterior).toFixed(3)}`);
       anterior = actual;
     }
   });
@@ -241,8 +241,8 @@ describe('suerte personal', () => {
     // Es lo que hace que la mecánica enganche: rachas buenas de verdad y malas
     // de verdad, en vez de que todos acaben siempre en la media.
     const base = expectedReturn(0.015, '10:900,20:64,50:64,500:99');
-    assert.ok(base * 1.8 > 1.4, 'en caliente debería devolver más de lo gastado');
-    assert.ok(base * 0.2 < 0.2, 'en frío debería devolver muy poco');
+    assert.ok(base * 1.65 > 1.3, 'en caliente debería devolver más de lo gastado');
+    assert.ok(base * 0.35 < 0.35, 'en frío debería devolver bastante menos');
   });
 });
 

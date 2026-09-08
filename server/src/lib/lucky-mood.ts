@@ -8,10 +8,8 @@
  * que revienta todo y ratos en los que no cae nada.
  *
  * Aquí eso se consigue con un factor que multiplica la probabilidad de premio y
- * que **va y viene despacio**, distinto para cada cuenta. En frío baja al 0,2 y
- * casi no toca nada; en caliente sube a 1,8 y explota sin parar. Si además cae
- * una racha global (`lucky-window`, que dobla), un jugador caliente llega a
- * recuperar más del triple de lo que gasta durante unos minutos.
+ * que **va y viene despacio**, distinto para cada cuenta. En frío baja al 0,35 y
+ * casi no toca nada; en caliente sube a 1,65 y explota sin parar.
  *
  * ## Por qué la media sale 1
  *
@@ -22,17 +20,28 @@
  *
  * ## Por qué no se guarda nada
  *
- * El factor sale de la cuenta y del reloj, con un generador con semilla, igual
- * que las rachas globales. No hay estado que persistir ni temporizadores, y dos
- * peticiones seguidas del mismo usuario ven lo mismo.
+ * El factor sale de la cuenta y del reloj, con un generador con semilla. No hay
+ * estado que persistir ni temporizadores, sobrevive a un reinicio del servidor, y
+ * dos peticiones seguidas del mismo usuario ven lo mismo.
  */
 
-/** Cuánto dura cada tramo de la curva, en milisegundos. */
-const TRAMO_MS = 90_000;
+/**
+ * Cuánto dura cada tramo de la curva. A minuto y medio la suerte cambiaba
+ * demasiado despacio: quien pillaba una racha fría se pasaba varios paquetes
+ * enteros sin ver un premio.
+ */
+const TRAMO_MS = 30_000;
 
-/** Extremos del factor. La media de los dos es 1: en frío 0,2, en caliente 1,8. */
-const MINIMO = 0.2;
-const MAXIMO = 1.8;
+/**
+ * Extremos del factor. **La media de los dos tiene que ser 1**: es lo que hace
+ * que la variación no mueva el retorno del conjunto, y cualquier cambio aquí
+ * debe respetarlo.
+ *
+ * El suelo subió de 0,2 a 0,35 porque en frío se perdía demasiado. El techo baja
+ * en la misma medida para conservar la media.
+ */
+const MINIMO = 0.35;
+const MAXIMO = 1.65;
 
 /**
  * Número estable entre 0 y 1 a partir de un texto y un tramo.
@@ -64,9 +73,9 @@ function suavizar(t: number): number {
 /**
  * Factor de suerte de una cuenta en un instante dado.
  *
- * Va de 0,2 a 1,8 y se mueve despacio: entre un tramo y el siguiente se
- * interpola, así que la suerte sube y baja en curva en vez de a saltos. Cada
- * cuenta lleva su propia curva.
+ * Va de 0,35 a 1,65 y se mueve en curva: entre un tramo y el siguiente se
+ * interpola, así que la suerte sube y baja suave en vez de a saltos. Cada cuenta
+ * lleva la suya.
  */
 export function factorSuerte(userId: string, ahora: Date = new Date()): number {
   const posicion = ahora.getTime() / TRAMO_MS;
