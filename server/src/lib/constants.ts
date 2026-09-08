@@ -21,6 +21,8 @@ export const TRANSACTION_TYPE = {
   GIFT_RECEIVED: 'gift_received',
   GIFT_REWARD: 'gift_reward',
   SALARY: 'salary',
+  CHEST_OPEN: 'chest_open',
+  CHEST_PRIZE: 'chest_prize',
   EXCHANGE: 'exchange',
 } as const;
 

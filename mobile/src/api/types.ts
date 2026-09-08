@@ -150,3 +150,27 @@ export interface SalaryPayment {
   diamonds: number;
   paidAt: string;
 }
+
+/** Un cofre del juego de azar, con lo que cuesta y lo que puede tocar. */
+export interface Chest {
+  code: string;
+  nombre: string;
+  emoji: string;
+  precio: number;
+  /** Los premios posibles, de menor a mayor. */
+  premios: number[];
+  /** Probabilidad de que devuelva algo, en tanto por ciento. */
+  probabilidad: number;
+}
+
+export interface ChestOpenResult {
+  cofre: { code: string; nombre: string; emoji: string };
+  cantidad: number;
+  coste: number;
+  /** Lo que salió en cada cofre, en orden; 0 es «nada». */
+  premios: number[];
+  ganado: number;
+  /** El mejor de la tanda. */
+  mejor: number;
+  wallet: Wallet;
+}

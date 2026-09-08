@@ -60,6 +60,7 @@ export default function RootLayout() {
             <Stack.Screen name="edit-profile" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
             <Stack.Screen name="server-settings" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
             <Stack.Screen name="whats-new" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
+            <Stack.Screen name="chests" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
             <Stack.Screen name="user/[username]" />
           </Stack>
         )}

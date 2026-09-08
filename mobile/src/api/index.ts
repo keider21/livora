@@ -1,6 +1,8 @@
 import { apiRequest } from './client';
 import type { ChatMessage, GiftEvent, SeatsEvent } from '../realtime/events';
 import type {
+  Chest,
+  ChestOpenResult,
   CoinPackage,
   CurrentUser,
   Gift,
@@ -120,6 +122,13 @@ export const wallet = {
   exchange: (diamonds: number) =>
     apiRequest<{ wallet: Wallet; coins: number }>('/api/wallet/exchange', { method: 'POST', body: { diamonds } }),
   transactions: () => apiRequest<{ transactions: Transaction[] }>('/api/wallet/transactions'),
+};
+
+export const chests = {
+  list: () => apiRequest<{ cofres: Chest[] }>('/api/chests'),
+  /** Cada cofre de la tanda se sortea por separado. */
+  open: (code: string, cantidad: number) =>
+    apiRequest<ChestOpenResult>('/api/chests/open', { method: 'POST', body: { code, cantidad } }),
 };
 
 export const hosts = {
