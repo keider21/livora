@@ -131,24 +131,32 @@ export const GIFT_CATALOG = [
   // recibe, así que el multiplicador medio puede pasar de 1 sin que eso
   // fabrique monedas: es valor que cambia de manos, no que aparece.
   //
-  //   bronce  ×8,39 (8.400)    plata  ×8,42 (42.100)    oro  ×8,44 (84.400)
+  //   bronce  ×11,12 (11.100)   plata  ×11,17 (55.800)   oro  ×11,19 (111.900)
   //
-  // Los escalones de ×10 para arriba salen ahora un 37-44% de las veces, así que
-  // en diez cofres cae alguno prácticamente siempre.
+  // Los escalones de ×10 para arriba salen ahora más de la mitad de las veces:
+  // 64% en el bronce y 57% en los otros dos.
   //
-  // **La media no puede subir mucho más.** El cofre es la vía barata de llenar
-  // la meta, y el techo lo marca el nivel 1 del salario: paga 10.000 diamantes
-  // por una meta de 150.000, o sea el 6,67%, y con el 5% de diamantes de los
-  // regalos son 11,67% de la meta pagados. Llenarla a base de cofres ingresa
-  // `meta / media`, así que por encima de ×8,57 se paga más de lo que entra. Los
-  // niveles altos aguantan hasta ×14-16; manda el más estrecho. **Aquí ya no
-  // caben más subidas**: para pasar de ×8,57 habría que bajar el salario del
-  // nivel 1 o subir su meta. La prueba «los
-  // cofres siempre premian» calcula ese tope desde la tabla de salarios, así que
-  // se mueve solo si la tabla cambia.
-  { code: 'chest-bronze', name: 'Cofre de bronce', emoji: '🎁', priceCoins: 1_000, image: 'chest-bronze', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '3:50000,5:47000,10:45000,14:19500,20:12400,100:680,200:210', minFanLevel: 0 },
-  { code: 'chest-silver', name: 'Cofre de plata', emoji: '🎁', priceCoins: 5_000, image: 'chest-silver', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '4:64000,6:52000,10:37000,14:15500,20:9400,30:3600,50:1200,120:145,300:37', minFanLevel: 0 },
-  { code: 'chest-gold', name: 'Cofre de oro', emoji: '🎁', priceCoins: 10_000, image: 'chest-gold', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '4:126000,6:104000,10:74000,14:31000,20:18600,30:7200,50:2400,140:240,400:62', minFanLevel: 0 },
+  // **Los dos primeros niveles del salario se subvencionan a propósito.**
+  //
+  // Llenar una meta a base de cofres ingresa `meta / media` y paga
+  // `salario + 5% de la meta`. A ×11 eso sale a cuenta del nivel 3 en adelante,
+  // pero no en los dos primeros:
+  //
+  //   nivel 1: ingresa 13.636, paga 17.500  → pierde 3.864
+  //   nivel 2: ingresa 27.273, paga 28.000  → pierde 727
+  //   nivel 3: ingresa 54.545, paga 48.000  → gana
+  //
+  // El usuario lo decidió así el 2026-09-09 sabiendo la cuenta: el cofre tenía
+  // que sentirse generoso y los primeros niveles son baratos de subvencionar.
+  // El efecto secundario es que **un anfitrión que se autorregale cofres para
+  // cerrar el nivel 1 gana unos 3.900 diamantes al día**, y eso es farmeable con
+  // muchas cuentas. La vigilancia (`audit.service`) es lo que tiene que cazarlo.
+  //
+  // Para quitar la subvención habría que bajar el salario del nivel 1 a 4.500 y
+  // el del 2 a 9.000, o subir sus metas.
+  { code: 'chest-bronze', name: 'Cofre de bronce', emoji: '🎁', priceCoins: 1_000, image: 'chest-bronze', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '3:24000,5:33000,10:52000,14:29500,20:19500,100:1350,200:410', minFanLevel: 0 },
+  { code: 'chest-silver', name: 'Cofre de plata', emoji: '🎁', priceCoins: 5_000, image: 'chest-silver', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '4:30000,6:40000,10:44000,14:24000,20:16000,30:6500,50:2300,120:280,300:75', minFanLevel: 0 },
+  { code: 'chest-gold', name: 'Cofre de oro', emoji: '🎁', priceCoins: 10_000, image: 'chest-gold', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '4:60000,6:80000,10:88000,14:48000,20:32000,30:13000,50:4600,140:480,400:130', minFanLevel: 0 },
   // Los de una y cinco monedas: el regalo que se manda por mandar algo, y el
   // que abre la puerta a los demás. En una sala vacía son los que rompen el
   // hielo, y de ahí sale el resto.

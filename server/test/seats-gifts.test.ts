@@ -197,6 +197,29 @@ describe('sorteo de los regalos con premio', () => {
     }
   });
 
+  it('el chat dice cuánto salió, sumando el paquete entero', async () => {
+    // La animación pasa y el chat se queda: es donde se puede volver a mirar lo
+    // que tocó. En un paquete de varias unidades va la suma, no cada acierto.
+    const anfitrion = await createUser();
+    const sala = await openRoom(anfitrion.token);
+    const emisor = await createUser(100_000);
+
+    await api.request('POST', '/api/gifts/send', {
+      token: emisor.token,
+      body: { roomId: sala, giftCode: 'test-lucky', quantity: 5 },
+    });
+
+    const mensaje = await prisma.message.findFirst({
+      where: { roomId: sala, type: 'gift' },
+      orderBy: { createdAt: 'desc' },
+    });
+    // `test-lucky` premia siempre y multiplica por 2: 5 unidades de 100 son 1000.
+    // En español los millares solo se separan a partir de cinco cifras, así que
+    // aquí va sin punto.
+    assert.match(mensaje!.body, /5× Premiado/);
+    assert.match(mensaje!.body, /🪙 1000/);
+  });
+
   it('acepta hasta 9.999 unidades en un envío', async () => {
     // Mandar más unidades por envío es lo único que acelera de verdad el
     // automático: la espera entre envíos ya no pinta nada frente al viaje de
@@ -281,12 +304,15 @@ describe('economía de los regalos', () => {
       // Es el coste real de la mecánica: el anfitrión recibe esa cifra en valor
       // de regalo, y con ella su 5% en diamantes y su avance hacia la meta.
       //
-      // El tope sale de la tabla de salarios y no de un número elegido a mano:
-      // llenar una meta a base de cofres ingresa `meta / media` y paga
-      // `salario + 5% de la meta`, así que por encima de `1 / (salario/meta +
-      // 5%)` la plataforma pone dinero. Manda el nivel más estrecho, que es el
-      // 1. Calcularlo aquí hace que el tope se mueva solo si cambia la tabla.
-      const tope = Math.min(...NIVELES.map((n) => 1 / (n.salario / n.meta + DIAMONDS_PER_COIN)));
+      // A ×11 los dos primeros niveles del salario se pagan a pérdida, y está
+      // decidido así: son baratos de subvencionar y el cofre tiene que sentirse
+      // generoso. Lo que sí se vigila es que la subvención no se extienda a los
+      // niveles de arriba, que son los que mueven dinero de verdad: del 3 en
+      // adelante llenar la meta con cofres tiene que seguir saliendo a cuenta.
+      const nivelesQueDebenCubrirse = NIVELES.filter((nivel) => nivel.nivel >= 3);
+      const tope = Math.min(
+        ...nivelesQueDebenCubrirse.map((n) => 1 / (n.salario / n.meta + DIAMONDS_PER_COIN)),
+      );
       assert.ok(media > 3 && media < tope, `${cofre.code} entrega ×${media.toFixed(2)} y el tope es ×${tope.toFixed(2)}`);
 
       const menor = Math.min(...escalones.map((e) => e.multiplier));
@@ -295,7 +321,7 @@ describe('economía de los regalos', () => {
       // Diez cofres seguidos sin pasar del segundo peldaño es lo que hace que
       // el cofre deje de tener gracia, y ya pasó una vez.
       const altos = escalones.filter((e) => e.multiplier >= 10).reduce((t, e) => t + e.weight, 0) / pesos;
-      assert.ok(altos > 0.34, `${cofre.code} solo sube de ×10 el ${(altos * 100).toFixed(1)}% de las veces`);
+      assert.ok(altos > 0.5, `${cofre.code} solo sube de ×10 el ${(altos * 100).toFixed(1)}% de las veces`);
     }
   });
 

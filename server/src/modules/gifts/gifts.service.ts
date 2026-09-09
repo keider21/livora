@@ -295,14 +295,18 @@ export async function sendGift(senderId: string, input: SendGiftInput) {
     }
   }
 
-  // El regalo también deja rastro en el chat, como en la app original. Solo se
-  // dice a quién va cuando no es únicamente el anfitrión.
+  // El regalo deja rastro en el chat, como en la app original. Se dice a quién
+  // va solo cuando no es únicamente el anfitrión, y **cuánto salió**: la
+  // animación pasa y el chat se queda, así que es donde se puede volver a mirar
+  // lo que tocó. En un paquete de cincuenta va la suma, no cada acierto.
   const soloAlAnfitrion = recipients.length === 1 && recipients[0]!.id === room.hostId;
   const destino = soloAlAnfitrion ? '' : ` a ${recipients.map((r) => r.displayName).join(', ')}`;
+  const premiado = envios.reduce((total, envio) => total + envio.lucky.coins, 0);
+  const premio = premiado > 0 ? ` · 🪙 ${premiado.toLocaleString('es')}` : '';
   await postMessage(
     room.id,
     senderId,
-    `envió ${quantity}× ${gift.name} ${gift.emoji}${destino}`,
+    `envió ${quantity}× ${gift.name} ${gift.emoji}${destino}${premio}`,
     MESSAGE_TYPE.GIFT,
   );
 

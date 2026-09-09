@@ -1,8 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Image } from 'expo-image';
 import type { GiftEvent } from '../realtime/events';
 import { LuckyCounter, paletaEnvio, proteccionPremio } from './lucky-counter';
+import { giftArt } from './gift-art';
+import { Avatar } from './ui';
 import { colors, radius, spacing } from '../theme';
 
 /** Lo que se espera sin recibir otro igual antes de retirar el anuncio. */
@@ -115,15 +118,32 @@ export function GiftAnimation({
         end={{ x: 1, y: 1 }}
         style={[styles.badge, isBig && styles.badgeBig]}
       >
-        <Text style={[styles.emoji, isBig && styles.emojiBig]}>{event.gift.emoji}</Text>
+        {giftArt(event.gift.image) ? (
+          <Image
+            source={giftArt(event.gift.image)!}
+            style={[styles.arte, isBig && styles.arteBig]}
+            contentFit="contain"
+          />
+        ) : (
+          <Text style={[styles.emoji, isBig && styles.emojiBig]}>{event.gift.emoji}</Text>
+        )}
 
         <View style={styles.texts}>
           <Text style={styles.sender} numberOfLines={1}>
             {event.sender.displayName}
           </Text>
-          <Text style={styles.gift} numberOfLines={1}>
-            {event.gift.name} · para {event.recipient.displayName}
-          </Text>
+          {/* La cara de quien lo recibe, no solo el nombre: al regalar a varios
+              salen varias tarjetas a la vez y con la foto se distingue de un
+              vistazo cuál es cuál y a quién le tocó el premio. */}
+          <View style={styles.destino}>
+            <Text style={styles.gift} numberOfLines={1}>
+              {event.gift.name} ·
+            </Text>
+            <Avatar uri={event.recipient.avatarUrl} name={event.recipient.displayName} size={14} />
+            <Text style={styles.gift} numberOfLines={1}>
+              {event.recipient.displayName}
+            </Text>
+          </View>
 
           {/* La marca del premio va aquí dentro, bajo el nombre. Cada
               destinatario tiene su propio sorteo, así que esta es la suya. */}
@@ -165,6 +185,9 @@ const styles = StyleSheet.create({
   badgeBig: { borderColor: colors.accent },
   emoji: { fontSize: 15 },
   emojiBig: { fontSize: 20 },
+  arte: { width: 22, height: 22 },
+  arteBig: { width: 28, height: 28 },
+  destino: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   texts: { maxWidth: 150 },
   premio: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   monedas: { color: colors.coin, fontSize: 8, fontWeight: '800' },
