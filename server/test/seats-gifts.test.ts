@@ -4,6 +4,8 @@ import { prisma } from '../src/lib/prisma';
 import { expectedReturn, parseMultipliers, rollLucky } from '../src/lib/lucky';
 import { factorSuerte } from '../src/lib/lucky-mood';
 import { GIFT_CATALOG, SIN_ILUSTRACION } from '../src/lib/gift-catalog';
+import { NIVELES } from '../src/lib/salary';
+import { DIAMONDS_PER_COIN } from '../src/lib/constants';
 import { startTestApi, uniqueName, type TestApi } from './helpers';
 
 let api: TestApi;
@@ -165,9 +167,9 @@ describe('sorteo de los regalos con premio', () => {
    */
   it('el retorno de cada regalo es el documentado', () => {
     const esperado: Record<string, number> = {
-      clap: 0.7, wink: 0.7, star: 0.7, candy: 0.7,
-      rose: 0.7, heart: 0.7, beer: 0.7, crown: 0.7, fireworks: 0.7,
-      ferrari: 0.6, yacht: 0.6, castle: 0.6,
+      clap: 0.8, wink: 0.8, star: 0.8, candy: 0.8,
+      rose: 0.8, heart: 0.8, beer: 0.8, crown: 0.8, fireworks: 0.8,
+      ferrari: 0.7, yacht: 0.7, castle: 0.7,
     };
 
     for (const gift of GIFT_CATALOG) {
@@ -231,11 +233,13 @@ describe('economía de los regalos', () => {
       // Es el coste real de la mecánica: el anfitrión recibe esa cifra en valor
       // de regalo, y con ella su 5% en diamantes y su avance hacia la meta.
       //
-      // El punto de ruptura está en ×13: ahí, llenar la meta más alta a base de
-      // cofres cuesta menos de lo que se paga en salario más diamantes y la
-      // plataforma pierde dinero. El tope se queda en 8 para dejar margen a los
-      // retoques sin tener que rehacer esta cuenta cada vez.
-      assert.ok(media > 3 && media < 8, `${cofre.code} entrega ×${media.toFixed(2)} de media`);
+      // El tope sale de la tabla de salarios y no de un número elegido a mano:
+      // llenar una meta a base de cofres ingresa `meta / media` y paga
+      // `salario + 5% de la meta`, así que por encima de `1 / (salario/meta +
+      // 5%)` la plataforma pone dinero. Manda el nivel más estrecho, que es el
+      // 1. Calcularlo aquí hace que el tope se mueva solo si cambia la tabla.
+      const tope = Math.min(...NIVELES.map((n) => 1 / (n.salario / n.meta + DIAMONDS_PER_COIN)));
+      assert.ok(media > 3 && media < tope, `${cofre.code} entrega ×${media.toFixed(2)} y el tope es ×${tope.toFixed(2)}`);
 
       const menor = Math.min(...escalones.map((e) => e.multiplier));
       assert.ok(menor >= 3, `${cofre.code} puede quedarse en ×${menor}`);
@@ -243,7 +247,7 @@ describe('economía de los regalos', () => {
       // Diez cofres seguidos sin pasar del segundo peldaño es lo que hace que
       // el cofre deje de tener gracia, y ya pasó una vez.
       const altos = escalones.filter((e) => e.multiplier >= 10).reduce((t, e) => t + e.weight, 0) / pesos;
-      assert.ok(altos > 0.15, `${cofre.code} solo sube de ×10 el ${(altos * 100).toFixed(1)}% de las veces`);
+      assert.ok(altos > 0.3, `${cofre.code} solo sube de ×10 el ${(altos * 100).toFixed(1)}% de las veces`);
     }
   });
 
@@ -341,9 +345,9 @@ describe('suerte personal', () => {
   it('separa mucho el mejor momento del peor', () => {
     // Es lo que hace que la mecánica enganche: rachas buenas de verdad y malas
     // de verdad, en vez de que todos acaben siempre en la media.
-    const base = expectedReturn(0.0145, '10:950,20:80,50:64,500:85');
-    assert.ok(base * 2.2 > 1.4, 'en caliente debería devolver más de lo gastado');
-    assert.ok(base * 0.6 < 0.45, 'en frío debería devolver bastante menos');
+    const base = expectedReturn(0.0176, '10:950,20:80,50:64,500:85');
+    assert.ok(base * 2.2 > 1.7, 'en caliente debería devolver más de lo gastado');
+    assert.ok(base * 0.6 < 0.55, 'en frío debería devolver bastante menos');
   });
 });
 

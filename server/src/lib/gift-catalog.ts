@@ -49,7 +49,7 @@ import { GIFT_TIER_CHEST } from './constants';
 /**
  * Escalones de premio y probabilidad de cada uno por unidad enviada:
  *
- *   ×10 → 1,168%   ×20 → 0,098%   ×50 → 0,079%   ×500 → 0,104%
+ *   ×10 → 1,418%   ×20 → 0,119%   ×50 → 0,096%   ×500 → 0,127%
  *
  * Los pesos son esas cifras en proporción; la suma va aparte en `PROBABILIDAD`.
  *
@@ -64,7 +64,7 @@ import { GIFT_TIER_CHEST } from './constants';
 const PREMIOS = '10:950,20:80,50:64,500:85';
 
 /**
- * Los regalos caros llevan el ×500 algo más bajo, al 0,085%: su unidad ya vale
+ * Los regalos caros llevan el ×500 algo más bajo, al 0,103%: su unidad ya vale
  * mucho, así que cada acierto pesa más en monedas aunque la probabilidad sea
  * parecida.
  *
@@ -73,13 +73,13 @@ const PREMIOS = '10:950,20:80,50:64,500:85';
 const PREMIOS_ALTOS = '10:950,20:80,50:64,500:70';
 
 /** Los caros van algo por debajo, para que no devuelvan tan rápido. */
-const PROBABILIDAD_ALTOS = 0.0142;
+const PROBABILIDAD_ALTOS = 0.0172;
 
 /**
  * Probabilidad de premio por unidad: la suma de los cuatro escalones.
  *
  * Con la media de multiplicadores en 48,18, el retorno sale `probabilidad ×
- * 48,18`. Aquí queda en 1,45%: retorno 0,70.
+ * 48,18`. Aquí queda en 1,76%: retorno 0,85.
  *
  * ## Historial del ajuste (2026-09-08)
  *
@@ -88,15 +88,30 @@ const PROBABILIDAD_ALTOS = 0.0142;
  * repetido hasta agotar el saldo, el **45% de una recarga acababa en diamantes
  * propios**, que son retirables. Bajó a 0,70, luego a 0,50 recortando el ×500 a
  * la mitad, y volvió a 0,70 al ver que sin gordos la mecánica se apagaba: el
- * ×500 quedó en 0,104% y la probabilidad base subió al 1,45%, así que se ven más
- * premios pequeños **y** los gordos siguen apareciendo. Con 0,70 el ciclo
- * devuelve 0,75 y la fuga es del 20%.
+ * ×500 quedó en 0,104% y la probabilidad base subió, así que se ven más premios
+ * pequeños **y** los gordos siguen apareciendo.
+ *
+ * ## Por qué acabó en 0,85
+ *
+ * Lo que decide el retorno no es solo cuánto se recupera: es **cuánto se puede
+ * mover hacia la meta del anfitrión con una recarga**, porque lo devuelto se
+ * vuelve a gastar. Con una recarga de 10.000 monedas el volumen total es
+ * `10.000 / (1 − retorno)`:
+ *
+ *   0,70 → 33.000     0,85 → 66.000     0,90 → 96.000
+ *
+ * A 0,70 un dólar no llegaba ni a la mitad de la primera meta y el sistema de
+ * metas no se podía ni probar. A 0,85 llega al 44%.
+ *
+ * El precio está en el otro lado: la plataforma paga el 5% de ese volumen en
+ * diamantes, o sea el 33% de la recarga en vez del 17%. Y quien se regala a sí
+ * mismo convierte ese mismo 33% en diamantes propios, que son retirables.
  *
  * La suerte personal (`lib/lucky-mood`) mueve la probabilidad real entre el
  * 0,73% y el 2,90% según el momento de cada cuenta, pero se reparte alrededor
  * de 1, así que esta cifra sigue siendo la del conjunto.
  */
-const PROBABILIDAD = 0.0145;
+const PROBABILIDAD = 0.0176;
 
 /**
  * Regalos que todavía se ven con el emoji porque no hay ilustración suya.
@@ -114,15 +129,22 @@ export const GIFT_CATALOG = [
   // recibe, así que el multiplicador medio puede pasar de 1 sin que eso
   // fabrique monedas: es valor que cambia de manos, no que aparece.
   //
-  //   bronce  media ×5,61      plata  media ×6,08      oro  media ×6,08
+  //   bronce  ×7,94 (7.900)    plata  ×7,97 (39.800)    oro  ×7,97 (79.700)
   //
-  // Los escalones de ×10 para arriba subieron el 2026-09-08: con el reparto
-  // anterior diez cofres seguidos se quedaban en los dos peldaños de abajo más
-  // de una vez de cada tres, y el cofre dejaba de tener gracia. Ahora salen el
-  // 18-21% de las veces, así que en diez cofres cae alguno el 86-91% de ellas.
-  { code: 'chest-bronze', name: 'Cofre de bronce', emoji: '🎁', priceCoins: 1_000, image: 'chest-bronze', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '3:95000,5:60000,10:28000,14:9000,20:4500,100:140,200:40', minFanLevel: 0 },
-  { code: 'chest-silver', name: 'Cofre de plata', emoji: '🎁', priceCoins: 5_000, image: 'chest-silver', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '4:110000,6:45000,10:22000,14:7000,20:3000,30:1100,50:350,120:45,300:10', minFanLevel: 0 },
-  { code: 'chest-gold', name: 'Cofre de oro', emoji: '🎁', priceCoins: 10_000, image: 'chest-gold', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '4:220000,6:90000,10:44000,14:14000,20:6000,30:2200,50:700,140:60,400:14', minFanLevel: 0 },
+  // Los escalones de ×10 para arriba salen ahora un 33-41% de las veces, así que
+  // en diez cofres cae alguno prácticamente siempre.
+  //
+  // **La media no puede subir mucho más.** El cofre es la vía barata de llenar
+  // la meta, y el techo lo marca el nivel 1 del salario: paga 10.000 diamantes
+  // por una meta de 150.000, o sea el 6,67%, y con el 5% de diamantes de los
+  // regalos son 11,67% de la meta pagados. Llenarla a base de cofres ingresa
+  // `meta / media`, así que por encima de ×8,57 se paga más de lo que entra. Los
+  // niveles altos aguantan hasta ×14-16; manda el más estrecho. La prueba «los
+  // cofres siempre premian» calcula ese tope desde la tabla de salarios, así que
+  // se mueve solo si la tabla cambia.
+  { code: 'chest-bronze', name: 'Cofre de bronce', emoji: '🎁', priceCoins: 1_000, image: 'chest-bronze', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '3:55000,5:50000,10:42000,14:18000,20:11000,100:600,200:180', minFanLevel: 0 },
+  { code: 'chest-silver', name: 'Cofre de plata', emoji: '🎁', priceCoins: 5_000, image: 'chest-silver', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '4:70000,6:52000,10:34000,14:14000,20:8000,30:3000,50:1000,120:120,300:30', minFanLevel: 0 },
+  { code: 'chest-gold', name: 'Cofre de oro', emoji: '🎁', priceCoins: 10_000, image: 'chest-gold', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '4:140000,6:104000,10:68000,14:28000,20:16000,30:6000,50:2000,140:200,400:50', minFanLevel: 0 },
   // Los de una y cinco monedas: el regalo que se manda por mandar algo, y el
   // que abre la puerta a los demás. En una sala vacía son los que rompen el
   // hielo, y de ahí sale el resto.
@@ -130,7 +152,7 @@ export const GIFT_CATALOG = [
   { code: 'wink', name: 'Guiño', emoji: '😉', priceCoins: 1, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'star', name: 'Estrella', emoji: '⭐', priceCoins: 5, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'candy', name: 'Caramelo', emoji: '🍬', priceCoins: 5, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  // 0,0145 × 48,18 = 0,70
+  // 0,0176 × 48,18 = 0,85
   { code: 'rose', name: 'Rosa', emoji: '🌹', priceCoins: 10, image: 'rose', tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'heart', name: 'Corazón', emoji: '💖', priceCoins: 25, image: 'heart', tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'beer', name: 'Cerveza', emoji: '🍺', priceCoins: 50, image: 'beer', tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
