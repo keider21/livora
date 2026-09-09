@@ -16,7 +16,7 @@
 | **Última actualización** | 2026-09-08 |
 | **Rama** | `main` en `keider21/livora`, repositorio propio y público (el último commit lo dice `git log -1`) |
 | **Pull request** | Ninguno: se trabaja directo sobre `main` en el repositorio nuevo. El anterior ([keider21/cecchi#1](https://github.com/keider21/cecchi/pull/1)) queda histórico |
-| **Salud** | 118 pruebas en verde (81 servidor + 37 móvil) · TypeScript limpio en `server/` y `mobile/` · empaqueta para Android · `expo prebuild` acepta los plugins de LiveKit |
+| **Salud** | 119 pruebas en verde (82 servidor + 37 móvil) · TypeScript limpio en `server/` y `mobile/` · empaqueta para Android · `expo prebuild` acepta los plugins de LiveKit |
 
 **Lo último:** la APK funciona en el teléfono (build 106, 2026-09-06). Cerrada
 la Fase 10 salvo el despliegue público (10.7, ⛔ en el usuario). El backend local

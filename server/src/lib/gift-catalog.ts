@@ -1,4 +1,5 @@
 import { GIFT_TIER_CHEST } from './constants';
+import { expectedReturn } from './lucky';
 /**
  * Catálogo de regalos.
  *
@@ -49,9 +50,12 @@ import { GIFT_TIER_CHEST } from './constants';
 /**
  * Escalones de premio y probabilidad de cada uno por unidad enviada:
  *
- *   ×10 → 1,467%   ×20 → 0,124%   ×50 → 0,099%   ×500 → 0,131%
+ * Repartidos así: el ×10 se lleva el 80% de los aciertos, el ×20 el 6,8%, el
+ * ×50 el 5,4% y el ×500 el 7,2%. En un regalo barato eso son 1,76% de premio por
+ * unidad; en el castillo, 1,20%.
  *
- * Los pesos son esas cifras en proporción; la suma va aparte en `PROBABILIDAD`.
+ * Los pesos son esas cifras en proporción; cada regalo la escala con la suya
+ * según lo que cuesta, en `RETORNO_POR_PRECIO`.
  *
  * **La misma escalera para todos los regalos de la suerte.** Los caros tuvieron
  * una aparte, con el ×500 más bajo, hasta que se vio lo que provocaba: el
@@ -70,69 +74,54 @@ const PREMIOS = '10:950,20:80,50:64,500:85';
 
 
 /**
- * Probabilidad de premio por unidad: la suma de los cuatro escalones.
+ * Cuánto devuelve cada regalo, **según lo que cuesta**.
  *
- * Con la media de multiplicadores en 48,18, el retorno sale `probabilidad ×
- * 48,18`. Aquí queda en 1,82%: retorno 0,88.
+ * Un regalo caro no puede devolver lo mismo que uno barato. La rosa se manda de
+ * cien en cien y lo que devuelve se vuelve a gastar en rosas; el castillo son
+ * 9.999 monedas de golpe, así que con el mismo retorno cada acierto suelta una
+ * montaña de monedas y el anfitrión acaba recibiendo menos de lo que se gastó
+ * en llegar hasta él. Probado el 2026-09-08: el castillo devolvía más de lo
+ * invertido y la sesión salía en pérdida.
  *
- * ## Historial del ajuste (2026-09-08)
+ * Así que el retorno baja con el precio. El barato mantiene la sensación de que
+ * casi siempre vuelve algo, que es lo que hace que se sigan mandando; el caro se
+ * paga de verdad, que es de donde sale el dinero.
  *
- * Con retorno 0,84 y el 5% que vuelve en diamantes, quien se regalaba a sí mismo
- * recuperaba 0,89 de cada moneda y podía seguir jugando casi sin gastar:
- * repetido hasta agotar el saldo, el **45% de una recarga acababa en diamantes
- * propios**, que son retirables. Bajó a 0,70, luego a 0,50 recortando el ×500 a
- * la mitad, y volvió a 0,70 al ver que sin gordos la mecánica se apagaba: el
- * ×500 quedó en 0,104% y la probabilidad base subió, así que se ven más premios
- * pequeños **y** los gordos siguen apareciendo.
+ *   hasta 100 → 0,85     hasta 999 → 0,78     hasta 1.999 → 0,70
+ *   hasta 4.999 → 0,65   por encima → 0,58
  *
- * ## Por qué se para en 0,88
+ * El techo de los baratos lo pone el nivel 1 del salario, no el gusto: quien se
+ * autoregala para cobrar recarga `meta × (1 − retorno)` y recupera
+ * `5% de la meta + salario`, que en el nivel 1 son 17.500 fijos. Eso deja el
+ * retorno por debajo de 0,883, y la prueba «llegar a la meta con dinero propio
+ * nunca compensa» lo vigila.
  *
- * Lo que decide el retorno no es solo cuánto se recupera: es **cuánto se puede
- * mover hacia la meta del anfitrión con una recarga**, porque lo devuelto se
- * vuelve a gastar. Con una recarga de 10.000 monedas el volumen total es
- * `10.000 / (1 − retorno)`:
- *
- *   0,70 → 33.000     0,85 → 66.000     0,88 → 81.000     0,90 → 100.000
- *
- * A 0,70 un dólar no llegaba ni a la mitad de la primera meta y el sistema de
- * metas no se podía ni probar. A 0,88 llega al 54%.
- *
- * **Y ahí se para, por el nivel 1 del salario.** Un anfitrión que se autoregale
- * para cobrar tiene que recargar `meta × (1 − retorno)` y recupera
- * `5% de la meta + salario`. Con una meta de 150.000 y 10.000 de salario,
- * recupera 17.500 pase lo que pase, así que la recarga tiene que costarle más
- * que eso: `150.000 × (1 − retorno) > 17.500` deja el retorno por debajo de
- * 0,883. A 0,90 el nivel 1 se convierte en una bomba de dinero: recargar 1,48
- * dólares devuelve 1,75 en diamantes retirables. La prueba «llegar a la meta con
- * dinero propio nunca compensa» lo comprobó antes de que llegara a la APK.
- *
- * Para pasar de ahí hay que tocar el nivel 1: con 6.000 de salario en vez de
- * 10.000, el retorno podría llegar a 0,90.
- *
- * El precio está en el otro lado: la plataforma paga el 5% de ese volumen en
- * diamantes, o sea el 41% de la recarga. Y quien se regala a sí mismo convierte
- * ese mismo 41% en diamantes propios, que son retirables.
- *
- * Hay un segundo efecto, más difícil de ver: en racha caliente el factor de
- * suerte llega a 2,2, así que el retorno momentáneo pasa de 1,98. Ahí las
- * monedas se multiplican de verdad mientras dura. La racha no se puede
- * cronometrar —cada cuenta lleva la suya y no se enseña—, pero quien note que
- * está premiando y vacíe el saldo en ese rato saca ventaja. Es el precio de un
- * retorno tan alto.
- *
- * La suerte personal (`lib/lucky-mood`) mueve la probabilidad real entre el
- * 0,73% y el 2,90% según el momento de cada cuenta, pero se reparte alrededor
- * de 1, así que esta cifra sigue siendo la del conjunto.
+ * La suerte personal (`lib/lucky-mood`) mueve la probabilidad real entre el 0,6
+ * y el 2,2 de la que salga aquí, pero se reparte alrededor de 1, así que estas
+ * cifras siguen siendo las del conjunto.
  */
-const PROBABILIDAD = 0.0182;
+const RETORNO_POR_PRECIO = [
+  { hasta: 100, retorno: 0.85 },
+  { hasta: 999, retorno: 0.78 },
+  { hasta: 1_999, retorno: 0.7 },
+  { hasta: 4_999, retorno: 0.65 },
+  { hasta: Infinity, retorno: 0.58 },
+];
 
 /**
- * Regalos que todavía se ven con el emoji porque no hay ilustración suya.
+ * Probabilidad de premio por unidad para un precio dado.
  *
- * Está aquí y no como un comentario suelto para que la prueba que exige arte
- * pueda saltárselos a propósito: así añadir un regalo nuevo sin dibujo falla y
- * hay que decidirlo, en vez de que se cuele con el emoji sin que nadie lo note.
+ * Sale de despejar el retorno: `retorno = probabilidad × media de los
+ * multiplicadores`. Se declara el retorno, que es lo que se decide, y la
+ * probabilidad se calcula sola; así cambiar la escalera de premios no obliga a
+ * recalcular a mano ninguna de las cinco cifras.
  */
+function probabilidadPara(precio: number): number {
+  const media = expectedReturn(1, PREMIOS);
+  const tramo = RETORNO_POR_PRECIO.find((item) => precio <= item.hasta) ?? RETORNO_POR_PRECIO.at(-1)!;
+  return tramo.retorno / media;
+}
+
 export const SIN_ILUSTRACION = new Set(['clap', 'wink', 'star', 'candy']);
 
 export const GIFT_CATALOG = [
@@ -142,9 +131,9 @@ export const GIFT_CATALOG = [
   // recibe, así que el multiplicador medio puede pasar de 1 sin que eso
   // fabrique monedas: es valor que cambia de manos, no que aparece.
   //
-  //   bronce  ×8,23 (8.200)    plata  ×8,28 (41.400)    oro  ×8,28 (82.800)
+  //   bronce  ×8,39 (8.400)    plata  ×8,42 (42.100)    oro  ×8,44 (84.400)
   //
-  // Los escalones de ×10 para arriba salen ahora un 35-43% de las veces, así que
+  // Los escalones de ×10 para arriba salen ahora un 37-44% de las veces, así que
   // en diez cofres cae alguno prácticamente siempre.
   //
   // **La media no puede subir mucho más.** El cofre es la vía barata de llenar
@@ -157,26 +146,25 @@ export const GIFT_CATALOG = [
   // nivel 1 o subir su meta. La prueba «los
   // cofres siempre premian» calcula ese tope desde la tabla de salarios, así que
   // se mueve solo si la tabla cambia.
-  { code: 'chest-bronze', name: 'Cofre de bronce', emoji: '🎁', priceCoins: 1_000, image: 'chest-bronze', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '3:52000,5:48000,10:44000,14:19000,20:12000,100:650,200:200', minFanLevel: 0 },
-  { code: 'chest-silver', name: 'Cofre de plata', emoji: '🎁', priceCoins: 5_000, image: 'chest-silver', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '4:66000,6:52000,10:36000,14:15000,20:9000,30:3400,50:1150,120:140,300:35', minFanLevel: 0 },
-  { code: 'chest-gold', name: 'Cofre de oro', emoji: '🎁', priceCoins: 10_000, image: 'chest-gold', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '4:132000,6:104000,10:72000,14:30000,20:18000,30:6800,50:2300,140:230,400:60', minFanLevel: 0 },
+  { code: 'chest-bronze', name: 'Cofre de bronce', emoji: '🎁', priceCoins: 1_000, image: 'chest-bronze', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '3:50000,5:47000,10:45000,14:19500,20:12400,100:680,200:210', minFanLevel: 0 },
+  { code: 'chest-silver', name: 'Cofre de plata', emoji: '🎁', priceCoins: 5_000, image: 'chest-silver', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '4:64000,6:52000,10:37000,14:15500,20:9400,30:3600,50:1200,120:145,300:37', minFanLevel: 0 },
+  { code: 'chest-gold', name: 'Cofre de oro', emoji: '🎁', priceCoins: 10_000, image: 'chest-gold', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '4:126000,6:104000,10:74000,14:31000,20:18600,30:7200,50:2400,140:240,400:62', minFanLevel: 0 },
   // Los de una y cinco monedas: el regalo que se manda por mandar algo, y el
   // que abre la puerta a los demás. En una sala vacía son los que rompen el
   // hielo, y de ahí sale el resto.
-  { code: 'clap', name: 'Aplauso', emoji: '👏', priceCoins: 1, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  { code: 'wink', name: 'Guiño', emoji: '😉', priceCoins: 1, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  { code: 'star', name: 'Estrella', emoji: '⭐', priceCoins: 5, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  { code: 'candy', name: 'Caramelo', emoji: '🍬', priceCoins: 5, image: null, tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  // 0,0182 × 48,18 = 0,88
-  { code: 'rose', name: 'Rosa', emoji: '🌹', priceCoins: 10, image: 'rose', tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  { code: 'heart', name: 'Corazón', emoji: '💖', priceCoins: 25, image: 'heart', tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  { code: 'beer', name: 'Cerveza', emoji: '🍺', priceCoins: 50, image: 'beer', tier: 'basic', animation: 'float', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  { code: 'crown', name: 'Corona', emoji: '👑', priceCoins: 199, image: 'crown', tier: 'rare', animation: 'burst', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  { code: 'fireworks', name: 'Fuegos artificiales', emoji: '🎆', priceCoins: 499, image: 'fireworks', tier: 'rare', animation: 'burst', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'clap', name: 'Aplauso', emoji: '👏', priceCoins: 1, image: null, tier: 'basic', animation: 'float', luckyChance: probabilidadPara(1), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'wink', name: 'Guiño', emoji: '😉', priceCoins: 1, image: null, tier: 'basic', animation: 'float', luckyChance: probabilidadPara(1), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'star', name: 'Estrella', emoji: '⭐', priceCoins: 5, image: null, tier: 'basic', animation: 'float', luckyChance: probabilidadPara(5), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'candy', name: 'Caramelo', emoji: '🍬', priceCoins: 5, image: null, tier: 'basic', animation: 'float', luckyChance: probabilidadPara(5), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'rose', name: 'Rosa', emoji: '🌹', priceCoins: 10, image: 'rose', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(10), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'heart', name: 'Corazón', emoji: '💖', priceCoins: 25, image: 'heart', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(25), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'beer', name: 'Cerveza', emoji: '🍺', priceCoins: 50, image: 'beer', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(50), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'crown', name: 'Corona', emoji: '👑', priceCoins: 199, image: 'crown', tier: 'rare', animation: 'burst', luckyChance: probabilidadPara(199), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'fireworks', name: 'Fuegos artificiales', emoji: '🎆', priceCoins: 499, image: 'fireworks', tier: 'rare', animation: 'burst', luckyChance: probabilidadPara(499), luckyMultipliers: PREMIOS, minFanLevel: 0 },
   // 0,0148 × 48,28 = 0,71
-  { code: 'ferrari', name: 'Deportivo', emoji: '🏎️', priceCoins: 1299, image: 'ferrari', tier: 'epic', animation: 'fullscreen', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  { code: 'yacht', name: 'Yate', emoji: '🛥️', priceCoins: 2999, image: 'yacht', tier: 'epic', animation: 'fullscreen', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  { code: 'castle', name: 'Castillo', emoji: '🏰', priceCoins: 9999, image: 'castle', tier: 'legendary', animation: 'fullscreen', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'ferrari', name: 'Deportivo', emoji: '🏎️', priceCoins: 1299, image: 'ferrari', tier: 'epic', animation: 'fullscreen', luckyChance: probabilidadPara(1299), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'yacht', name: 'Yate', emoji: '🛥️', priceCoins: 2999, image: 'yacht', tier: 'epic', animation: 'fullscreen', luckyChance: probabilidadPara(2999), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'castle', name: 'Castillo', emoji: '🏰', priceCoins: 9999, image: 'castle', tier: 'legendary', animation: 'fullscreen', luckyChance: probabilidadPara(9999), luckyMultipliers: PREMIOS, minFanLevel: 0 },
 
   // Exclusivos: sin premio, solo espectáculo, y el 75% en diamantes para quien
   // los recibe. Se envían de uno en uno.

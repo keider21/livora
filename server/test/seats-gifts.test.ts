@@ -166,21 +166,23 @@ describe('sorteo de los regalos con premio', () => {
    * que un retoque del catálogo no los mueva sin querer.
    */
   it('el retorno de cada regalo es el documentado', () => {
+    // El retorno baja con el precio: el barato mantiene la sensación de que casi
+    // siempre vuelve algo, y el caro se paga de verdad. Se comparan las cifras
+    // exactas, no redondeadas: ahora el catálogo declara el retorno y lo que se
+    // calcula es la probabilidad, así que cualquier desvío es un error real.
     const esperado: Record<string, number> = {
-      // Todos los de la suerte devuelven lo mismo: comparten escalera.
-      clap: 0.9, wink: 0.9, star: 0.9, candy: 0.9,
-      rose: 0.9, heart: 0.9, beer: 0.9, crown: 0.9, fireworks: 0.9,
-      ferrari: 0.9, yacht: 0.9, castle: 0.9,
+      clap: 0.85, wink: 0.85, star: 0.85, candy: 0.85, rose: 0.85, heart: 0.85, beer: 0.85,
+      crown: 0.78, fireworks: 0.78,
+      ferrari: 0.7, yacht: 0.65, castle: 0.58,
     };
 
     for (const gift of GIFT_CATALOG) {
       if (gift.tier === 'chest') continue;
       const retorno = expectedReturn(gift.luckyChance, gift.luckyMultipliers);
       const previsto = esperado[gift.code] ?? 0;
-      assert.equal(
-        Number(retorno.toFixed(1)),
-        previsto,
-        `${gift.code} devuelve ${retorno.toFixed(2)} y estaba documentado ${previsto}`,
+      assert.ok(
+        Math.abs(retorno - previsto) < 0.005,
+        `${gift.code} devuelve ${retorno.toFixed(3)} y estaba documentado ${previsto}`,
       );
     }
   });
@@ -207,6 +209,29 @@ describe('sorteo de los regalos con premio', () => {
 });
 
 describe('economía de los regalos', () => {
+  it('cuanto más caro el regalo, menos devuelve', () => {
+    // Con el mismo retorno para todos, el castillo devolvía más de lo invertido:
+    // 9.999 monedas de golpe hacen que cada acierto suelte una montaña, y la
+    // sesión acababa en pérdida para la plataforma.
+    const conPremio = GIFT_CATALOG.filter((gift) => gift.luckyChance > 0 && gift.tier !== 'chest').sort(
+      (a, b) => a.priceCoins - b.priceCoins,
+    );
+
+    for (let i = 1; i < conPremio.length; i += 1) {
+      const barato = expectedReturn(conPremio[i - 1]!.luckyChance, conPremio[i - 1]!.luckyMultipliers);
+      const caro = expectedReturn(conPremio[i]!.luckyChance, conPremio[i]!.luckyMultipliers);
+      assert.ok(caro <= barato + 1e-9, `${conPremio[i]!.code} devuelve más que ${conPremio[i - 1]!.code}`);
+    }
+
+    const castillo = conPremio.at(-1)!;
+    const rosa = conPremio.find((gift) => gift.code === 'rose')!;
+    assert.ok(
+      expectedReturn(castillo.luckyChance, castillo.luckyMultipliers) <
+        expectedReturn(rosa.luckyChance, rosa.luckyMultipliers) * 0.8,
+      'el más caro tiene que quedar claramente por debajo del más barato',
+    );
+  });
+
   it('el retorno de cada regalo está por debajo de 1', () => {
     // La suerte personal se reparte alrededor de 1, así que el retorno del
     // catálogo es el del conjunto: esta es la prueba que avisa si un retoque
