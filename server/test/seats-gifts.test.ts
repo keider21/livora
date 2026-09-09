@@ -167,6 +167,7 @@ describe('sorteo de los regalos con premio', () => {
    */
   it('el retorno de cada regalo es el documentado', () => {
     const esperado: Record<string, number> = {
+      // Todos los de la suerte devuelven lo mismo: comparten escalera.
       clap: 0.8, wink: 0.8, star: 0.8, candy: 0.8,
       rose: 0.8, heart: 0.8, beer: 0.8, crown: 0.8, fireworks: 0.8,
       ferrari: 0.8, yacht: 0.8, castle: 0.8,

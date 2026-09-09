@@ -53,6 +53,11 @@ import { GIFT_TIER_CHEST } from './constants';
  *
  * Los pesos son esas cifras en proporción; la suma va aparte en `PROBABILIDAD`.
  *
+ * **La misma escalera para todos los regalos de la suerte.** Los caros tuvieron
+ * una aparte, con el ×500 más bajo, hasta que se vio lo que provocaba: el
+ * castillo devolvía menos que la rosa y se sentía peor mandar el regalo grande,
+ * que es justo el que tiene que sentirse mejor.
+ *
  * El ×500 bajó a la mitad y volvió a subir el mismo día, a 0,104%: al bajarlo se
  * notaba que los gordos habían desaparecido. Es el escalón que manda en la
  * media —aporta 42.500 de los 56.800 puntos del reparto—, así que moverlo mueve
@@ -63,23 +68,6 @@ import { GIFT_TIER_CHEST } from './constants';
  */
 const PREMIOS = '10:950,20:80,50:64,500:85';
 
-/**
- * Los regalos caros llevan el ×500 algo más bajo, al 0,114%: su unidad ya vale
- * mucho, así que cada acierto pesa más en monedas aunque la probabilidad sea
- * parecida.
- *
- * Media ponderada: (10×950 + 20×80 + 50×64 + 500×70) / 1164 = 42,35.
- */
-const PREMIOS_ALTOS = '10:950,20:80,50:64,500:70';
-
-/**
- * Los caros van algo por debajo, para que no devuelvan tan rápido: retorno 0,80
- * contra el 0,85 de los normales. La distancia se acortó el 2026-09-08 —era 0,73
- * contra 0,85— porque con la anterior el castillo se sentía peor que la rosa, y
- * el regalo caro tiene que sentirse mejor, no peor: es el que se manda con
- * ilusión y el que más mueve la meta del anfitrión de una sola vez.
- */
-const PROBABILIDAD_ALTOS = 0.0189;
 
 /**
  * Probabilidad de premio por unidad: la suma de los cuatro escalones.
@@ -165,9 +153,9 @@ export const GIFT_CATALOG = [
   { code: 'crown', name: 'Corona', emoji: '👑', priceCoins: 199, image: 'crown', tier: 'rare', animation: 'burst', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'fireworks', name: 'Fuegos artificiales', emoji: '🎆', priceCoins: 499, image: 'fireworks', tier: 'rare', animation: 'burst', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
   // 0,0148 × 48,28 = 0,71
-  { code: 'ferrari', name: 'Deportivo', emoji: '🏎️', priceCoins: 1299, image: 'ferrari', tier: 'epic', animation: 'fullscreen', luckyChance: PROBABILIDAD_ALTOS, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
-  { code: 'yacht', name: 'Yate', emoji: '🛥️', priceCoins: 2999, image: 'yacht', tier: 'epic', animation: 'fullscreen', luckyChance: PROBABILIDAD_ALTOS, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
-  { code: 'castle', name: 'Castillo', emoji: '🏰', priceCoins: 9999, image: 'castle', tier: 'legendary', animation: 'fullscreen', luckyChance: PROBABILIDAD_ALTOS, luckyMultipliers: PREMIOS_ALTOS, minFanLevel: 0 },
+  { code: 'ferrari', name: 'Deportivo', emoji: '🏎️', priceCoins: 1299, image: 'ferrari', tier: 'epic', animation: 'fullscreen', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'yacht', name: 'Yate', emoji: '🛥️', priceCoins: 2999, image: 'yacht', tier: 'epic', animation: 'fullscreen', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'castle', name: 'Castillo', emoji: '🏰', priceCoins: 9999, image: 'castle', tier: 'legendary', animation: 'fullscreen', luckyChance: PROBABILIDAD, luckyMultipliers: PREMIOS, minFanLevel: 0 },
 
   // Exclusivos: sin premio, solo espectáculo, y el 75% en diamantes para quien
   // los recibe. Se envían de uno en uno.

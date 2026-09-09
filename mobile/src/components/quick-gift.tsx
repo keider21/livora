@@ -8,11 +8,12 @@ import { colors, radius, spacing } from '../theme';
 const WINDOW_MS = 5000;
 /**
  * Pausa entre envíos automáticos, contada **después** de que termine el
- * anterior. Fue bajando de 500 a 150 y ahora a 60: a partir de aquí el ritmo lo
- * marca la red, no la espera, porque cada envío tarda su propio viaje de ida y
- * vuelta y esa parte no se puede recortar desde aquí.
+ * anterior. Fue bajando de 500 a 150, a 60 y ahora a 30. De aquí para abajo ya no
+ * cambia nada: lo que marca el ritmo es el viaje de ida y vuelta de cada envío
+ * al servidor, que son decenas de milisegundos y no se pueden recortar desde
+ * este lado.
  */
-const AUTO_MS = 60;
+const AUTO_MS = 30;
 
 /**
  * Botón flotante para repetir el último regalo.
