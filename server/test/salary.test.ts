@@ -58,7 +58,22 @@ async function crearUsuario(coins = 5_000_000) {
  * que se pidan, escribiendo los registros directamente: enviar millones de
  * monedas por la API tardaría demasiado.
  */
-async function prepararDia(hostId: string, luckyCoins: number, horas: number, exclusivo = 0) {
+/**
+ * Un día ya vivido de un anfitrión: una sala con sus horas y los regalos que
+ * recibió.
+ *
+ * `conDiamantes` existe porque el ranking ordena por diamantes recibidos y se
+ * queda con los veinte primeros: un anfitrión de prueba con 700.000 monedas
+ * echaría del podio a los de otros archivos, que corren a la vez sobre la misma
+ * base. Las pruebas que solo miran el salario lo apagan.
+ */
+async function prepararDia(
+  hostId: string,
+  luckyCoins: number,
+  horas: number,
+  exclusivo = 0,
+  conDiamantes = true,
+) {
   const { desde } = limitesDelDia(diaDe());
   const senderId = (await crearUsuario(0)).id;
 
@@ -85,7 +100,7 @@ async function prepararDia(hostId: string, luckyCoins: number, horas: number, ex
       receiverId: hostId,
       quantity: 1,
       coinsSpent: luckyCoins,
-      diamondsEarned: Math.round(luckyCoins * 0.05),
+      diamondsEarned: conDiamantes ? Math.round(luckyCoins * 0.05) : 0,
       createdAt: new Date(desde.getTime() + 7200_000),
     });
   }
@@ -97,7 +112,7 @@ async function prepararDia(hostId: string, luckyCoins: number, horas: number, ex
       receiverId: hostId,
       quantity: 1,
       coinsSpent: exclusivo,
-      diamondsEarned: Math.round(exclusivo * 0.7),
+      diamondsEarned: conDiamantes ? Math.round(exclusivo * 0.7) : 0,
       createdAt: new Date(desde.getTime() + 7200_000),
     });
   }
@@ -178,6 +193,41 @@ describe('cuentas de la plataforma', () => {
       Math.abs(cuentas.posicion.dolares - (cuentas.caja.dolares - cuentas.deuda.dolares)) < 1e-9,
       'la posición es lo que entró menos lo que se debe',
     );
+  });
+
+  it('la exposición cuenta las vueltas que da una moneda de la suerte', async () => {
+    // El 5% que se ve en cada envío subestima el coste: como el regalo devuelve
+    // el 85%, la misma moneda se gasta unas siete veces antes de agotarse. Sin
+    // esto, «lo que hay que tener preparado» saldría seis veces más pequeño de
+    // lo que es.
+    const cuentas = await estadisticasDeLaPlataforma();
+
+    assert.ok(cuentas.exposicion.retorno > 0.5, 'el retorno del catálogo se lee de verdad');
+    const porMoneda = cuentas.exposicion.siSuerte / (cuentas.exposicion.monedas / 10_000);
+    const esperado = 0.05 / (1 - cuentas.exposicion.retorno);
+    assert.ok(Math.abs(porMoneda - esperado) < 0.01, `sale ${porMoneda.toFixed(3)} y debería ${esperado.toFixed(3)}`);
+
+    assert.ok(
+      cuentas.exposicion.siExclusivos > cuentas.exposicion.siSuerte,
+      'el exclusivo sigue siendo el camino más caro',
+    );
+  });
+
+  it('los salarios del día suman el nivel de cada anfitrión por separado', async () => {
+    // No todos van por la misma meta, así que no vale multiplicar por el número
+    // de anfitriones: uno en el nivel 1 y otro en el 3 pagan cosas distintas.
+    const antes = await estadisticasDeLaPlataforma();
+
+    const uno = await crearUsuario();
+    await prepararDia(uno.id, 200_000, 3, 0, false);
+    const otro = await crearUsuario();
+    await prepararDia(otro.id, 700_000, 3, 0, false);
+
+    const despues = await estadisticasDeLaPlataforma();
+
+    // 200.000 es nivel 1 (10.000) y 700.000 es nivel 3 (18.000).
+    assert.equal(despues.metas.aPagar - antes.metas.aPagar, 28_000);
+    assert.equal(despues.metas.conMeta - antes.metas.conMeta, 2);
   });
 
   it('una recarga entra en caja por lo que costó, no por las monedas', async () => {

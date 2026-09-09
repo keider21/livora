@@ -193,5 +193,22 @@ export interface PlatformStats {
     cambiados: number;
   };
   volumen: { enSuerte: number; enExclusivos: number };
+  /** En cuánto se pueden convertir las monedas de hoy. Deuda que aún no nació. */
+  exposicion: {
+    monedas: number;
+    siExclusivos: number;
+    siCofres: number;
+    siSuerte: number;
+    retorno: number;
+  };
+  /** Salarios del día, sumando el nivel de cada anfitrión por separado. */
+  metas: {
+    dia: string;
+    anfitriones: number;
+    conMeta: number;
+    aPagar: number;
+    sinHoras: number;
+    monedas: number;
+  };
   gente: { cuentas: number; mayores: { displayName: string; username: string; diamonds: number }[] };
 }

@@ -45,6 +45,33 @@ export function PlatformStatsCard({ stats }: { stats: PlatformStats }) {
         />
       </View>
 
+      {/* Lo que las monedas de hoy pueden acabar costando. Es la pregunta de
+          «¿estoy preparado para pagar?», que no la responde la deuda actual. */}
+      <Text style={styles.seccion}>Si se gastaran todas las monedas de hoy</Text>
+      <Text style={styles.nota}>
+        Hay 🪙 {formatCount(stats.exposicion.monedas)} en circulación. En lo que se conviertan
+        depende de en qué se gasten:
+      </Text>
+      <Riesgo etiqueta="Todo en exclusivos (70%)" valor={stats.exposicion.siExclusivos} peor />
+      <Riesgo etiqueta="Todo en cofres" valor={stats.exposicion.siCofres} />
+      <Riesgo
+        etiqueta={`Todo en regalos de la suerte (vuelven el ${(stats.exposicion.retorno * 100).toFixed(0)}%)`}
+        valor={stats.exposicion.siSuerte}
+      />
+      <Text style={styles.nota}>
+        En los de la suerte la moneda se gasta muchas veces antes de agotarse, así que cuesta más
+        que el 5% que se ve en cada envío. Esto no se debe todavía: es lo que hay que tener listo.
+      </Text>
+
+      <Text style={styles.seccion}>Metas de hoy ({stats.metas.dia})</Text>
+      <Linea etiqueta={`A pagar hoy · ${stats.metas.conMeta} con meta alcanzada`} valor={stats.metas.aPagar} />
+      <Linea etiqueta="Llegaron a meta pero les faltan horas" valor={stats.metas.sinHoras} />
+      <Linea
+        etiqueta={`Movido hacia metas · ${stats.metas.anfitriones} anfitriones`}
+        valor={stats.metas.monedas}
+        moneda
+      />
+
       <Text style={styles.seccion}>De dónde salen los diamantes</Text>
       <Linea etiqueta="Regalos de la suerte y cofres (5%)" valor={stats.diamantes.porSuerte} />
       <Linea etiqueta="Exclusivos (70%)" valor={stats.diamantes.porExclusivos} />
@@ -105,6 +132,20 @@ function Dato({
       <Text style={styles.datoTitulo}>{titulo}</Text>
       <Text style={[styles.datoValor, color ? { color } : null]}>{valor}</Text>
       <Text style={styles.datoPie}>{pie}</Text>
+    </View>
+  );
+}
+
+/** Una línea de exposición: va en dólares, que es como se lee el riesgo. */
+function Riesgo({ etiqueta, valor, peor }: { etiqueta: string; valor: number; peor?: boolean }) {
+  return (
+    <View style={styles.linea}>
+      <Text style={[styles.lineaEtiqueta, peor && styles.lineaAviso]} numberOfLines={1}>
+        {etiqueta}
+      </Text>
+      <Text style={[styles.lineaValor, { color: peor ? colors.danger : colors.text }]}>
+        {dolares(valor)}
+      </Text>
     </View>
   );
 }
