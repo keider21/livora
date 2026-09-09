@@ -368,10 +368,10 @@ describe('suerte personal', () => {
     assert.ok(media > 0.97 && media < 1.03, `la media salió ${media.toFixed(3)}`);
   });
 
-  it('se mueve entre 0,6 y 1,67', () => {
+  it('se mueve entre 0,7 y 1,67', () => {
     for (let paso = 0; paso < 500; paso += 1) {
       const factor = factorSuerte('luna', new Date(INICIO + paso * 7_000));
-      assert.ok(factor >= 0.6 && factor <= 1.67, `salió ${factor}`);
+      assert.ok(factor >= 0.7 && factor <= 1.67, `salió ${factor}`);
     }
   });
 
@@ -422,7 +422,7 @@ describe('suerte personal', () => {
     const base = expectedReturn(0.0182, '10:950,20:80,50:64,500:85');
     assert.ok(base * 1.67 > 1.3, 'en caliente debería devolver más de lo gastado');
     assert.ok(base * 1.67 < 1.6, 'pero no tanto como para que compense cronometrar la racha');
-    assert.ok(base * 0.6 < 0.6, 'en frío debería devolver bastante menos');
+    assert.ok(base * 0.7 < 0.65, 'en frío debería devolver bastante menos');
   });
 });
 

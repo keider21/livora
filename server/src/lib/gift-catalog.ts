@@ -96,7 +96,7 @@ const PREMIOS = '10:950,20:80,50:64,500:85';
  * retorno por debajo de 0,883, y la prueba «llegar a la meta con dinero propio
  * nunca compensa» lo vigila.
  *
- * La suerte personal (`lib/lucky-mood`) mueve la probabilidad real entre el 0,6
+ * La suerte personal (`lib/lucky-mood`) mueve la probabilidad real entre el 0,7
  * y el 1,67 de la que salga aquí, pero se reparte alrededor de 1, así que estas
  * cifras siguen siendo las del conjunto.
  */

@@ -8,7 +8,7 @@
  * que revienta todo y ratos en los que no cae nada.
  *
  * Aquí eso se consigue con un factor que multiplica la probabilidad de premio y
- * que **va y viene despacio**, distinto para cada cuenta. En frío baja a 0,6 y
+ * que **va y viene despacio**, distinto para cada cuenta. En frío baja a 0,7 y
  * cuesta que toque; en caliente sube a 1,67 y explota sin parar.
  *
  * ## Por qué el rato bueno dura poco
@@ -19,6 +19,11 @@
  * y eso deja jugar sobre seguro: se nota que está premiando, se dispara el
  * automático y se para antes de que se enfríe. Con las dos, el pico es estrecho
  * y el rato bueno **dura unos diez segundos**, uno cada cinco minutos.
+ *
+ * El suelo subió a 0,7 el 2026-09-09: en frío se perdía demasiado y el mal rato
+ * se hacía largo. Subirlo obliga a estirar más el exponente para conservar la
+ * media, así que el pico se paga con creces; es el precio de que la mala racha
+ * no eche a nadie.
  *
  * El techo también bajó por eso. Con 2,2 el regalo barato devolvía 1,87 mientras
  * durase la racha: las monedas se multiplicaban de verdad y valía la pena
@@ -32,8 +37,8 @@
  * ## Por qué la media sale 1
  *
  * El suelo y el techo los eligió el usuario; el **exponente** es el que sale de
- * despejar la media. Con 0,6 y 1,67 en los extremos y este reparto de ondas,
- * 1,527 es el valor que deja la media del factor en 1, y eso es lo que hace que la
+ * despejar la media. Con 0,7 y 1,67 en los extremos y este reparto de ondas,
+ * 1,889 es el valor que deja la media del factor en 1, y eso es lo que hace que la
  * suerte personal **añada variación sin mover el retorno a largo plazo**. Si se
  * toca cualquiera de las otras constantes hay que recalcularlo; la prueba «la
  * media del factor es 1» lo vigila.
@@ -59,10 +64,10 @@ const PESO_RAPIDA = 0.3;
  * Cuánto se estira la parte alta de la curva. Por encima de 1 los valores
  * grandes escasean, que es lo que acorta el rato bueno.
  */
-const EXPONENTE = 1.527;
+const EXPONENTE = 1.889;
 
 /** Extremos del factor. Ver «Por qué la media sale 1» antes de tocarlos. */
-const MINIMO = 0.6;
+const MINIMO = 0.7;
 const MAXIMO = 1.67;
 
 /**
@@ -106,7 +111,7 @@ function onda(semilla: string, milisegundos: number, tramoMs: number): number {
 /**
  * Factor de suerte de una cuenta en un instante dado.
  *
- * Va de 0,6 a 1,67 y se mueve en curva: la suerte sube y baja suave en vez de a
+ * Va de 0,7 a 1,67 y se mueve en curva: la suerte sube y baja suave en vez de a
  * saltos, pero el rato bueno es corto. Cada cuenta lleva la suya.
  */
 export function factorSuerte(userId: string, ahora: Date = new Date()): number {

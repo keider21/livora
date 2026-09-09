@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1038,
-  "commit": "7e5abac",
+  "buildNumber": 1039,
+  "commit": "1c4256a",
   "branch": "main",
-  "builtAt": "2026-09-09T03:19:21.681Z",
+  "builtAt": "2026-09-09T03:42:09.712Z",
   "changes": [
+    "La racha caliente baja a 1,67 y dura diez segundos",
     "Cofres a ×11 y el chat dice cuánto salió",
     "El salario sigue subiendo pasados los cien millones",
     "Hasta 9.999 por envío, partículas con la ilustración y sin cifra en el centro",
@@ -18,7 +19,6 @@
     "Los cofres suben al tope que deja el salario, y el retorno a 0,85",
     "Los cofres premian más arriba y vuelven los gordos del ×500",
     "Los cofres pasan a ser regalos, y se ajusta la suerte",
-    "Ilustraciones de verdad para los regalos y seis exclusivos nuevos",
-    "Los regalos de la suerte devuelven menos: 0,84 baja a 0,70"
+    "Ilustraciones de verdad para los regalos y seis exclusivos nuevos"
   ]
 }
