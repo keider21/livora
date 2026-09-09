@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1029,
-  "commit": "f3783d1",
+  "buildNumber": 1030,
+  "commit": "a23fdce",
   "branch": "main",
-  "builtAt": "2026-09-09T00:27:24.279Z",
+  "builtAt": "2026-09-09T00:30:59.512Z",
   "changes": [
+    "Todos los regalos de la suerte comparten escalera, y el automático al doble",
     "Los regalos caros devuelven 0,80, más cerca de los normales",
     "Los cofres suben al tope que deja el salario, y el retorno a 0,85",
     "Los cofres premian más arriba y vuelven los gordos del ×500",
@@ -18,7 +19,6 @@
     "Fase 12: lo que Kako tiene y a Livora le falta",
     "Paquete de recarga grande y reinicio de datos de prueba",
     "bronce, plata y oro",
-    "La meta del día, en el perfil",
-    "Salario diario para los anfitriones"
+    "La meta del día, en el perfil"
   ]
 }

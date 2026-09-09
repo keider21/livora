@@ -5,6 +5,7 @@ import { NIVELES, diaDe, limitesDelDia, nivelPara, siguienteNivel } from '../src
 import { expectedReturn } from '../src/lib/lucky';
 import { GIFT_CATALOG } from '../src/lib/gift-catalog';
 import { liquidarDia, progresoDelDia } from '../src/modules/hosts/salary.service';
+import { estadisticasDeLaPlataforma } from '../src/modules/hosts/stats.service';
 import { startTestApi, uniqueName, type TestApi } from './helpers';
 
 let api: TestApi;
@@ -155,7 +156,55 @@ describe('tabla de salarios', () => {
   });
 });
 
+describe('cuentas de la plataforma', () => {
+  // Los archivos de prueba corren en paralelo sobre la misma base, así que aquí
+  // no se comparan fotos de dos momentos: se comprueban igualdades que tienen
+  // que cumplirse en cualquier foto, y que lo añadido aparece.
+
+  it('la deuda son los diamantes guardados, y las monedas no cuentan', async () => {
+    const rico = await crearUsuario(0);
+    await prisma.user.update({ where: { id: rico.id }, data: { coins: 9_000_000, diamonds: 40_000 } });
+
+    const cuentas = await estadisticasDeLaPlataforma();
+
+    assert.ok(cuentas.deuda.diamantes >= 40_000, 'los diamantes nuevos entran en la deuda');
+    assert.ok(cuentas.monedas.enCirculacion >= 9_000_000, 'y las monedas en circulación');
+    assert.equal(
+      cuentas.deuda.dolares,
+      cuentas.deuda.diamantes / 10_000,
+      'la deuda sale solo de los diamantes: las monedas no se pueden retirar',
+    );
+    assert.ok(
+      Math.abs(cuentas.posicion.dolares - (cuentas.caja.dolares - cuentas.deuda.dolares)) < 1e-9,
+      'la posición es lo que entró menos lo que se debe',
+    );
+  });
+
+  it('una recarga entra en caja por lo que costó, no por las monedas', async () => {
+    const comprador = await crearUsuario(0);
+    await api.request('POST', '/api/wallet/topup', {
+      token: comprador.token,
+      body: { packageId: 'starter' },
+    });
+
+    const cuentas = await estadisticasDeLaPlataforma();
+
+    assert.ok(cuentas.caja.recargas >= 1);
+    assert.ok(cuentas.caja.dolares >= 0.99, 'el paquete de 10.000 monedas cuesta 0,99');
+    assert.ok(
+      cuentas.caja.monedasCompradas >= 10_000,
+      'y las monedas que dio quedan contadas como compradas',
+    );
+  });
+});
+
 describe('reinicio desde la app', () => {
+  it('las estadísticas también son solo de la cuenta de pruebas', async () => {
+    const cualquiera = await crearUsuario();
+    const { status } = await api.request('GET', '/api/hosts/me/stats', { token: cualquiera.token });
+    assert.equal(status, 403);
+  });
+
   it('solo lo puede hacer la cuenta de pruebas', async () => {
     // Borra lo acumulado de todo el mundo, así que la puerta no puede ser un
     // permiso que alguien se gane: es una lista de usuarios escrita a mano.

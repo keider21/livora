@@ -5,7 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ApiError, hosts as hostsApi, wallet as walletApi } from '../../src/api';
 import { SalaryGoal } from '../../src/components/salary-goal';
-import type { CoinPackage, SalaryProgress, Transaction } from '../../src/api/types';
+import { PlatformStatsCard } from '../../src/components/platform-stats';
+import type { CoinPackage, PlatformStats, SalaryProgress, Transaction } from '../../src/api/types';
 import { useAuthStore } from '../../src/store/auth-store';
 import { Avatar, Button, Card } from '../../src/components/ui';
 import { versionLabel } from '../../src/build-info';
@@ -28,6 +29,7 @@ export default function ProfileScreen() {
   const [packages, setPackages] = useState<CoinPackage[]>([]);
   /** Meta de salario del día; `null` mientras no responde el servidor. */
   const [salario, setSalario] = useState<SalaryProgress | null>(null);
+  const [stats, setStats] = useState<PlatformStats | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -46,6 +48,12 @@ export default function ProfileScreen() {
         .salary()
         .then((data) => setSalario(data.progreso))
         .catch(() => undefined);
+      // Solo responde a la cuenta de pruebas; en cualquier otra da 403 y se
+      // queda en null, que es justo lo que hace que no se pinte la tarjeta.
+      void hostsApi
+        .stats()
+        .then(setStats)
+        .catch(() => setStats(null));
     }, [refresh]),
   );
 
@@ -74,6 +82,7 @@ export default function ProfileScreen() {
       const { resumen } = await hostsApi.reset();
       await refresh();
       setTransactions([]);
+      setStats(await hostsApi.stats().catch(() => null));
       Alert.alert(
         'Datos reiniciados',
         `${resumen.regalos} regalos y ${resumen.movimientos} movimientos borrados. ` +
@@ -204,6 +213,8 @@ export default function ProfileScreen() {
           variant="ghost"
           onPress={() => router.push(`/user/${user.username}`)}
         />
+        {stats ? <PlatformStatsCard stats={stats} /> : null}
+
         {/* Solo la cuenta de pruebas: el servidor lo vuelve a comprobar, esto
             es únicamente para no enseñar un botón que va a dar 403. */}
         {user.username === 'luna' ? (

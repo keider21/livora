@@ -165,3 +165,33 @@ export interface SalaryPayment {
 }
 
 /** Un cofre del juego de azar, con lo que cuesta y lo que puede tocar. */
+
+/**
+ * Cómo va de dinero la plataforma. Solo la ve la cuenta de pruebas.
+ *
+ * La cuenta es `caja − deuda`: entra dinero por las recargas y se debe todo
+ * diamante guardado, que es lo único convertible en dinero. Las monedas no son
+ * deuda, solo saldo de juego.
+ */
+export interface PlatformStats {
+  caja: { dolares: number; recargas: number; monedasCompradas: number };
+  deuda: { diamantes: number; dolares: number };
+  posicion: { dolares: number; respaldo: number | null };
+  monedas: {
+    enCirculacion: number;
+    compradas: number;
+    dePremio: number;
+    deCambio: number;
+    deRegalo: number;
+    dolaresEquivalentes: number;
+  };
+  diamantes: {
+    enCirculacion: number;
+    porSuerte: number;
+    porExclusivos: number;
+    porSalario: number;
+    cambiados: number;
+  };
+  volumen: { enSuerte: number; enExclusivos: number };
+  gente: { cuentas: number; mayores: { displayName: string; username: string; diamonds: number }[] };
+}

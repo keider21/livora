@@ -5,6 +5,7 @@ import { diaDe } from '../../lib/salary';
 import { prisma } from '../../lib/prisma';
 import { HttpError } from '../../lib/http-error';
 import { CUENTAS_DE_PRUEBA, reiniciarDatos } from '../../lib/reset';
+import { estadisticasDeLaPlataforma } from './stats.service';
 import * as salary from './salary.service';
 
 export const hostsRouter = Router();
@@ -36,15 +37,29 @@ hostsRouter.post(
   '/me/reset',
   requireAuth,
   asyncHandler(async (req, res) => {
-    const usuario = await prisma.user.findUnique({
-      where: { id: req.userId! },
-      select: { username: true },
-    });
-    if (!usuario || !CUENTAS_DE_PRUEBA.has(usuario.username)) {
-      throw HttpError.forbidden('Esto solo lo puede hacer la cuenta de pruebas');
-    }
-
+    await exigirCuentaDePrueba(req.userId!);
     const resumen = await reiniciarDatos();
     res.json({ resumen });
   }),
 );
+
+/**
+ * Cómo va de dinero la aplicación: lo que entró por recargas contra lo que se
+ * debe en diamantes. Es información del negocio entero, no de una cuenta, así
+ * que pasa por la misma puerta que el reinicio.
+ */
+hostsRouter.get(
+  '/me/stats',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    await exigirCuentaDePrueba(req.userId!);
+    res.json(await estadisticasDeLaPlataforma());
+  }),
+);
+
+async function exigirCuentaDePrueba(userId: string) {
+  const usuario = await prisma.user.findUnique({ where: { id: userId }, select: { username: true } });
+  if (!usuario || !CUENTAS_DE_PRUEBA.has(usuario.username)) {
+    throw HttpError.forbidden('Esto solo lo puede hacer la cuenta de pruebas');
+  }
+}

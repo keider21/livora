@@ -5,6 +5,7 @@ import type {
   CurrentUser,
   Gift,
   PastStream,
+  PlatformStats,
   Profile,
   PublicUser,
   RankingEntry,
@@ -131,6 +132,8 @@ export const hosts = {
   /** Progreso de hoy hacia la meta de salario, y lo cobrado los días anteriores. */
   salary: () =>
     apiRequest<{ progreso: SalaryProgress; historial: SalaryPayment[] }>('/api/hosts/me/salary'),
+  /** Cómo va de dinero la plataforma. Solo la cuenta de pruebas; si no, 403. */
+  stats: () => apiRequest<PlatformStats>('/api/hosts/me/stats'),
   /** Solo funciona con la cuenta de pruebas; con cualquier otra devuelve 403. */
   reset: () =>
     apiRequest<{ resumen: { regalos: number; movimientos: number; salas: number; cuentas: number } }>(
