@@ -354,6 +354,8 @@ regalos de la suerte con multiplicadores, cofres y canje de diamantes.
 | 12.6 PK entre anfitriones | ⏳ | Dos hosts compiten y los espectadores votan con regalos, con reparto de bote. Es el formato que más regalos genera en estas apps |
 | 12.7 Detalles de identidad | ⏳ | ID numérico copiable, sello de anfitrión verificado, lista de deseos, ranking de magnates |
 | 12.8 Ajustes que faltan | ⏳ | Idioma, apariencia, notificaciones, y los textos legales: acuerdo de usuario, privacidad y acuerdo del anfitrión. **Los tres textos legales son requisito de Google Play**, no un adorno |
+| 12.9 Agencias y captación | ⏳ | Pedido por el usuario el 2026-09-09. Un porcentaje de lo que generan los anfitriones que alguien trae, con su panel para ver a quién invitó y cuánto lleva. **Es el motor de crecimiento de estas apps**: la agencia recluta y forma anfitriones porque cobra de ellos. Sale del margen de la casa, así que hay que decidir el porcentaje sabiendo que hoy quedan 60 de cada 100 monedas consumidas |
+| 12.10 Sorteos y eventos | ⏳ | Pedido por el usuario el 2026-09-09. Premios por sorteo entre quienes participan, y eventos con temporada. Da un motivo para gastar que no es el regalo puntual, y el coste se controla porque el premio se fija de antemano |
 
 ------
 
