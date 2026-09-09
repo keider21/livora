@@ -215,6 +215,10 @@ export default function ProfileScreen() {
         />
         {stats ? <PlatformStatsCard stats={stats} /> : null}
 
+        {stats ? (
+          <Button label="🔎 Vigilancia y fraude" variant="ghost" onPress={() => router.push('/audit')} />
+        ) : null}
+
         {/* Solo la cuenta de pruebas: el servidor lo vuelve a comprobar, esto
             es únicamente para no enseñar un botón que va a dar 403. */}
         {user.username === 'luna' ? (

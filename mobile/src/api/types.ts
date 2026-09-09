@@ -212,3 +212,35 @@ export interface PlatformStats {
   };
   gente: { cuentas: number; mayores: { displayName: string; username: string; diamonds: number }[] };
 }
+
+/** Una cuenta cuyo saldo no cuadra con la suma de sus movimientos. */
+export interface AuditedAccount {
+  id: string;
+  username: string;
+  displayName: string;
+  isBanned: boolean;
+  coins: number;
+  monedasEsperadas: number;
+  /** Positivo: tiene monedas que no salieron de ninguna parte. */
+  descuadreMonedas: number;
+  diamonds: number;
+  diamantesEsperados: number;
+  descuadreDiamantes: number;
+}
+
+/** Si el juego está pagando lo que debería. */
+export interface GameCheck {
+  code: string;
+  titulo: string;
+  nivel: 'ok' | 'aviso' | 'alarma';
+  real: number;
+  previsto: number;
+  envios: number;
+  detalle: string;
+}
+
+export interface AuditReport {
+  revisadas: number;
+  sospechosas: AuditedAccount[];
+  juego: GameCheck[];
+}

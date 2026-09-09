@@ -1,6 +1,7 @@
 import { apiRequest } from './client';
 import type { ChatMessage, GiftEvent, SeatsEvent } from '../realtime/events';
 import type {
+  AuditReport,
   CoinPackage,
   CurrentUser,
   Gift,
@@ -134,6 +135,17 @@ export const hosts = {
     apiRequest<{ progreso: SalaryProgress; historial: SalaryPayment[] }>('/api/hosts/me/salary'),
   /** Cómo va de dinero la plataforma. Solo la cuenta de pruebas; si no, 403. */
   stats: () => apiRequest<PlatformStats>('/api/hosts/me/stats'),
+  /** Cuentas que no cuadran y salud del sorteo. Solo la cuenta de pruebas. */
+  audit: () => apiRequest<AuditReport>('/api/hosts/me/audit'),
+  auditUser: (userId: string) =>
+    apiRequest<{ usuario: PublicUser & { coins: number; diamonds: number; isBanned: boolean }; movimientos: Transaction[] }>(
+      `/api/hosts/me/audit/${userId}`,
+    ),
+  ban: (userId: string, banear: boolean) =>
+    apiRequest<{ usuario: { id: string; username: string; isBanned: boolean } }>(
+      `/api/hosts/me/audit/${userId}/ban`,
+      { method: 'POST', body: { banear } },
+    ),
   /** Solo funciona con la cuenta de pruebas; con cualquier otra devuelve 403. */
   reset: () =>
     apiRequest<{ resumen: { regalos: number; movimientos: number; salas: number; cuentas: number } }>(

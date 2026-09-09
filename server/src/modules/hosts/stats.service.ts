@@ -187,7 +187,10 @@ export async function estadisticasDeLaPlataforma() {
   for (const fila of recargas) {
     const id = fila.reference?.replace('package:', '') ?? '';
     const paquete = COIN_PACKAGES.find((item) => item.id === id);
-    if (paquete) dolares += paquete.priceUsd * fila._count._all;
+    // Las de bienvenida y las del reinicio también son movimientos de tipo
+    // «topup», pero no las pagó nadie: solo cuentan las que traen paquete.
+    if (!paquete) continue;
+    dolares += paquete.priceUsd * fila._count._all;
     monedasCompradas += fila._sum.amount ?? 0;
   }
 

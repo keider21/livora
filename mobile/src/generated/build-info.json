@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1031,
-  "commit": "65688d2",
+  "buildNumber": 1032,
+  "commit": "ec9cd1e",
   "branch": "main",
-  "builtAt": "2026-09-09T00:41:41.467Z",
+  "builtAt": "2026-09-09T01:08:10.137Z",
   "changes": [
+    "Las estadísticas cuentan la exposición y los salarios del día",
     "Estadísticas de la plataforma en el perfil de pruebas",
     "Todos los regalos de la suerte comparten escalera, y el automático al doble",
     "Los regalos caros devuelven 0,80, más cerca de los normales",
@@ -18,7 +19,6 @@
     "Los cofres pasan del perfil a la caja de regalos",
     "La meta se ve durante el directo y se recarga desde los regalos",
     "Fase 12: lo que Kako tiene y a Livora le falta",
-    "Paquete de recarga grande y reinicio de datos de prueba",
-    "bronce, plata y oro"
+    "Paquete de recarga grande y reinicio de datos de prueba"
   ]
 }

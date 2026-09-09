@@ -1,5 +1,6 @@
 import { prisma } from './prisma';
 import { seedRooms } from '../scripts/seed-rooms';
+import { CURRENCY, TRANSACTION_TYPE } from './constants';
 
 const MONEDAS_DE_BIENVENIDA = 5_000;
 
@@ -37,6 +38,21 @@ export async function reiniciarDatos() {
 
   const cuentas = await prisma.user.updateMany({
     data: { coins: MONEDAS_DE_BIENVENIDA, diamonds: 0, xp: 0, level: 1, isHost: false },
+  });
+
+  // El saldo que se acaba de poner queda anotado como movimiento. Sin esto la
+  // auditoría vería monedas sin origen en todas las cuentas justo después de
+  // reiniciar, y el aviso de fraude dejaría de significar nada.
+  const todas = await prisma.user.findMany({ select: { id: true } });
+  await prisma.transaction.createMany({
+    data: todas.map((usuario) => ({
+      userId: usuario.id,
+      type: TRANSACTION_TYPE.TOPUP,
+      currency: CURRENCY.COINS,
+      amount: MONEDAS_DE_BIENVENIDA,
+      balanceAfter: MONEDAS_DE_BIENVENIDA,
+      reference: 'reset',
+    })),
   });
 
   await seedRooms();

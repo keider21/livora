@@ -6,6 +6,7 @@ import { expectedReturn } from '../src/lib/lucky';
 import { GIFT_CATALOG } from '../src/lib/gift-catalog';
 import { liquidarDia, progresoDelDia } from '../src/modules/hosts/salary.service';
 import { estadisticasDeLaPlataforma } from '../src/modules/hosts/stats.service';
+import { auditarCuentas, cambiarBaneo, saludDelJuego } from '../src/modules/hosts/audit.service';
 import { startTestApi, uniqueName, type TestApi } from './helpers';
 
 let api: TestApi;
@@ -245,6 +246,58 @@ describe('cuentas de la plataforma', () => {
       cuentas.caja.monedasCompradas >= 10_000,
       'y las monedas que dio quedan contadas como compradas',
     );
+  });
+});
+
+describe('vigilancia', () => {
+  it('caza monedas que no salieron de ninguna puerta', async () => {
+    // Es la trampa que se quiere detectar: saldo que aparece sin movimiento.
+    // Se simula escribiendo directamente en la cuenta, que es justo lo que haría
+    // alguien con acceso a la base de datos.
+    // Sin tocarle el saldo: `crearUsuario` lo escribe a mano y eso es
+    // precisamente lo que la auditoría marca como descuadre.
+    const nombre = uniqueName('audit');
+    const { data } = await api.request('POST', '/api/auth/register', {
+      body: {
+        email: `${nombre}@test.local`,
+        username: nombre,
+        password: 'contrasena123',
+        displayName: `Host ${nombre}`,
+      },
+    });
+    const limpio = { id: data.user.id as string };
+
+    const primero = await auditarCuentas();
+    assert.ok(
+      !primero.sospechosas.some((cuenta) => cuenta.id === limpio.id),
+      'una cuenta recién creada cuadra: la bienvenida deja su movimiento',
+    );
+
+    await prisma.user.update({ where: { id: limpio.id }, data: { coins: { increment: 999_000 } } });
+
+    const segundo = await auditarCuentas();
+    const pillada = segundo.sospechosas.find((cuenta) => cuenta.id === limpio.id);
+    assert.ok(pillada, 'la cuenta manipulada sale en la lista');
+    assert.equal(pillada!.descuadreMonedas, 999_000, 'y por la cantidad exacta que se coló');
+  });
+
+  it('el baneo corta la entrada', async () => {
+    const tramposo = await crearUsuario(0);
+    await cambiarBaneo(tramposo.id, true);
+
+    const usuario = await prisma.user.findUniqueOrThrow({ where: { id: tramposo.id } });
+    assert.equal(usuario.isBanned, true);
+  });
+
+  it('con pocos envíos no se inventa un veredicto', async () => {
+    // Con cuatro tiradas el azar manda: decir que el juego está roto ahí sería
+    // ruido, y un aviso que salta solo se acaba ignorando.
+    const avisos = await saludDelJuego();
+    for (const aviso of avisos) {
+      if (aviso.envios < 100) {
+        assert.equal(aviso.nivel, 'ok', `${aviso.code} opina con solo ${aviso.envios} envíos`);
+      }
+    }
   });
 });
 
