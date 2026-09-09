@@ -206,6 +206,7 @@ export default function ProfileScreen() {
         ) : null}
 
         <Button label="Editar perfil" variant="ghost" onPress={() => router.push('/edit-profile')} />
+        <Button label="🤝 Agencia" variant="ghost" onPress={() => router.push('/agency')} />
         <Button label={`Novedades · ${versionLabel()}`} variant="ghost" onPress={() => router.push('/whats-new')} />
         <Button label="Servidor" variant="ghost" onPress={() => router.push('/server-settings')} />
         <Button

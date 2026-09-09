@@ -58,6 +58,7 @@ export default function RootLayout() {
             <Stack.Screen name="room/[id]" options={{ animation: 'fade' }} />
             <Stack.Screen name="go-live" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
             <Stack.Screen name="edit-profile" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
+            <Stack.Screen name="agency" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
             <Stack.Screen name="audit" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
             <Stack.Screen name="server-settings" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
             <Stack.Screen name="whats-new" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />

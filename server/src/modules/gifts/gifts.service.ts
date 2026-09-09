@@ -21,6 +21,7 @@ import { rollLucky } from '../../lib/lucky';
 import { factorSuerte } from '../../lib/lucky-mood';
 import { invalidateRankingCache } from '../ranking/ranking.service';
 import { progresoDelDia } from '../hosts/salary.service';
+import { pagarComision } from '../agencies/agencies.service';
 import type { SendGiftInput } from './gifts.schema';
 
 const recipientSelect = { id: true, username: true, displayName: true, avatarUrl: true } as const;
@@ -192,6 +193,10 @@ export async function sendGift(senderId: string, input: SendGiftInput) {
           },
         ],
       });
+
+      // La agencia que captó al destinatario cobra su parte, dentro de esta
+      // misma transacción: si el anfitrión cobra, la agencia cobra.
+      await pagarComision(tx, envio.recipient.id, envio.diamondsEarned, 'gift');
 
       registros.push({ giftSend, envio, updatedRecipient, esYo });
     }

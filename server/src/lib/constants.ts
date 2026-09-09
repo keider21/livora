@@ -24,6 +24,8 @@ export const TRANSACTION_TYPE = {
   CHEST_OPEN: 'chest_open',
   CHEST_PRIZE: 'chest_prize',
   EXCHANGE: 'exchange',
+  /** Lo que se lleva la agencia de lo que gana un anfitrión suyo. */
+  AGENCY_COMMISSION: 'agency_commission',
 } as const;
 
 export const SEAT_STATUS = {

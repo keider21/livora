@@ -248,3 +248,36 @@ export interface AuditReport {
   sospechosas: AuditedAccount[];
   juego: GameCheck[];
 }
+
+/** Una agencia vista por su dueño. */
+export interface Agency {
+  id: string;
+  name: string;
+  code: string;
+  /** Parte de lo que ganan sus anfitriones que se lleva. */
+  rate: number;
+  /** Diamantes cobrados desde siempre. */
+  cobrado: number;
+}
+
+/** Un anfitrión dentro de una agencia, con lo que ha aportado. */
+export interface AgencyHost {
+  id: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+  diamonds: number;
+  /** Lo que ha ganado y sobre lo que se cobró comisión. */
+  generado: number;
+  comision: number;
+}
+
+export interface AgencyPanel {
+  agencia: Agency | null;
+  hosts?: AgencyHost[];
+}
+
+export interface MyAgency {
+  agencia: { id: string; name: string; code: string; rate: number } | null;
+  aportado: number;
+}

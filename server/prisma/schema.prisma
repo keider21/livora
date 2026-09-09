@@ -32,6 +32,9 @@ model User {
   isHost   Boolean @default(false)
   isBanned Boolean @default(false)
 
+  /// Agencia a la que pertenece como anfitrión, si alguna lo captó.
+  agencyId String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -44,6 +47,61 @@ model User {
   followers     Follow[]      @relation("Following")
   seats         RoomSeat[]
   salaries      HostSalary[]
+  agency        Agency?       @relation("AgencyHosts", fields: [agencyId], references: [id])
+  ownedAgencies Agency[]      @relation("AgencyOwner")
+  commissions   AgencyPayout[]
+}
+
+/// Agencia que capta y forma anfitriones, y cobra por lo que generan.
+///
+/// Es el motor de crecimiento de estas apps: quien recluta tiene un motivo para
+/// hacerlo bien, porque cobra de lo que produzcan los suyos.
+///
+/// **La comisión sale del margen de la casa, no del bolsillo del anfitrión.** Un
+/// anfitrión con agencia cobra exactamente lo mismo que uno sin ella; si no
+/// fuera así, entrar en una agencia sería un castigo y nadie entraría.
+model Agency {
+  id      String @id @default(cuid())
+  name    String
+  /// Código que se comparte para que un anfitrión se una.
+  code    String @unique
+  ownerId String
+  /// Parte de lo que ganan sus anfitriones que se lleva la agencia.
+  rate    Float  @default(0.1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner   User           @relation("AgencyOwner", fields: [ownerId], references: [id])
+  hosts   User[]         @relation("AgencyHosts")
+  payouts AgencyPayout[]
+
+  @@index([ownerId])
+}
+
+/// Cada comisión cobrada, con el anfitrión que la generó.
+///
+/// Se guarda fila a fila y no como un acumulado para que la agencia pueda ver de
+/// dónde sale su dinero: sin el detalle, el número de arriba no se puede
+/// discutir ni auditar.
+model AgencyPayout {
+  id       String @id @default(cuid())
+  agencyId String
+  hostId   String
+  /// Diamantes que se llevó la agencia.
+  diamonds Int
+  /// Qué lo generó: `gift` o `salary`.
+  source   String
+  /// Diamantes que ganó el anfitrión y sobre los que se calculó.
+  base     Int
+
+  createdAt DateTime @default(now())
+
+  agency Agency @relation(fields: [agencyId], references: [id])
+  host   User   @relation(fields: [hostId], references: [id])
+
+  @@index([agencyId, createdAt])
+  @@index([hostId])
 }
 
 /// Salario diario ya pagado a un anfitrión.

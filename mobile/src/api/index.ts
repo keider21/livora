@@ -1,7 +1,10 @@
 import { apiRequest } from './client';
 import type { ChatMessage, GiftEvent, SeatsEvent } from '../realtime/events';
 import type {
+  Agency,
+  AgencyPanel,
   AuditReport,
+  MyAgency,
   CoinPackage,
   CurrentUser,
   Gift,
@@ -152,6 +155,21 @@ export const hosts = {
       '/api/hosts/me/reset',
       { method: 'POST' },
     ),
+};
+
+export const agencies = {
+  /** La agencia que tengo como dueño, con sus anfitriones. */
+  panel: () => apiRequest<AgencyPanel>('/api/agencies/me'),
+  /** La agencia a la que pertenezco como anfitrión. */
+  mine: () => apiRequest<MyAgency>('/api/agencies/mine'),
+  create: (name: string, rate?: number) =>
+    apiRequest<{ agencia: Agency }>('/api/agencies', { method: 'POST', body: { name, rate } }),
+  join: (code: string) =>
+    apiRequest<{ agencia: { id: string; name: string; rate: number } }>('/api/agencies/join', {
+      method: 'POST',
+      body: { code },
+    }),
+  leave: () => apiRequest<{ ok: boolean }>('/api/agencies/leave', { method: 'POST' }),
 };
 
 export const ranking = {

@@ -10,6 +10,7 @@ import {
   salarioPara,
   siguienteNivel,
 } from '../../lib/salary';
+import { pagarComision } from '../agencies/agencies.service';
 import { emitToUser } from '../../realtime/bus';
 import { SOCKET_EVENTS } from '../../realtime/events';
 
@@ -149,6 +150,10 @@ export async function liquidarDia(dia: string) {
           reference: `salary:${dia}`,
         },
       });
+
+      // La agencia cobra también del salario, no solo de los regalos: es parte
+      // de lo que gana el anfitrión y sale del mismo sitio.
+      await pagarComision(tx, candidato.receiverId, salario, 'salary');
 
       return usuario;
     });

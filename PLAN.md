@@ -13,10 +13,10 @@
 | --- | --- |
 | **Fase actual** | 3 — Vídeo real con LiveKit. La APK ya se instala y funciona en el teléfono |
 | **Paso actual** | **3.8** 🔄: vídeo real fuera de casa, bloqueado por el CGNAT del router. Mientras, avanza la Fase 11 (11.11 recién cerrado) |
-| **Última actualización** | 2026-09-08 |
+| **Última actualización** | 2026-09-09 |
 | **Rama** | `main` en `keider21/livora`, repositorio propio y público (el último commit lo dice `git log -1`) |
 | **Pull request** | Ninguno: se trabaja directo sobre `main` en el repositorio nuevo. El anterior ([keider21/cecchi#1](https://github.com/keider21/cecchi/pull/1)) queda histórico |
-| **Salud** | 124 pruebas en verde (86 servidor + 38 móvil) · TypeScript limpio en `server/` y `mobile/` · empaqueta para Android · `expo prebuild` acepta los plugins de LiveKit |
+| **Salud** | 130 pruebas en verde (92 servidor + 38 móvil) · TypeScript limpio en `server/` y `mobile/` · empaqueta para Android · `expo prebuild` acepta los plugins de LiveKit |
 
 **Lo último:** la APK funciona en el teléfono (build 106, 2026-09-06). Cerrada
 la Fase 10 salvo el despliegue público (10.7, ⛔ en el usuario). El backend local
@@ -354,7 +354,7 @@ regalos de la suerte con multiplicadores, cofres y canje de diamantes.
 | 12.6 PK entre anfitriones | ⏳ | Dos hosts compiten y los espectadores votan con regalos, con reparto de bote. Es el formato que más regalos genera en estas apps |
 | 12.7 Detalles de identidad | ⏳ | ID numérico copiable, sello de anfitrión verificado, lista de deseos, ranking de magnates |
 | 12.8 Ajustes que faltan | ⏳ | Idioma, apariencia, notificaciones, y los textos legales: acuerdo de usuario, privacidad y acuerdo del anfitrión. **Los tres textos legales son requisito de Google Play**, no un adorno |
-| 12.9 Agencias y captación | ⏳ | Pedido por el usuario el 2026-09-09. Un porcentaje de lo que generan los anfitriones que alguien trae, con su panel para ver a quién invitó y cuánto lleva. **Es el motor de crecimiento de estas apps**: la agencia recluta y forma anfitriones porque cobra de ellos. Sale del margen de la casa, así que hay que decidir el porcentaje sabiendo que hoy quedan 60 de cada 100 monedas consumidas |
+| 12.9 Agencias y captación | ✅ | `Agency` con código de seis caracteres (sin O/0/I/1/L, que se confunden al dictarlos), `AgencyPayout` con una fila por comisión para que se pueda auditar de dónde sale cada diamante, y `agencies.service.ts`. **La comisión sale del margen de la casa, no del anfitrión**: uno con agencia cobra exactamente lo mismo que uno sin ella, y si no fuera así entrar en una agencia sería un castigo. Se cobra dentro de la misma transacción que el pago al anfitrión, tanto de regalos como de salario. Tope del 30%: los anfitriones ya se llevan el 40% de cada moneda consumida y por encima de ahí la casa se queda sin con qué pagar el resto. Pantalla `app/agency.tsx` con las dos caras, dueño y anfitrión. **Verificación:** 6 pruebas, incluida la de que el anfitrión conserva sus diamantes enteros |
 | 12.10 Sorteos y eventos | ⏳ | Pedido por el usuario el 2026-09-09. Premios por sorteo entre quienes participan, y eventos con temporada. Da un motivo para gastar que no es el regalo puntual, y el coste se controla porque el premio se fija de antemano |
 
 ------
