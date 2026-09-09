@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1039,
-  "commit": "1c4256a",
+  "buildNumber": 1040,
+  "commit": "f3cf6d8",
   "branch": "main",
-  "builtAt": "2026-09-09T03:42:09.712Z",
+  "builtAt": "2026-09-09T04:10:34.223Z",
   "changes": [
+    "El suelo de la suerte sube a 0,7: en frío se perdía demasiado",
     "La racha caliente baja a 1,67 y dura diez segundos",
     "Cofres a ×11 y el chat dice cuánto salió",
     "El salario sigue subiendo pasados los cien millones",
@@ -18,7 +19,6 @@
     "Los regalos caros devuelven 0,80, más cerca de los normales",
     "Los cofres suben al tope que deja el salario, y el retorno a 0,85",
     "Los cofres premian más arriba y vuelven los gordos del ×500",
-    "Los cofres pasan a ser regalos, y se ajusta la suerte",
-    "Ilustraciones de verdad para los regalos y seis exclusivos nuevos"
+    "Los cofres pasan a ser regalos, y se ajusta la suerte"
   ]
 }

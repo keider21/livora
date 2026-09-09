@@ -14,6 +14,7 @@
     "db:studio": "prisma studio",
     "seed": "tsx src/scripts/seed.ts",
     "reset": "tsx src/scripts/reset.ts",
+    "simular": "tsx src/scripts/simular.ts",
     "test": "node scripts/test.mjs"
   },
   "dependencies": {
