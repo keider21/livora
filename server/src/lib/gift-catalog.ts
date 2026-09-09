@@ -97,7 +97,7 @@ const PREMIOS = '10:950,20:80,50:64,500:85';
  * nunca compensa» lo vigila.
  *
  * La suerte personal (`lib/lucky-mood`) mueve la probabilidad real entre el 0,6
- * y el 2,2 de la que salga aquí, pero se reparte alrededor de 1, así que estas
+ * y el 1,67 de la que salga aquí, pero se reparte alrededor de 1, así que estas
  * cifras siguen siendo las del conjunto.
  */
 const RETORNO_POR_PRECIO = [

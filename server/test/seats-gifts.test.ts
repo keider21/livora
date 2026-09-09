@@ -368,14 +368,14 @@ describe('suerte personal', () => {
     assert.ok(media > 0.97 && media < 1.03, `la media salió ${media.toFixed(3)}`);
   });
 
-  it('se mueve entre 0,6 y 2,2', () => {
+  it('se mueve entre 0,6 y 1,67', () => {
     for (let paso = 0; paso < 500; paso += 1) {
       const factor = factorSuerte('luna', new Date(INICIO + paso * 7_000));
-      assert.ok(factor >= 0.6 && factor <= 2.2, `salió ${factor}`);
+      assert.ok(factor >= 0.6 && factor <= 1.67, `salió ${factor}`);
     }
   });
 
-  it('el rato bueno dura unos quince segundos', () => {
+  it('el rato bueno dura unos diez segundos', () => {
     // Es el motivo de montar la curva con dos ondas. Si el tramo caliente
     // durase lo que el tramo entero se podría jugar sobre seguro: se nota que
     // premia, se dispara el automático y se para antes de que enfríe.
@@ -396,7 +396,7 @@ describe('suerte personal', () => {
     }
 
     const duracion = segundos / rachas;
-    assert.ok(duracion > 11 && duracion < 19, `las rachas calientes duran ${duracion.toFixed(1)} s`);
+    assert.ok(duracion > 7 && duracion < 14, `las rachas calientes duran ${duracion.toFixed(1)} s`);
   });
 
   it('sube y baja en curva, sin saltos secos', () => {
@@ -405,7 +405,7 @@ describe('suerte personal', () => {
     let anterior = factorSuerte('luna', new Date(INICIO));
     for (let segundo = 1; segundo < 300; segundo += 1) {
       const actual = factorSuerte('luna', new Date(INICIO + segundo * 1000));
-      assert.ok(Math.abs(actual - anterior) < 0.2, `saltó ${Math.abs(actual - anterior).toFixed(3)}`);
+      assert.ok(Math.abs(actual - anterior) < 0.12, `saltó ${Math.abs(actual - anterior).toFixed(3)}`);
       anterior = actual;
     }
   });
@@ -420,7 +420,8 @@ describe('suerte personal', () => {
     // Es lo que hace que la mecánica enganche: rachas buenas de verdad y malas
     // de verdad, en vez de que todos acaben siempre en la media.
     const base = expectedReturn(0.0182, '10:950,20:80,50:64,500:85');
-    assert.ok(base * 2.2 > 1.85, 'en caliente debería devolver más de lo gastado');
+    assert.ok(base * 1.67 > 1.3, 'en caliente debería devolver más de lo gastado');
+    assert.ok(base * 1.67 < 1.6, 'pero no tanto como para que compense cronometrar la racha');
     assert.ok(base * 0.6 < 0.6, 'en frío debería devolver bastante menos');
   });
 });

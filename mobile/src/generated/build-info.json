@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1037,
-  "commit": "be3d773",
+  "buildNumber": 1038,
+  "commit": "7e5abac",
   "branch": "main",
-  "builtAt": "2026-09-09T03:01:27.586Z",
+  "builtAt": "2026-09-09T03:19:21.681Z",
   "changes": [
+    "Cofres a ×11 y el chat dice cuánto salió",
     "El salario sigue subiendo pasados los cien millones",
     "Hasta 9.999 por envío, partículas con la ilustración y sin cifra en el centro",
     "El retorno baja con el precio del regalo",
@@ -18,7 +19,6 @@
     "Los cofres premian más arriba y vuelven los gordos del ×500",
     "Los cofres pasan a ser regalos, y se ajusta la suerte",
     "Ilustraciones de verdad para los regalos y seis exclusivos nuevos",
-    "Los regalos de la suerte devuelven menos: 0,84 baja a 0,70",
-    "Los cofres son tres casillas más de la pestaña Suerte"
+    "Los regalos de la suerte devuelven menos: 0,84 baja a 0,70"
   ]
 }
