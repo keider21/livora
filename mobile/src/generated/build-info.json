@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1027,
-  "commit": "9113064",
+  "buildNumber": 1028,
+  "commit": "fee1d81",
   "branch": "main",
-  "builtAt": "2026-09-08T23:28:06.712Z",
+  "builtAt": "2026-09-09T00:11:46.197Z",
   "changes": [
+    "Los cofres suben al tope que deja el salario, y el retorno a 0,85",
     "Los cofres premian más arriba y vuelven los gordos del ×500",
     "Los cofres pasan a ser regalos, y se ajusta la suerte",
     "Ilustraciones de verdad para los regalos y seis exclusivos nuevos",
@@ -18,7 +19,6 @@
     "bronce, plata y oro",
     "La meta del día, en el perfil",
     "Salario diario para los anfitriones",
-    "Al volver a la app se vuelve a entrar en la sala",
-    "Fuera las rachas globales"
+    "Al volver a la app se vuelve a entrar en la sala"
   ]
 }

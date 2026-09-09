@@ -64,7 +64,7 @@ import { GIFT_TIER_CHEST } from './constants';
 const PREMIOS = '10:950,20:80,50:64,500:85';
 
 /**
- * Los regalos caros llevan el ×500 algo más bajo, al 0,103%: su unidad ya vale
+ * Los regalos caros llevan el ×500 algo más bajo, al 0,114%: su unidad ya vale
  * mucho, así que cada acierto pesa más en monedas aunque la probabilidad sea
  * parecida.
  *
@@ -72,8 +72,14 @@ const PREMIOS = '10:950,20:80,50:64,500:85';
  */
 const PREMIOS_ALTOS = '10:950,20:80,50:64,500:70';
 
-/** Los caros van algo por debajo, para que no devuelvan tan rápido. */
-const PROBABILIDAD_ALTOS = 0.0172;
+/**
+ * Los caros van algo por debajo, para que no devuelvan tan rápido: retorno 0,80
+ * contra el 0,85 de los normales. La distancia se acortó el 2026-09-08 —era 0,73
+ * contra 0,85— porque con la anterior el castillo se sentía peor que la rosa, y
+ * el regalo caro tiene que sentirse mejor, no peor: es el que se manda con
+ * ilusión y el que más mueve la meta del anfitrión de una sola vez.
+ */
+const PROBABILIDAD_ALTOS = 0.0189;
 
 /**
  * Probabilidad de premio por unidad: la suma de los cuatro escalones.
