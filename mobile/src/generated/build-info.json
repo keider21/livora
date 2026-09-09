@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1032,
-  "commit": "ec9cd1e",
+  "buildNumber": 1033,
+  "commit": "b132de4",
   "branch": "main",
-  "builtAt": "2026-09-09T01:08:10.137Z",
+  "builtAt": "2026-09-09T01:15:44.355Z",
   "changes": [
+    "saldos que no cuadran, salud del sorteo y baneo",
     "Las estadísticas cuentan la exposición y los salarios del día",
     "Estadísticas de la plataforma en el perfil de pruebas",
     "Todos los regalos de la suerte comparten escalera, y el automático al doble",
@@ -18,7 +19,6 @@
     "El rato de buena suerte dura menos y el automático va más rápido",
     "Los cofres pasan del perfil a la caja de regalos",
     "La meta se ve durante el directo y se recarga desde los regalos",
-    "Fase 12: lo que Kako tiene y a Livora le falta",
-    "Paquete de recarga grande y reinicio de datos de prueba"
+    "Fase 12: lo que Kako tiene y a Livora le falta"
   ]
 }

@@ -168,9 +168,9 @@ describe('sorteo de los regalos con premio', () => {
   it('el retorno de cada regalo es el documentado', () => {
     const esperado: Record<string, number> = {
       // Todos los de la suerte devuelven lo mismo: comparten escalera.
-      clap: 0.8, wink: 0.8, star: 0.8, candy: 0.8,
-      rose: 0.8, heart: 0.8, beer: 0.8, crown: 0.8, fireworks: 0.8,
-      ferrari: 0.8, yacht: 0.8, castle: 0.8,
+      clap: 0.9, wink: 0.9, star: 0.9, candy: 0.9,
+      rose: 0.9, heart: 0.9, beer: 0.9, crown: 0.9, fireworks: 0.9,
+      ferrari: 0.9, yacht: 0.9, castle: 0.9,
     };
 
     for (const gift of GIFT_CATALOG) {
@@ -248,7 +248,7 @@ describe('economía de los regalos', () => {
       // Diez cofres seguidos sin pasar del segundo peldaño es lo que hace que
       // el cofre deje de tener gracia, y ya pasó una vez.
       const altos = escalones.filter((e) => e.multiplier >= 10).reduce((t, e) => t + e.weight, 0) / pesos;
-      assert.ok(altos > 0.3, `${cofre.code} solo sube de ×10 el ${(altos * 100).toFixed(1)}% de las veces`);
+      assert.ok(altos > 0.34, `${cofre.code} solo sube de ×10 el ${(altos * 100).toFixed(1)}% de las veces`);
     }
   });
 
@@ -346,9 +346,9 @@ describe('suerte personal', () => {
   it('separa mucho el mejor momento del peor', () => {
     // Es lo que hace que la mecánica enganche: rachas buenas de verdad y malas
     // de verdad, en vez de que todos acaben siempre en la media.
-    const base = expectedReturn(0.0176, '10:950,20:80,50:64,500:85');
-    assert.ok(base * 2.2 > 1.7, 'en caliente debería devolver más de lo gastado');
-    assert.ok(base * 0.6 < 0.55, 'en frío debería devolver bastante menos');
+    const base = expectedReturn(0.0182, '10:950,20:80,50:64,500:85');
+    assert.ok(base * 2.2 > 1.85, 'en caliente debería devolver más de lo gastado');
+    assert.ok(base * 0.6 < 0.6, 'en frío debería devolver bastante menos');
   });
 });
 
