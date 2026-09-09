@@ -22,12 +22,17 @@
  *
  * ## Qué mirar del resultado
  *
- * - **Cuántos acaban ganando.** Si es cero, la sala se vacía; si es demasiado,
- *   la economía no cierra. Lo sano es que haya de los dos y se note.
- * - **Cuánto pierde el que pierde.** Perderlo todo en tres minutos echa a la
- *   gente por mucho que el promedio cuadre.
- * - **Lo que le cuesta a la plataforma.** Los diamantes que salen de esa sesión
- *   frente a las monedas que se consumieron de verdad.
+ * **El marcador que importa es el de abajo, no el de arriba.** Esto no está
+ * hecho para que quien envía gane dinero: está hecho para que el anfitrión gane
+ * con lo que le mandan mientras canta o hace lo que haga. Que el remitente
+ * recupere algo y tenga rachas es para que siga jugando y para que las metas se
+ * alcancen, no para que salga ganando. La tabla por perfiles sirve para ver que
+ * nadie se quede seco en dos minutos, no para buscar que ganen.
+ *
+ * Lo que decide es **cuánto de cada moneda consumida se va en diamantes**, que
+ * es lo único que sale de verdad de la caja. De lo que queda hay que pagar el
+ * salario de las metas, las agencias, los sorteos y los eventos, así que ese
+ * porcentaje es el techo de todo lo demás.
  */
 import { GIFT_CATALOG } from '../lib/gift-catalog';
 import { rollLucky } from '../lib/lucky';
@@ -140,6 +145,10 @@ interface Resultado {
   ganado: number;
   envios: number;
   diamantes: number;
+  /** De dónde salen esos diamantes, que es lo que se puede ajustar. */
+  porSuerte: number;
+  porCofres: number;
+  porExclusivos: number;
 }
 
 function jugar(perfil: Perfil, indice: number, azar: () => number): Resultado {
@@ -158,7 +167,9 @@ function jugar(perfil: Perfil, indice: number, azar: () => number): Resultado {
   let gastado = 0;
   let ganado = 0;
   let envios = 0;
-  let diamantes = 0;
+  let porSuerte = 0;
+  let porCofres = 0;
+  let porExclusivos = 0;
   let ahora = arranque;
 
   while (ahora < hasta && saldo > 0) {
@@ -189,19 +200,31 @@ function jugar(perfil: Perfil, indice: number, azar: () => number): Resultado {
     envios += 1;
 
     if (esCofre) {
-      // Del cofre no vuelve nada: lo que sale se lo lleva quien lo recibe.
-      diamantes += premio.coins * DIAMONDS_PER_COIN;
+      // Del cofre no vuelve nada a quien lo manda: lo que sale se lo lleva quien
+      // lo recibe, y el 5% se calcula sobre esa cifra, no sobre lo que costó.
+      porCofres += premio.coins * DIAMONDS_PER_COIN;
     } else {
       saldo += premio.coins;
       ganado += premio.coins;
-      diamantes +=
-        coste * (regalo.tier === 'exclusive' ? DIAMONDS_PER_COIN_EXCLUSIVE : DIAMONDS_PER_COIN);
+      if (regalo.tier === 'exclusive') porExclusivos += coste * DIAMONDS_PER_COIN_EXCLUSIVE;
+      else porSuerte += coste * DIAMONDS_PER_COIN;
     }
 
     ahora += entre(perfil.ritmo) * 1000;
   }
 
-  return { perfil: perfil.nombre, inicial, final: saldo, gastado, ganado, envios, diamantes };
+  return {
+    perfil: perfil.nombre,
+    inicial,
+    final: saldo,
+    gastado,
+    ganado,
+    envios,
+    diamantes: porSuerte + porCofres + porExclusivos,
+    porSuerte,
+    porCofres,
+    porExclusivos,
+  };
 }
 
 function percentil(valores: number[], p: number): number {
@@ -251,12 +274,22 @@ function main() {
   console.log(`  volumen movido en regalos: ${Math.round(volumen).toLocaleString('es')}`);
   console.log(`  vueltas por moneda: ${(volumen / inicial).toFixed(2)}`);
   console.log(`\nGente: ${((100 * ganan) / resultados.length).toFixed(0)}% acaba con más de lo que entró, ${((100 * secos) / resultados.length).toFixed(0)}% se queda sin nada`);
-  console.log(
-    `\nCoste para la plataforma: ${Math.round(diamantes).toLocaleString('es')} diamantes ` +
-      `($${(diamantes / 10_000).toFixed(2)}) por ${(inicial - final).toLocaleString('es')} monedas consumidas ` +
-      `($${((inicial - final) / 10_000).toFixed(2)} si se compraron)`,
-  );
-  console.log(`  se va en diamantes el ${((100 * diamantes) / (inicial - final)).toFixed(0)}% de lo consumido`);
+  const suerte = resultados.reduce((t, r) => t + r.porSuerte, 0);
+  const cofres = resultados.reduce((t, r) => t + r.porCofres, 0);
+  const exclusivos = resultados.reduce((t, r) => t + r.porExclusivos, 0);
+  const consumidas = inicial - final;
+  const dolar = (monedas: number) => `$${(monedas / 10_000).toFixed(2)}`;
+  const parte = (monedas: number) => `${((100 * monedas) / consumidas).toFixed(0)}%`;
+
+  console.log('\n--- lo que decide: en qué se convierte cada moneda consumida ---');
+  console.log(`  consumidas          ${Math.round(consumidas).toLocaleString('es').padStart(12)}  ${dolar(consumidas)}`);
+  console.log(`  salen en diamantes  ${Math.round(diamantes).toLocaleString('es').padStart(12)}  ${dolar(diamantes)}   ${parte(diamantes)}`);
+  console.log(`    · de la suerte    ${Math.round(suerte).toLocaleString('es').padStart(12)}              ${parte(suerte)}`);
+  console.log(`    · de los cofres   ${Math.round(cofres).toLocaleString('es').padStart(12)}              ${parte(cofres)}`);
+  console.log(`    · de exclusivos   ${Math.round(exclusivos).toLocaleString('es').padStart(12)}              ${parte(exclusivos)}`);
+  console.log(`  queda para la casa  ${Math.round(consumidas - diamantes).toLocaleString('es').padStart(12)}  ${dolar(consumidas - diamantes)}   ${parte(consumidas - diamantes)}`);
+  console.log('\n  De lo que queda salen todavía el salario de las metas, las agencias,');
+  console.log('  los sorteos y los eventos. Lo que sobre después es el margen.');
 }
 
 main();
