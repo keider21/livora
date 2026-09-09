@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1034,
-  "commit": "7657db0",
+  "buildNumber": 1035,
+  "commit": "74e6334",
   "branch": "main",
-  "builtAt": "2026-09-09T01:40:14.879Z",
+  "builtAt": "2026-09-09T01:48:14.245Z",
   "changes": [
+    "El retorno baja con el precio del regalo",
     "Otra subida: retorno 0,88 y cofres a ×8,3, que es donde topa",
     "saldos que no cuadran, salud del sorteo y baneo",
     "Las estadísticas cuentan la exposición y los salarios del día",
@@ -18,7 +19,6 @@
     "Los regalos de la suerte devuelven menos: 0,84 baja a 0,70",
     "Los cofres son tres casillas más de la pestaña Suerte",
     "El rato de buena suerte dura menos y el automático va más rápido",
-    "Los cofres pasan del perfil a la caja de regalos",
-    "La meta se ve durante el directo y se recarga desde los regalos"
+    "Los cofres pasan del perfil a la caja de regalos"
   ]
 }

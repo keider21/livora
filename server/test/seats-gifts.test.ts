@@ -197,6 +197,28 @@ describe('sorteo de los regalos con premio', () => {
     }
   });
 
+  it('acepta hasta 9.999 unidades en un envío', async () => {
+    // Mandar más unidades por envío es lo único que acelera de verdad el
+    // automático: la espera entre envíos ya no pinta nada frente al viaje de
+    // ida y vuelta.
+    const anfitrion = await createUser();
+    const sala = await openRoom(anfitrion.token);
+    const emisor = await createUser(200_000);
+
+    const grande = await api.request('POST', '/api/gifts/send', {
+      token: emisor.token,
+      body: { roomId: sala, giftCode: 'test-simple', quantity: 9_999 },
+    });
+    assert.equal(grande.status, 201);
+    assert.equal(grande.data.giftSend.quantity, 9_999);
+
+    const pasado = await api.request('POST', '/api/gifts/send', {
+      token: emisor.token,
+      body: { roomId: sala, giftCode: 'test-simple', quantity: 10_000 },
+    });
+    assert.equal(pasado.status, 400, 'y ahí se para');
+  });
+
   it('el premio más pequeño es ×10, como se pidió', () => {
     for (const gift of GIFT_CATALOG) {
       // Los cofres empiezan en ×3: no son un premio sorpresa sobre el precio,

@@ -3,7 +3,7 @@ import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import type { GiftEvent } from '../realtime/events';
 import { giftArt } from './gift-art';
-import { colors, radius, spacing } from '../theme';
+
 
 const DESTELLOS = 14;
 
@@ -15,9 +15,10 @@ const DESTELLOS = 14;
  * entonces sube la cifra. Ese orden es lo que hace la espera; enseñar el número
  * a la vez que el cofre le quitaría el momento.
  *
- * La cifra dice también para quién es, porque en un cofre el premio no vuelve a
- * quien lo manda: se lo lleva el que lo recibe, y eso tiene que quedar claro en
- * la pantalla o parece un premio robado.
+ * **La cifra no va aquí.** La lleva el anuncio de abajo, con el nombre de quien
+ * lo mandó y de quien lo recibe. Escribirla también en el centro ponía el mismo
+ * número dos veces en pantalla a la vez, y encima tapando la animación que se
+ * supone que hay que mirar.
  */
 export function ChestOpen({ event, onDone }: { event: GiftEvent; onDone: () => void }) {
   const progreso = useRef(new Animated.Value(0)).current;
@@ -97,24 +98,6 @@ export function ChestOpen({ event, onDone }: { event: GiftEvent; onDone: () => v
           <Text style={styles.emoji}>{event.gift.emoji}</Text>
         )}
       </Animated.View>
-
-      {/* La cifra sube desde el cofre una vez abierto. */}
-      <Animated.View
-        style={[
-          styles.premio,
-          {
-            opacity: progreso.interpolate({ inputRange: [0, 0.5, 0.6, 0.92, 1], outputRange: [0, 0, 1, 1, 0] }),
-            transform: [
-              { translateY: progreso.interpolate({ inputRange: [0.5, 1], outputRange: [40, -30] }) },
-              { scale: progreso.interpolate({ inputRange: [0.5, 0.68, 1], outputRange: [0.6, 1.15, 1] }) },
-            ],
-          },
-        ]}
-      >
-        <Text style={styles.multiplicador}>×{event.luckyMultiplier ?? 1}</Text>
-        <Text style={styles.monedas}>🪙 {event.coinsRewarded.toLocaleString('es')}</Text>
-        <Text style={styles.destino}>para {event.recipient.displayName}</Text>
-      </Animated.View>
     </View>
   );
 }
@@ -124,17 +107,4 @@ const styles = StyleSheet.create({
   destello: { position: 'absolute', fontSize: 26 },
   cofre: { width: 150, height: 150 },
   emoji: { fontSize: 110 },
-  premio: {
-    position: 'absolute',
-    alignItems: 'center',
-    backgroundColor: 'rgba(5,10,7,0.86)',
-    borderWidth: 2,
-    borderColor: colors.coin,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-  },
-  multiplicador: { color: colors.coin, fontSize: 34, fontWeight: '900' },
-  monedas: { color: colors.text, fontSize: 16, fontWeight: '800' },
-  destino: { color: colors.textMuted, fontSize: 11, fontWeight: '600' },
 });

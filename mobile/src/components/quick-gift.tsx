@@ -8,12 +8,15 @@ import { colors, radius, spacing } from '../theme';
 const WINDOW_MS = 5000;
 /**
  * Pausa entre envíos automáticos, contada **después** de que termine el
- * anterior. Fue bajando de 500 a 150, a 60 y ahora a 30. De aquí para abajo ya no
- * cambia nada: lo que marca el ritmo es el viaje de ida y vuelta de cada envío
- * al servidor, que son decenas de milisegundos y no se pueden recortar desde
- * este lado.
+ * anterior. Fue bajando de 500 a 150, a 60, a 30 y ahora a 10, que es
+ * prácticamente sin espera.
+ *
+ * Aquí ya no queda nada que recortar: lo que marca el ritmo es el viaje de ida y
+ * vuelta de cada envío al servidor. Para ir de verdad más rápido hay que mandar
+ * más unidades por envío —el campo de cantidad llega a 9.999— en vez de más
+ * envíos.
  */
-const AUTO_MS = 30;
+const AUTO_MS = 10;
 
 /**
  * Botón flotante para repetir el último regalo.

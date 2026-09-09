@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
+import { giftArt } from './gift-art';
 import type { GiftEvent } from '../realtime/events';
 import { colors } from '../theme';
 
@@ -18,6 +20,9 @@ const DISTANCE: Record<string, number> = { float: 90, burst: 150, fullscreen: 24
 
 export function GiftBurst({ event, onDone }: { event: GiftEvent; onDone: () => void }) {
   const progress = useRef(new Animated.Value(0)).current;
+  // Lo que sale disparado es el regalo. Con ilustración se usa esa: el emoji al
+  // lado de un dibujo de verdad parece de otra app.
+  const arte = giftArt(event.gift.image);
   const count = PARTICLES[event.gift.animation] ?? PARTICLES.burst!;
   const distance = DISTANCE[event.gift.animation] ?? DISTANCE.burst!;
 
@@ -47,7 +52,7 @@ export function GiftBurst({ event, onDone }: { event: GiftEvent; onDone: () => v
   return (
     <View style={styles.container} pointerEvents="none">
       {particles.map((particle, i) => (
-        <Animated.Text
+        <Animated.View
           key={i}
           style={[
             styles.particle,
@@ -61,8 +66,12 @@ export function GiftBurst({ event, onDone }: { event: GiftEvent; onDone: () => v
             },
           ]}
         >
-          {event.gift.emoji}
-        </Animated.Text>
+          {arte ? (
+            <Image source={arte} style={styles.arte} contentFit="contain" />
+          ) : (
+            <Text style={styles.emoji}>{event.gift.emoji}</Text>
+          )}
+        </Animated.View>
       ))}
 
     </View>
@@ -71,5 +80,7 @@ export function GiftBurst({ event, onDone }: { event: GiftEvent; onDone: () => v
 
 const styles = StyleSheet.create({
   container: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
-  particle: { position: 'absolute', fontSize: 30 },
+  particle: { position: 'absolute' },
+  arte: { width: 44, height: 44 },
+  emoji: { fontSize: 30 },
 });

@@ -106,9 +106,9 @@ export function GiftPicker({
   // la cantidad, así que aquí tampoco se ofrece.
   const unitario = selected ? selected.tier === 'exclusive' : false;
   // Lo escrito a mano manda sobre los botones fijos. El servidor admite hasta
-  // 999 por envío, que es también el máximo del campo.
+  // 9.999 por envío, que es también el máximo del campo.
   const escrita = Number(customQuantity);
-  const cantidadReal = unitario ? 1 : Number.isFinite(escrita) && escrita > 0 ? Math.min(escrita, 999) : quantity;
+  const cantidadReal = unitario ? 1 : Number.isFinite(escrita) && escrita > 0 ? Math.min(escrita, 9999) : quantity;
   const bloqueado = selected ? selected.minFanLevel > fanLevel : false;
   const total = selected ? selected.priceCoins * cantidadReal * Math.max(1, selectedIds.length) : 0;
   const affordable = total <= coins;
@@ -269,11 +269,11 @@ export function GiftPicker({
             {/* Para cantidades que no están en los botones fijos. */}
             <TextInput
               value={customQuantity}
-              onChangeText={(text) => setCustomQuantity(text.replace(/[^0-9]/g, '').slice(0, 3))}
+              onChangeText={(text) => setCustomQuantity(text.replace(/[^0-9]/g, '').slice(0, 4))}
               placeholder="✏️"
               placeholderTextColor={colors.textFaint}
               keyboardType="number-pad"
-              maxLength={3}
+              maxLength={4}
               style={[styles.quantity, styles.quantityInput, Boolean(customQuantity) && styles.quantityActive]}
               accessibilityLabel="Escribir la cantidad"
             />
