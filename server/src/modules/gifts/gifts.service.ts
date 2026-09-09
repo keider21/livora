@@ -281,6 +281,7 @@ export async function sendGift(senderId: string, input: SendGiftInput) {
       roomId: room.id,
       luckyCoins: meta.luckyCoins,
       nivel: meta.nivel,
+      base: meta.base,
       siguiente: meta.siguiente,
       liveSeconds: meta.liveSeconds,
       segundosMinimos: meta.segundosMinimos,

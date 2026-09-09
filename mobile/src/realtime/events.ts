@@ -92,6 +92,8 @@ export interface RoomGoalEvent {
   /** Monedas de regalos de la suerte que lleva el anfitrión hoy. */
   luckyCoins: number;
   nivel: number;
+  /** Monedas con las que empezó el tramo en curso: el suelo de la barra. */
+  base: number;
   /** Meta y pago del siguiente nivel; null si ya está en el más alto. */
   siguiente: { nivel: number; meta: number; salario: number } | null;
   liveSeconds: number;

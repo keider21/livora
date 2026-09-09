@@ -63,6 +63,21 @@ export const NIVELES: Nivel[] = [
   { nivel: 13, meta: 100_000_000, salario: 2_000_000 },
 ];
 
+/**
+ * Tramo por el que sigue la tabla una vez pasado el último nivel.
+ *
+ * Sin esto, a partir de cien millones daba igual seguir: el salario se quedaba
+ * clavado en dos millones y el mejor anfitrión del día dejaba de tener motivo
+ * para transmitir. Ahora cada millón de más suma su parte.
+ *
+ * El escalón es mucho más flojo que los de la tabla —el 1% del volumen, cuando
+ * el nivel 1 paga el 6,67%—, y eso es a propósito: a esas alturas el 5% en
+ * diamantes de los regalos ya es de largo el pago principal, y el salario es
+ * solo el reconocimiento de seguir subiendo.
+ */
+export const TRAMO_EXTRA = 1_000_000;
+export const SALARIO_POR_TRAMO_EXTRA = 10_000;
+
 /** El nivel alcanzado con ese volumen, o null si no llega ni al primero. */
 export function nivelPara(luckyCoins: number): Nivel | null {
   let alcanzado: Nivel | null = null;
@@ -72,9 +87,55 @@ export function nivelPara(luckyCoins: number): Nivel | null {
   return alcanzado;
 }
 
-/** El siguiente nivel por alcanzar, o null si ya está en el más alto. */
+/**
+ * Lo que se cobra con ese volumen, ya con la prolongación aplicada.
+ *
+ * Es lo que hay que usar en vez de `nivelPara(...).salario`: por debajo de cien
+ * millones dan lo mismo, pero por encima solo esta cuenta sigue subiendo.
+ */
+export function salarioPara(luckyCoins: number): number {
+  const nivel = nivelPara(luckyCoins);
+  if (!nivel) return 0;
+
+  const ultimo = NIVELES.at(-1)!;
+  if (nivel.nivel !== ultimo.nivel) return nivel.salario;
+
+  const tramos = Math.floor((luckyCoins - ultimo.meta) / TRAMO_EXTRA);
+  return ultimo.salario + tramos * SALARIO_POR_TRAMO_EXTRA;
+}
+
+/**
+ * Monedas con las que empieza el tramo que se está recorriendo ahora.
+ *
+ * Es el suelo de la barra de la meta: sin él habría que deducirlo de la tabla, y
+ * en la prolongación por millones la tabla ya no la tiene.
+ */
+export function inicioDelTramo(luckyCoins: number): number {
+  const nivel = nivelPara(luckyCoins);
+  if (!nivel) return 0;
+
+  const ultimo = NIVELES.at(-1)!;
+  if (nivel.nivel !== ultimo.nivel) return nivel.meta;
+
+  return ultimo.meta + Math.floor((luckyCoins - ultimo.meta) / TRAMO_EXTRA) * TRAMO_EXTRA;
+}
+
+/**
+ * El siguiente escalón por alcanzar. Pasado el último nivel sigue existiendo:
+ * es el millón siguiente, para que la barra de la meta no se quede llena y
+ * quieta el resto del día.
+ */
 export function siguienteNivel(luckyCoins: number): Nivel | null {
-  return NIVELES.find((nivel) => luckyCoins < nivel.meta) ?? null;
+  const deLaTabla = NIVELES.find((nivel) => luckyCoins < nivel.meta);
+  if (deLaTabla) return deLaTabla;
+
+  const ultimo = NIVELES.at(-1)!;
+  const tramos = Math.floor((luckyCoins - ultimo.meta) / TRAMO_EXTRA) + 1;
+  return {
+    nivel: ultimo.nivel + tramos,
+    meta: ultimo.meta + tramos * TRAMO_EXTRA,
+    salario: ultimo.salario + tramos * SALARIO_POR_TRAMO_EXTRA,
+  };
 }
 
 /**

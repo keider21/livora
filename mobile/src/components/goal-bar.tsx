@@ -1,5 +1,5 @@
 import { StyleSheet, Pressable, Text, View } from 'react-native';
-import type { RoomGoal, SalaryLevel } from '../api/types';
+import type { RoomGoal } from '../api/types';
 import { colors, formatCount, radius, spacing } from '../theme';
 
 /**
@@ -20,24 +20,18 @@ import { colors, formatCount, radius, spacing } from '../theme';
  * El tramo empieza donde acabó el nivel ya conseguido, no en cero: así la barra
  * se vacía al subir de nivel y vuelve a llenarse, que es lo que hace que se vea
  * cerca la siguiente meta en vez de un día entero que apenas se mueve.
+ *
+ * El suelo lo manda el servidor y no se deduce de la tabla: pasada la tabla, el
+ * salario sigue subiendo de millón en millón y esos escalones no están en ella.
  */
-export function avanceDeMeta(meta: RoomGoal, niveles: SalaryLevel[]): number {
+export function avanceDeMeta(meta: RoomGoal): number {
   if (!meta.siguiente) return 1;
-  const base = niveles.find((nivel) => nivel.nivel === meta.nivel)?.meta ?? 0;
-  const tramo = Math.max(1, meta.siguiente.meta - base);
-  return Math.min(1, Math.max(0, (meta.luckyCoins - base) / tramo));
+  const tramo = Math.max(1, meta.siguiente.meta - meta.base);
+  return Math.min(1, Math.max(0, (meta.luckyCoins - meta.base) / tramo));
 }
 
-export function GoalBar({
-  meta,
-  niveles,
-  onPress,
-}: {
-  meta: RoomGoal;
-  niveles: SalaryLevel[];
-  onPress: () => void;
-}) {
-  const avance = avanceDeMeta(meta, niveles);
+export function GoalBar({ meta, onPress }: { meta: RoomGoal; onPress: () => void }) {
+  const avance = avanceDeMeta(meta);
 
   return (
     <Pressable

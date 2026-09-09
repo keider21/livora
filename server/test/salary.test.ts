@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, before, describe, it } from 'node:test';
 import { prisma } from '../src/lib/prisma';
-import { NIVELES, diaDe, limitesDelDia, nivelPara, siguienteNivel } from '../src/lib/salary';
+import { NIVELES, diaDe, limitesDelDia, nivelPara, salarioPara, siguienteNivel } from '../src/lib/salary';
 import { expectedReturn } from '../src/lib/lucky';
 import { GIFT_CATALOG } from '../src/lib/gift-catalog';
 import { liquidarDia, progresoDelDia } from '../src/modules/hosts/salary.service';
@@ -136,10 +136,37 @@ describe('tabla de salarios', () => {
     assert.equal(nivelPara(999_999_999)?.nivel, 13);
   });
 
+  it('pasado el último nivel se sigue pagando por millón', () => {
+    // Sin esto, a partir de cien millones daba igual seguir: el mejor anfitrión
+    // del día se quedaba clavado en dos millones y dejaba de tener motivo para
+    // transmitir.
+    const ultimo = NIVELES.at(-1)!;
+    assert.equal(salarioPara(ultimo.meta), ultimo.salario);
+    assert.equal(salarioPara(ultimo.meta + 999_999), ultimo.salario, 'el millón tiene que estar completo');
+    assert.equal(salarioPara(ultimo.meta + 1_000_000), ultimo.salario + 10_000);
+    assert.equal(salarioPara(ultimo.meta + 7_500_000), ultimo.salario + 70_000);
+
+    // Y la barra de la meta sigue teniendo a dónde ir.
+    const siguiente = siguienteNivel(ultimo.meta + 2_500_000);
+    assert.equal(siguiente?.meta, ultimo.meta + 3_000_000);
+    assert.equal(siguiente?.salario, ultimo.salario + 30_000);
+  });
+
+  it('el tramo extra no abre un agujero: sigue costando más llegar que lo que paga', () => {
+    // La misma comprobación que para los niveles de la tabla, aplicada al tramo
+    // que se prolonga: por cada millón de más, autoregalarse cuesta
+    // `1.000.000 × (1 − retorno)` y recupera `5% + 10.000`.
+    const rosa = GIFT_CATALOG.find((gift) => gift.code === 'rose')!;
+    const gasto = 1_000_000 * (1 - expectedReturn(rosa.luckyChance, rosa.luckyMultipliers));
+    const recupera = 1_000_000 * 0.05 + 10_000;
+    assert.ok(recupera < gasto, 'el tramo extra saldría a cuenta autoregalándose');
+  });
+
   it('el siguiente nivel es el primero que aún no se alcanza', () => {
     assert.equal(siguienteNivel(0)?.nivel, 1);
     assert.equal(siguienteNivel(150_000)?.nivel, 2);
-    assert.equal(siguienteNivel(100_000_000), null, 'en el tope ya no hay siguiente');
+    // Ya no hay tope: pasada la tabla, el siguiente es el millón que viene.
+    assert.equal(siguienteNivel(100_000_000)?.meta, 101_000_000);
   });
 
   it('a la plataforma le sale a cuenta pagar todos los niveles', () => {

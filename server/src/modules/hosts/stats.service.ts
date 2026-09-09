@@ -11,7 +11,7 @@ import {
 } from '../../lib/constants';
 import { GIFT_CATALOG } from '../../lib/gift-catalog';
 import { expectedReturn, parseMultipliers } from '../../lib/lucky';
-import { SEGUNDOS_MINIMOS_EN_VIVO, diaDe, limitesDelDia, nivelPara } from '../../lib/salary';
+import { SEGUNDOS_MINIMOS_EN_VIVO, diaDe, limitesDelDia, nivelPara, salarioPara } from '../../lib/salary';
 import { COIN_PACKAGES } from '../wallet/wallet.service';
 
 /**
@@ -89,8 +89,9 @@ async function salariosDelDia() {
     if (!nivel) continue;
 
     conMeta += 1;
-    if ((segundos.get(fila.receiverId) ?? 0) >= SEGUNDOS_MINIMOS_EN_VIVO) aPagar += nivel.salario;
-    else sinHoras += nivel.salario;
+    const salario = salarioPara(luckyCoins);
+    if ((segundos.get(fila.receiverId) ?? 0) >= SEGUNDOS_MINIMOS_EN_VIVO) aPagar += salario;
+    else sinHoras += salario;
   }
 
   return { dia, conMeta, aPagar, sinHoras, monedas, anfitriones: porAnfitrion.length };

@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1035,
-  "commit": "74e6334",
+  "buildNumber": 1036,
+  "commit": "066005c",
   "branch": "main",
-  "builtAt": "2026-09-09T01:48:14.245Z",
+  "builtAt": "2026-09-09T01:52:37.693Z",
   "changes": [
+    "Hasta 9.999 por envío, partículas con la ilustración y sin cifra en el centro",
     "El retorno baja con el precio del regalo",
     "Otra subida: retorno 0,88 y cofres a ×8,3, que es donde topa",
     "saldos que no cuadran, salud del sorteo y baneo",
@@ -18,7 +19,6 @@
     "Ilustraciones de verdad para los regalos y seis exclusivos nuevos",
     "Los regalos de la suerte devuelven menos: 0,84 baja a 0,70",
     "Los cofres son tres casillas más de la pestaña Suerte",
-    "El rato de buena suerte dura menos y el automático va más rápido",
-    "Los cofres pasan del perfil a la caja de regalos"
+    "El rato de buena suerte dura menos y el automático va más rápido"
   ]
 }

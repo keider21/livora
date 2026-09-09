@@ -99,6 +99,7 @@ export async function getRoom(roomId: string, viewerId?: string) {
     meta: {
       luckyCoins: meta.luckyCoins,
       nivel: meta.nivel,
+      base: meta.base,
       siguiente: meta.siguiente,
       liveSeconds: meta.liveSeconds,
       segundosMinimos: meta.segundosMinimos,

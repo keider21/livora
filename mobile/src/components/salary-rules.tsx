@@ -102,6 +102,10 @@ export function SalaryRules({
             })}
           </View>
 
+          <Text style={styles.reglas}>
+            Pasado el último nivel se sigue cobrando: cada millón de más suma 💎 10.000.
+          </Text>
+
           {esAnfitrion ? (
             <>
               <Text style={styles.seccion}>Pagos</Text>

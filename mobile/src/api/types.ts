@@ -135,6 +135,8 @@ export interface SalaryProgress {
   cumpleHoras: boolean;
   segundosMinimos: number;
   nivel: number;
+  /** Monedas con las que empezó el tramo en curso. */
+  base: number;
   /** Lo que se cobraría si el día terminase ahora. */
   salarioEstimado: number;
   siguiente: SalaryLevel | null;
@@ -148,6 +150,8 @@ export interface SalaryProgress {
 export interface RoomGoal {
   luckyCoins: number;
   nivel: number;
+  /** Monedas con las que empezó el tramo en curso: el suelo de la barra. */
+  base: number;
   siguiente: SalaryLevel | null;
   liveSeconds: number;
   segundosMinimos: number;

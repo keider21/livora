@@ -5,7 +5,9 @@ import {
   SEGUNDOS_MINIMOS_EN_VIVO,
   diaDe,
   limitesDelDia,
+  inicioDelTramo,
   nivelPara,
+  salarioPara,
   siguienteNivel,
 } from '../../lib/salary';
 import { emitToUser } from '../../realtime/bus';
@@ -63,8 +65,10 @@ export async function progresoDelDia(hostId: string, dia: string = diaDe()) {
     cumpleHoras: liveSeconds >= SEGUNDOS_MINIMOS_EN_VIVO,
     segundosMinimos: SEGUNDOS_MINIMOS_EN_VIVO,
     nivel: nivel?.nivel ?? 0,
+    /** Dónde empieza el tramo en curso: el suelo de la barra de la meta. */
+    base: inicioDelTramo(luckyCoins),
     /** Lo que cobraría si el día terminase ahora. */
-    salarioEstimado: nivel && liveSeconds >= SEGUNDOS_MINIMOS_EN_VIVO ? nivel.salario : 0,
+    salarioEstimado: nivel && liveSeconds >= SEGUNDOS_MINIMOS_EN_VIVO ? salarioPara(luckyCoins) : 0,
     siguiente,
     niveles: NIVELES,
   };
@@ -105,6 +109,9 @@ export async function liquidarDia(dia: string) {
     const luckyCoins = candidato._sum.coinsSpent ?? 0;
     const nivel = nivelPara(luckyCoins);
     if (!nivel) continue;
+    // Pasado el último nivel el salario sigue subiendo por millón, así que no
+    // vale con leer el de la tabla.
+    const salario = salarioPara(luckyCoins);
 
     const progreso = await progresoDelDia(candidato.receiverId, dia);
     if (!progreso.cumpleHoras) continue;
@@ -117,7 +124,7 @@ export async function liquidarDia(dia: string) {
     const wallet = await prisma.$transaction(async (tx) => {
       const usuario = await tx.user.update({
         where: { id: candidato.receiverId },
-        data: { diamonds: { increment: nivel.salario } },
+        data: { diamonds: { increment: salario } },
         select: { coins: true, diamonds: true },
       });
 
@@ -128,7 +135,7 @@ export async function liquidarDia(dia: string) {
           level: nivel.nivel,
           luckyCoins,
           liveSeconds: progreso.liveSeconds,
-          diamonds: nivel.salario,
+          diamonds: salario,
         },
       });
 
@@ -137,7 +144,7 @@ export async function liquidarDia(dia: string) {
           userId: candidato.receiverId,
           type: TRANSACTION_TYPE.SALARY,
           currency: CURRENCY.DIAMONDS,
-          amount: nivel.salario,
+          amount: salario,
           balanceAfter: usuario.diamonds,
           reference: `salary:${dia}`,
         },
@@ -147,7 +154,7 @@ export async function liquidarDia(dia: string) {
     });
 
     emitToUser(candidato.receiverId, SOCKET_EVENTS.WALLET_UPDATED, wallet);
-    pagados.push({ hostId: candidato.receiverId, nivel: nivel.nivel, diamantes: nivel.salario });
+    pagados.push({ hostId: candidato.receiverId, nivel: nivel.nivel, diamantes: salario });
   }
 
   return { dia, pagados };

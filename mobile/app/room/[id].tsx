@@ -618,7 +618,7 @@ export default function RoomScreen() {
 
           {/* La meta, justo debajo del perfil y diminuta: se llena con cada
               regalo y se toca para ver las reglas. */}
-          {meta ? <GoalBar meta={meta} niveles={niveles} onPress={() => setReglasVisibles(true)} /> : null}
+          {meta ? <GoalBar meta={meta} onPress={() => setReglasVisibles(true)} /> : null}
           </View>
 
           <View style={styles.topRight}>
