@@ -3,6 +3,7 @@ import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import type { GiftEvent } from '../realtime/events';
 import { giftArt } from './gift-art';
+import { colors, spacing } from '../theme';
 
 
 const DESTELLOS = 14;
@@ -15,10 +16,13 @@ const DESTELLOS = 14;
  * entonces sube la cifra. Ese orden es lo que hace la espera; enseñar el número
  * a la vez que el cofre le quitaría el momento.
  *
- * **La cifra no va aquí.** La lleva el anuncio de abajo, con el nombre de quien
- * lo mandó y de quien lo recibe. Escribirla también en el centro ponía el mismo
- * número dos veces en pantalla a la vez, y encima tapando la animación que se
- * supone que hay que mirar.
+ * La cifra sale en grande cuando la tapa ya cedió, y sale **sin recuadro**: un
+ * marco con el multiplicador dentro competía con el cofre y parecía una etiqueta
+ * pegada encima. Solo el número, con su resplandor y su sombra, subiendo mientras
+ * el cofre se apaga detrás.
+ *
+ * Va el monto, no el multiplicador. «×4» hay que traducirlo mentalmente; «44.000»
+ * se entiende de un vistazo, que es todo el tiempo que dura.
  */
 export function ChestOpen({ event, onDone }: { event: GiftEvent; onDone: () => void }) {
   const progreso = useRef(new Animated.Value(0)).current;
@@ -37,7 +41,9 @@ export function ChestOpen({ event, onDone }: { event: GiftEvent; onDone: () => v
     progreso.setValue(0);
     const animacion = Animated.timing(progreso, {
       toValue: 1,
-      duration: 2200,
+      // Tres segundos: el temblor y la apertura se comen la primera mitad, así
+      // que con menos la cifra apenas se veía un instante.
+      duration: 3000,
       easing: Easing.linear,
       useNativeDriver: true,
     });
@@ -98,6 +104,34 @@ export function ChestOpen({ event, onDone }: { event: GiftEvent; onDone: () => v
           <Text style={styles.emoji}>{event.gift.emoji}</Text>
         )}
       </Animated.View>
+
+      {/* El monto, una vez abierto. Sube y se queda un momento quieto: si
+          siguiera subiendo hasta desaparecer no daría tiempo a leerlo. */}
+      <Animated.View
+        style={[
+          styles.premio,
+          {
+            opacity: progreso.interpolate({
+              inputRange: [0, 0.48, 0.58, 0.9, 1],
+              outputRange: [0, 0, 1, 1, 0],
+            }),
+            transform: [
+              { translateY: progreso.interpolate({ inputRange: [0.48, 0.72, 1], outputRange: [50, -10, -30] }) },
+              {
+                scale: progreso.interpolate({
+                  inputRange: [0.48, 0.62, 0.72, 1],
+                  outputRange: [0.4, 1.25, 1, 1],
+                }),
+              },
+            ],
+          },
+        ]}
+      >
+        <Text style={styles.monedas}>🪙 {event.coinsRewarded.toLocaleString('es')}</Text>
+        <Text style={styles.destino} numberOfLines={1}>
+          para {event.recipient.displayName}
+        </Text>
+      </Animated.View>
     </View>
   );
 }
@@ -107,4 +141,24 @@ const styles = StyleSheet.create({
   destello: { position: 'absolute', fontSize: 26 },
   cofre: { width: 150, height: 150 },
   emoji: { fontSize: 110 },
+
+  premio: { position: 'absolute', alignItems: 'center', paddingHorizontal: spacing.lg },
+  monedas: {
+    color: colors.coin,
+    fontSize: 46,
+    fontWeight: '900',
+    // Sin recuadro, lo que despega el número del vídeo es la sombra: negra y
+    // ancha por debajo, que es lo que lo hace legible sobre cualquier fondo.
+    textShadowColor: 'rgba(0,0,0,0.9)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 12,
+  },
+  destino: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+    textShadowColor: 'rgba(0,0,0,0.9)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
+  },
 });
