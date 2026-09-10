@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1041,
-  "commit": "889ad08",
+  "buildNumber": 1042,
+  "commit": "c5519e0",
   "branch": "main",
-  "builtAt": "2026-09-09T18:25:49.672Z",
+  "builtAt": "2026-09-10T00:25:13.877Z",
   "changes": [
+    "El cofre enseña en grande por cuánto explotó",
     "quien capta anfitriones cobra por lo que generan",
     "Anota agencias y sorteos en el plan, que los pidió el usuario",
     "El simulador mide el margen, no si la gente gana",
@@ -18,7 +19,6 @@
     "Otra subida: retorno 0,88 y cofres a ×8,3, que es donde topa",
     "saldos que no cuadran, salud del sorteo y baneo",
     "Las estadísticas cuentan la exposición y los salarios del día",
-    "Estadísticas de la plataforma en el perfil de pruebas",
-    "Todos los regalos de la suerte comparten escalera, y el automático al doble"
+    "Estadísticas de la plataforma en el perfil de pruebas"
   ]
 }
