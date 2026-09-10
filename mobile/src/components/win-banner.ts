@@ -41,3 +41,21 @@ export function nivelDePremio(times: number): NivelDePremio {
 export function bandaDePremio(times: number): ImageSourcePropType {
   return BANDAS[nivelDePremio(times)];
 }
+
+/**
+ * Color del texto dentro de la placa, a juego con ella.
+ *
+ * El multiplicador llevaba su propio color por tamaño, y sobre la banda dorada
+ * salía una pastilla morada que chocaba con el marco. Aquí el color lo manda la
+ * banda: si la placa es oro, el número es oro.
+ */
+export const TINTA: Record<NivelDePremio, string> = {
+  blue: '#9DEBFF',
+  purple: '#DDBBFF',
+  gold: '#FFE27A',
+  red: '#FFB9A0',
+};
+
+export function tintaDePremio(times: number): string {
+  return TINTA[nivelDePremio(times)];
+}

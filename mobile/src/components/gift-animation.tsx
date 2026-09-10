@@ -3,9 +3,9 @@ import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import type { GiftEvent } from '../realtime/events';
-import { LuckyCounter, paletaEnvio, proteccionPremio } from './lucky-counter';
+import { paletaEnvio, proteccionPremio } from './lucky-counter';
 import { giftArt } from './gift-art';
-import { PLACA, PROPORCION_BANDA, bandaDePremio } from './win-banner';
+import { PLACA, PROPORCION_BANDA, bandaDePremio, tintaDePremio } from './win-banner';
 import { Avatar } from './ui';
 import { colors, radius, spacing } from '../theme';
 
@@ -112,23 +112,21 @@ export function GiftAnimation({
   // placa de dentro del color del tamaño del premio. Sin premio se queda la
   // pastilla de siempre, que ocupa poco y no compite con el vídeo.
   if (times > 0) {
+    const tinta = tintaDePremio(times);
     return (
       <Animated.View style={[styles.container, { opacity: progress, transform: [{ translateX }, { scale }] }]}>
         <View style={styles.banda}>
-          <Image
-            source={bandaDePremio(times)}
-            style={StyleSheet.absoluteFill}
-            contentFit="fill"
-            // La lámina es un marco: estirarla sin respetar su proporción
-            // aplastaría las cintas, por eso la altura sale de la anchura.
-          />
+          {/* La lámina es un marco. Su altura sale de la proporción, y todo lo
+              que va encima se recorta a la placa: sin eso el texto se salía por
+              arriba y por abajo y quedaba pisando las cintas. */}
+          <Image source={bandaDePremio(times)} style={StyleSheet.absoluteFill} contentFit="fill" />
 
           <View style={styles.placa}>
             <View style={styles.placaFila}>
               {giftArt(event.gift.image) ? (
                 <Image source={giftArt(event.gift.image)!} style={styles.bandaArte} contentFit="contain" />
               ) : (
-                <Text style={styles.emojiBig}>{event.gift.emoji}</Text>
+                <Text style={styles.bandaEmoji}>{event.gift.emoji}</Text>
               )}
 
               <View style={styles.placaTextos}>
@@ -136,7 +134,7 @@ export function GiftAnimation({
                   {event.sender.displayName}
                 </Text>
                 <View style={styles.destino}>
-                  <Avatar uri={event.recipient.avatarUrl} name={event.recipient.displayName} size={12} />
+                  <Avatar uri={event.recipient.avatarUrl} name={event.recipient.displayName} size={11} />
                   <Text style={styles.bandaDestino} numberOfLines={1}>
                     {event.recipient.displayName}
                   </Text>
@@ -148,8 +146,12 @@ export function GiftAnimation({
               </Animated.Text>
             </View>
 
+            {/* El multiplicador toma el color de la placa: la pastilla morada
+                del contador normal chocaba con el marco dorado. */}
             <View style={styles.placaPremio}>
-              <LuckyCounter multiplier={times} round={luckyRound} />
+              <Text style={[styles.bandaMultiplicador, { color: tinta }]} numberOfLines={1}>
+                ×{times.toLocaleString('es')}
+              </Text>
               <Text style={styles.bandaMonedas} numberOfLines={1}>
                 🪙 {coinsRewarded.toLocaleString('es')}
               </Text>
@@ -197,17 +199,6 @@ export function GiftAnimation({
               {event.recipient.displayName}
             </Text>
           </View>
-
-          {/* La marca del premio va aquí dentro, bajo el nombre. Cada
-              destinatario tiene su propio sorteo, así que esta es la suya. */}
-          {times > 0 ? (
-            <View style={styles.premio}>
-              <LuckyCounter multiplier={times} round={luckyRound} />
-              <Text style={styles.monedas} numberOfLines={1}>
-                +{coinsRewarded.toLocaleString('es')}
-              </Text>
-            </View>
-          ) : null}
         </View>
 
         <Animated.Text style={[styles.quantity, { transform: [{ scale: pop }] }]}>
@@ -224,13 +215,14 @@ export function GiftAnimation({
  * cualquier cosa más grande se come media pantalla.
  */
 /** Ancho de la banda de premio. La altura sale de la proporción de la lámina. */
-const ANCHO_BANDA = 268;
+const ANCHO_BANDA = 280;
 
 const styles = StyleSheet.create({
   container: { alignSelf: 'flex-start' },
 
   banda: { width: ANCHO_BANDA, height: Math.round(ANCHO_BANDA / PROPORCION_BANDA) },
   // La placa es el hueco liso de la lámina; fuera de él se lo comen las cintas.
+  // Va recortada para que ningún nombre largo se salga del marco.
   placa: {
     position: 'absolute',
     left: `${PLACA.izquierda * 100}%`,
@@ -238,16 +230,53 @@ const styles = StyleSheet.create({
     top: `${PLACA.arriba * 100}%`,
     bottom: `${PLACA.abajo * 100}%`,
     justifyContent: 'center',
+    overflow: 'hidden',
     gap: 1,
+    // La placa se ilumina mucho, sobre todo la dorada, y el texto blanco encima
+    // se perdía. Este velo la baja lo justo para que se lea sin apagar el color.
+    backgroundColor: 'rgba(0,0,0,0.26)',
+    borderRadius: 7,
+    paddingHorizontal: 4,
   },
   placaFila: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   placaTextos: { flex: 1 },
-  placaPremio: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  bandaArte: { width: 20, height: 20 },
-  bandaEmisor: { color: '#FFFFFF', fontWeight: '800', fontSize: 9 },
-  bandaDestino: { color: 'rgba(255,255,255,0.85)', fontSize: 8, fontWeight: '600', flexShrink: 1 },
-  bandaCantidad: { color: colors.coin, fontWeight: '900', fontSize: 13 },
-  bandaMonedas: { color: colors.coin, fontSize: 10, fontWeight: '900' },
+  placaPremio: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  bandaArte: { width: 17, height: 17 },
+  bandaEmoji: { fontSize: 14 },
+  bandaEmisor: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 9,
+    lineHeight: 11,
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  bandaDestino: { color: '#FFFFFF', fontSize: 8, fontWeight: '600', flexShrink: 1 },
+  bandaCantidad: {
+    color: '#FFFFFF',
+    fontWeight: '900',
+    fontSize: 11,
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  bandaMultiplicador: {
+    fontWeight: '900',
+    fontSize: 15,
+    // Sobre la placa iluminada, el número necesita sombra para separarse.
+    textShadowColor: 'rgba(0,0,0,0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  bandaMonedas: {
+    color: '#FFFFFF',
+    fontSize: 9.5,
+    fontWeight: '800',
+    textShadowColor: 'rgba(0,0,0,0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
 
   badge: {
     flexDirection: 'row',
@@ -266,8 +295,6 @@ const styles = StyleSheet.create({
   arteBig: { width: 28, height: 28 },
   destino: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   texts: { maxWidth: 150 },
-  premio: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  monedas: { color: colors.coin, fontSize: 8, fontWeight: '800' },
   // Blanco puro sobre los fondos saturados, que ya son oscuros de por sí.
   sender: { color: '#FFFFFF', fontWeight: '800', fontSize: 9 },
   gift: { color: 'rgba(255,255,255,0.85)', fontWeight: '600', fontSize: 8 },
