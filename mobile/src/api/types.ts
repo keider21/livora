@@ -23,12 +23,27 @@ export interface CurrentUser extends PublicUser {
   following?: number;
 }
 
+/**
+ * Los tres formatos de sala.
+ *
+ * - `live`: la cámara del anfitrión llena la pantalla.
+ * - `party`: la cámara se encoge y al lado caben más invitados.
+ * - `audio`: sin cámara de nadie, y por eso caben muchos más.
+ */
+export type RoomMode = 'live' | 'party' | 'audio';
+
 export interface Room {
   id: string;
   title: string;
   coverUrl: string | null;
   category: string;
   status: 'live' | 'ended';
+  /** Formato de la sala: decide el aforo de arriba y si hay cámara. */
+  mode: RoomMode;
+  /** Lo que se anuncia en el chat al abrir. */
+  welcome: string | null;
+  /** Cuántos caben arriba en este formato. */
+  maxSeats: number;
   channel: string;
   viewerCount: number;
   peakViewers: number;

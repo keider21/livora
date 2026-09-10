@@ -1,6 +1,6 @@
 import { prisma } from '../../lib/prisma';
 import { HttpError } from '../../lib/http-error';
-import { MAX_SEATS, MESSAGE_TYPE, ROOM_STATUS, SEAT_STATUS } from '../../lib/constants';
+import { MESSAGE_TYPE, ROOM_STATUS, SEAT_STATUS, asientosDelModo } from '../../lib/constants';
 import { streamProvider } from '../../streaming';
 import { emitToRoom, emitToUser } from '../../realtime/bus';
 import { SOCKET_EVENTS, type SeatPayload, type SeatsPayload } from '../../realtime/events';
@@ -69,7 +69,7 @@ async function broadcastSeats(roomId: string, hostId: string) {
 async function liveRoom(roomId: string) {
   const room = await prisma.room.findUnique({
     where: { id: roomId },
-    select: { id: true, hostId: true, status: true, channel: true },
+    select: { id: true, hostId: true, status: true, channel: true, mode: true },
   });
   if (!room) throw HttpError.notFound('La transmisión no existe');
   if (room.status !== ROOM_STATUS.LIVE) throw HttpError.conflict('La transmisión ya terminó');
@@ -115,7 +115,10 @@ export async function acceptSeat(roomId: string, hostId: string, userId: string)
     select: { position: true },
   });
   const used = new Set(taken.map((row) => row.position));
-  const position = Array.from({ length: MAX_SEATS }, (_, i) => i + 1).find((slot) => !used.has(slot));
+  // Cuántos caben depende del formato: en audio no hay vídeo de nadie, así que
+  // caben muchos más que en una sala con la cámara del anfitrión encendida.
+  const huecos = asientosDelModo(room.mode);
+  const position = Array.from({ length: huecos }, (_, i) => i + 1).find((slot) => !used.has(slot));
   if (position === undefined) throw HttpError.conflict('No quedan huecos libres');
 
   await prisma.roomSeat.update({

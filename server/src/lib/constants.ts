@@ -36,7 +36,44 @@ export const SEAT_STATUS = {
 } as const;
 
 /** Cuántos invitados caben a la vez en la tira lateral. */
-export const MAX_SEATS = 8;
+/**
+ * Los tres formatos de sala.
+ *
+ * - `live`: la cámara del anfitrión llena la pantalla. Es el de siempre.
+ * - `party`: la cámara se encoge y al lado caben más invitados; la sala pasa de
+ *   ser un escenario a ser una mesa.
+ * - `audio`: sin cámara de nadie. Al no gastar vídeo caben muchos más, y es lo
+ *   que aguanta una conexión mala, que es donde más gente se cae.
+ */
+export const ROOM_MODE = {
+  LIVE: 'live',
+  PARTY: 'party',
+  AUDIO: 'audio',
+} as const;
+
+export const ROOM_MODES = [ROOM_MODE.LIVE, ROOM_MODE.PARTY, ROOM_MODE.AUDIO] as const;
+
+/**
+ * Cuánta gente cabe arriba en cada formato.
+ *
+ * El tope no es estético: cada invitado publica su propio audio, así que el
+ * número sale de lo que aguanta la sala sin que se convierta en ruido.
+ */
+export const ASIENTOS_POR_MODO: Record<string, number> = {
+  [ROOM_MODE.LIVE]: 8,
+  [ROOM_MODE.PARTY]: 10,
+  [ROOM_MODE.AUDIO]: 25,
+};
+
+/** El mayor de todos, para lo que necesita un número fijo. */
+export const MAX_SEATS = 25;
+
+export function asientosDelModo(mode: string): number {
+  return ASIENTOS_POR_MODO[mode] ?? ASIENTOS_POR_MODO[ROOM_MODE.LIVE]!;
+}
+
+/** Lo que se anuncia al abrir si el anfitrión no escribe nada. */
+export const BIENVENIDA_POR_DEFECTO = '¡Bienvenidos a mi live!';
 
 export const CURRENCY = {
   COINS: 'coins',

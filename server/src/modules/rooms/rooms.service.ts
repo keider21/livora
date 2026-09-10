@@ -1,6 +1,6 @@
 import { prisma } from '../../lib/prisma';
 import { HttpError } from '../../lib/http-error';
-import { MESSAGE_TYPE, ROOM_STATUS } from '../../lib/constants';
+import { BIENVENIDA_POR_DEFECTO, MESSAGE_TYPE, ROOM_STATUS } from '../../lib/constants';
 import { streamProvider, type StreamRole } from '../../streaming';
 import { publicUserSelect } from '../users/user.dto';
 import { countRoomViewers, emitToRoom } from '../../realtime/bus';
@@ -56,9 +56,16 @@ export async function createRoom(hostId: string, input: CreateRoomInput) {
       coverUrl: input.coverUrl,
       channel,
       status: ROOM_STATUS.LIVE,
+      mode: input.mode,
+      welcome: input.welcome?.trim() || BIENVENIDA_POR_DEFECTO,
     },
     select: roomSelect,
   });
+
+  // La bienvenida se anuncia en el chat, que es donde mira quien entra. Va como
+  // mensaje del sistema y no del anfitrión: así no parece que la esté
+  // escribiendo cada vez que alguien aparece.
+  await postMessage(room.id, hostId, room.welcome ?? BIENVENIDA_POR_DEFECTO, MESSAGE_TYPE.SYSTEM);
 
   await prisma.user.update({ where: { id: hostId }, data: { isHost: true } });
 

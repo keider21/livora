@@ -46,6 +46,7 @@ import { GiftPicker, type GiftTarget } from '../../src/components/gift-picker';
 import { QuickGift } from '../../src/components/quick-gift';
 import { SeatRequests } from '../../src/components/seat-requests';
 import { SeatStrip } from '../../src/components/seat-strip';
+import { SeatGrid } from '../../src/components/seat-grid';
 import { FloatingHeart, type HeartSpec } from '../../src/components/floating-hearts';
 import { useKeyboardHeight } from '../../src/components/use-keyboard-height';
 import { Avatar, Loader } from '../../src/components/ui';
@@ -532,6 +533,11 @@ export default function RoomScreen() {
   }
 
   const renderer = getStreamRenderer(credentials?.provider ?? 'mock');
+  // El formato decide la pantalla: en audio no hay vídeo de nadie, y en fiesta la
+  // cámara se encoge para dejar sitio a los invitados.
+  const esAudio = room.mode === 'audio';
+  const esFiesta = room.mode === 'party';
+  const enRejilla = esAudio || esFiesta;
   const ultimoAnuncio = announcements[announcements.length - 1] ?? null;
   // Los exclusivos ya se ven en la escena; aquí solo van los demás.
   const explosion =
@@ -543,7 +549,11 @@ export default function RoomScreen() {
 
   return (
     <View style={styles.fill}>
-      {credentials ? (
+      {esAudio ? (
+        // Sin cámara de nadie: el fondo lo pone la sala, no el vídeo.
+        <View style={[StyleSheet.absoluteFill, styles.audioFondo]} />
+      ) : credentials ? (
+        <View style={esFiesta ? styles.videoFiesta : StyleSheet.absoluteFill}>
         <renderer.Surface
           credentials={credentials}
           hostName={room.host.displayName}
@@ -555,6 +565,7 @@ export default function RoomScreen() {
             <LiveKitHostControls visible={controlsOpen} onClose={() => setControlsOpen(false)} />
           ) : null}
         </renderer.Surface>
+        </View>
       ) : (
         <View style={[StyleSheet.absoluteFill, styles.endedBackdrop]}>
           <Text style={styles.endedText}>Esta transmisión ya terminó</Text>
@@ -637,18 +648,33 @@ export default function RoomScreen() {
           </View>
         </View>
 
-        <View style={styles.middle} pointerEvents="box-none">
-          <View style={styles.middleHueco} />
+        {enRejilla ? (
+          <View style={styles.rejillaZona} pointerEvents="box-none">
+            <SeatGrid
+              seats={seats}
+              maxSeats={room.maxSeats}
+              selectedId={giftTargets[0] ?? room.host.id}
+              isHost={isHost}
+              onSelect={(userId) => setGiftTargets([userId])}
+              onRemove={(userId) => void seatAction('remove', userId)}
+              onRequest={() => void toggleSeat()}
+              puedePedir={!isHost && !seats.some((seat) => seat.userId === user?.id)}
+            />
+          </View>
+        ) : (
+          <View style={styles.middle} pointerEvents="box-none">
+            <View style={styles.middleHueco} />
 
-          <SeatStrip
-            seats={seats}
-            selectedId={giftTargets[0] ?? room.host.id}
-            hostId={room.host.id}
-            isHost={isHost}
-            onSelect={(userId) => setGiftTargets([userId])}
-            onRemove={(userId) => void seatAction('remove', userId)}
-          />
-        </View>
+            <SeatStrip
+              seats={seats}
+              selectedId={giftTargets[0] ?? room.host.id}
+              hostId={room.host.id}
+              isHost={isHost}
+              onSelect={(userId) => setGiftTargets([userId])}
+              onRemove={(userId) => void seatAction('remove', userId)}
+            />
+          </View>
+        )}
 
         {/* El desplazamiento por el teclado se hace a mano: en Android la
             ventana no se redimensiona y el teclado tapaba lo que se escribía.
@@ -840,6 +866,11 @@ export default function RoomScreen() {
 
 const styles = StyleSheet.create({
   fill: { flex: 1, backgroundColor: colors.bg },
+  // En fiesta la cámara del anfitrión se queda arriba y ocupa poco menos de la
+  // mitad: lo justo para verle la cara sin comerse el sitio de los invitados.
+  videoFiesta: { position: 'absolute', left: 0, right: 0, top: 0, height: '44%' },
+  audioFondo: { backgroundColor: '#0B1220' },
+  rejillaZona: { flex: 1, justifyContent: 'center', paddingVertical: spacing.md },
   quickRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',

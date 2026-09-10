@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1044,
-  "commit": "396a20c",
+  "buildNumber": 1045,
+  "commit": "aa5442d",
   "branch": "main",
-  "builtAt": "2026-09-10T05:24:07.721Z",
+  "builtAt": "2026-09-10T06:13:31.264Z",
   "changes": [
+    "La banda del premio, más estrecha y con el conteo fuera",
     "Ajusta la banda del premio: cabe todo y el color va a juego",
     "El premio sale enmarcado en la banda, con su color según lo gordo",
     "El cofre enseña en grande por cuánto explotó",
@@ -18,7 +19,6 @@
     "El salario sigue subiendo pasados los cien millones",
     "Hasta 9.999 por envío, partículas con la ilustración y sin cifra en el centro",
     "El retorno baja con el precio del regalo",
-    "Otra subida: retorno 0,88 y cofres a ×8,3, que es donde topa",
-    "saldos que no cuadran, salud del sorteo y baneo"
+    "Otra subida: retorno 0,88 y cofres a ×8,3, que es donde topa"
   ]
 }

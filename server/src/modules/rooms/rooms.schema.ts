@@ -1,10 +1,12 @@
 import { z } from 'zod';
-import { ROOM_CATEGORIES } from '../../lib/constants';
+import { ROOM_CATEGORIES, ROOM_MODES } from '../../lib/constants';
 
 export const createRoomSchema = z.object({
   title: z.string().min(3, 'Mínimo 3 caracteres').max(60, 'Máximo 60 caracteres'),
   category: z.enum(ROOM_CATEGORIES).default('chat'),
   coverUrl: z.string().url().optional(),
+  mode: z.enum(ROOM_MODES).default('live'),
+  welcome: z.string().trim().max(120, 'Máximo 120 caracteres').optional(),
 });
 
 export const listRoomsSchema = z.object({

@@ -5,7 +5,7 @@ import { expectedReturn, parseMultipliers, rollLucky } from '../src/lib/lucky';
 import { factorSuerte } from '../src/lib/lucky-mood';
 import { GIFT_CATALOG, SIN_ILUSTRACION } from '../src/lib/gift-catalog';
 import { NIVELES } from '../src/lib/salary';
-import { DIAMONDS_PER_COIN } from '../src/lib/constants';
+import { BIENVENIDA_POR_DEFECTO, DIAMONDS_PER_COIN, asientosDelModo } from '../src/lib/constants';
 import { startTestApi, uniqueName, type TestApi } from './helpers';
 
 let api: TestApi;
@@ -82,6 +82,52 @@ async function openRoom(token: string) {
   assert.equal(status, 201);
   return data.room.id as string;
 }
+
+describe('formatos de sala', () => {
+  it('cada formato tiene su propio aforo arriba', async () => {
+    // No es estético: cada invitado publica su audio, así que el número sale de
+    // lo que aguanta la sala. Sin vídeo de nadie caben muchos más.
+    assert.equal(asientosDelModo('live'), 8);
+    assert.equal(asientosDelModo('party'), 10);
+    assert.equal(asientosDelModo('audio'), 25);
+    assert.equal(asientosDelModo('loquesea'), 8, 'un modo desconocido cae en el normal');
+  });
+
+  it('la sala guarda su formato y lo dice, con su aforo', async () => {
+    const anfitrion = await createUser();
+    const { data } = await api.request('POST', '/api/rooms', {
+      token: anfitrion.token,
+      body: { title: 'Fiesta de prueba', mode: 'party' },
+    });
+
+    assert.equal(data.room.mode, 'party');
+    assert.equal(data.room.maxSeats, 10);
+  });
+
+  it('la bienvenida se anuncia en el chat al abrir', async () => {
+    const anfitrion = await createUser();
+    const { data } = await api.request('POST', '/api/rooms', {
+      token: anfitrion.token,
+      body: { title: 'Sala con saludo', welcome: 'Pasen y canten' },
+    });
+
+    const mensajes = await prisma.message.findMany({ where: { roomId: data.room.id } });
+    assert.equal(mensajes.length, 1);
+    assert.equal(mensajes[0]?.body, 'Pasen y canten');
+    assert.equal(mensajes[0]?.type, 'system', 'del sistema, no del anfitrión');
+  });
+
+  it('sin escribir nada se anuncia la de por defecto', async () => {
+    const anfitrion = await createUser();
+    const { data } = await api.request('POST', '/api/rooms', {
+      token: anfitrion.token,
+      body: { title: 'Sala sin saludo' },
+    });
+
+    assert.equal(data.room.welcome, BIENVENIDA_POR_DEFECTO);
+    assert.equal(data.room.mode, 'live', 'y el formato normal');
+  });
+});
 
 describe('sorteo de los regalos con premio', () => {
   it('no devuelve nada cuando el regalo no tiene premio', () => {

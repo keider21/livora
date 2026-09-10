@@ -1,4 +1,5 @@
 import type { Prisma } from '@prisma/client';
+import { asientosDelModo } from '../../lib/constants';
 import { publicUserSelect, toPublicUser } from '../users/user.dto';
 
 export const roomSelect = {
@@ -7,6 +8,8 @@ export const roomSelect = {
   coverUrl: true,
   category: true,
   status: true,
+  mode: true,
+  welcome: true,
   channel: true,
   viewerCount: true,
   peakViewers: true,
@@ -26,6 +29,10 @@ export function toRoom(room: RoomRow) {
     coverUrl: room.coverUrl,
     category: room.category,
     status: room.status,
+    mode: room.mode,
+    welcome: room.welcome,
+    /** Cuántos caben arriba en este formato. */
+    maxSeats: asientosDelModo(room.mode),
     channel: room.channel,
     viewerCount: room.viewerCount,
     peakViewers: room.peakViewers,

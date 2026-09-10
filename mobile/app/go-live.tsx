@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { ApiError, rooms as roomsApi } from '../src/api';
+import type { RoomMode } from '../src/api/types';
 import { Button, Field } from '../src/components/ui';
 import { colors, radius, spacing, typography } from '../src/theme';
 
@@ -15,10 +16,38 @@ const CATEGORIES = [
   { value: 'talent', label: 'Talento', icon: 'sparkles' },
 ] as const;
 
+/**
+ * Los tres formatos. La descripción importa: quien abre por primera vez no sabe
+ * qué es «fiesta», y elegir mal el formato se nota cuando ya hay gente dentro
+ * porque no se puede cambiar con la sala abierta.
+ */
+const MODOS = [
+  {
+    value: 'live' as const,
+    label: 'En vivo',
+    icon: 'videocam' as const,
+    detalle: 'Tu cámara a pantalla completa. Hasta 8 invitados.',
+  },
+  {
+    value: 'party' as const,
+    label: 'Fiesta',
+    icon: 'people' as const,
+    detalle: 'Tu cámara más pequeña y sitio para 10 arriba.',
+  },
+  {
+    value: 'audio' as const,
+    label: 'Solo audio',
+    icon: 'mic' as const,
+    detalle: 'Sin cámara de nadie. Caben 25 y aguanta mala conexión.',
+  },
+];
+
 export default function GoLiveScreen() {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<string>('chat');
+  const [mode, setMode] = useState<RoomMode>('live');
+  const [welcome, setWelcome] = useState('¡Bienvenidos a mi live!');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,7 +55,12 @@ export default function GoLiveScreen() {
     setError(null);
     setLoading(true);
     try {
-      const { room } = await roomsApi.create({ title: title.trim(), category });
+      const { room } = await roomsApi.create({
+        title: title.trim(),
+        category,
+        mode,
+        welcome: welcome.trim(),
+      });
       router.replace(`/room/${room.id}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'No se pudo iniciar la transmisión');
@@ -51,6 +85,36 @@ export default function GoLiveScreen() {
             onChangeText={setTitle}
             placeholder="Noche acústica 🎤"
             maxLength={60}
+          />
+
+          <View style={{ gap: spacing.sm }}>
+            <Text style={typography.label}>Formato</Text>
+            {MODOS.map((item) => {
+              const activo = mode === item.value;
+              return (
+                <Pressable
+                  key={item.value}
+                  onPress={() => setMode(item.value)}
+                  style={[styles.modo, activo && styles.modoActivo]}
+                >
+                  <Ionicons name={item.icon} size={20} color={activo ? colors.primary : colors.textMuted} />
+                  <View style={styles.modoTextos}>
+                    <Text style={[styles.modoNombre, activo && { color: colors.primary }]}>{item.label}</Text>
+                    <Text style={styles.modoDetalle}>{item.detalle}</Text>
+                  </View>
+                  {activo ? <Ionicons name="checkmark-circle" size={18} color={colors.primary} /> : null}
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {/* Se anuncia en el chat al abrir, que es donde mira quien entra. */}
+          <Field
+            label="Bienvenida"
+            value={welcome}
+            onChangeText={setWelcome}
+            placeholder="¡Bienvenidos a mi live!"
+            maxLength={120}
           />
 
           <View style={{ gap: spacing.sm }}>
@@ -98,6 +162,21 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.xl, gap: spacing.xl },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  modo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+  },
+  modoActivo: { borderColor: colors.primary, backgroundColor: 'rgba(0,230,118,0.08)' },
+  modoTextos: { flex: 1, gap: 1 },
+  modoNombre: { color: colors.text, fontWeight: '800', fontSize: 14 },
+  modoDetalle: { color: colors.textMuted, fontSize: 11 },
+
   categories: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   category: {
     flexDirection: 'row',

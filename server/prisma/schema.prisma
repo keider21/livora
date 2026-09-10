@@ -152,6 +152,12 @@ model Room {
   category String  @default("chat") // chat | music | dance | game | talent
   status   String  @default("live") // live | ended
 
+  /// Cómo se ve la sala: live | party | audio. Decide cuántos caben arriba y
+  /// si hay cámara del anfitrión, y no se puede cambiar con la sala abierta.
+  mode    String @default("live")
+  /// Lo que se anuncia en el chat al abrir. Lo escribe el anfitrión.
+  welcome String?
+
   // Identificador del canal en el proveedor de streaming (Agora/LiveKit/mock)
   channel String @unique
 
@@ -179,7 +185,8 @@ model RoomSeat {
   userId   String
   /// pending = ha pedido subir | active = está arriba
   status   String  @default("pending")
-  /// 1..8, el hueco que ocupa en la tira. Nulo mientras está pendiente.
+  /// El hueco que ocupa, desde 1 hasta el máximo del modo de la sala. Nulo
+  /// mientras está pendiente.
   position Int?
   micMuted Boolean @default(false)
 

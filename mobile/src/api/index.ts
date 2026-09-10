@@ -15,6 +15,7 @@ import type {
   RankingEntry,
   Room,
   RoomGoal,
+  RoomMode,
   SalaryLevel,
   SalaryPayment,
   SalaryProgress,
@@ -49,7 +50,7 @@ export const rooms = {
     return apiRequest<{ rooms: Room[]; nextCursor: string | null }>(`/api/rooms?${query.toString()}`);
   },
 
-  create: (body: { title: string; category?: string; coverUrl?: string }) =>
+  create: (body: { title: string; category?: string; coverUrl?: string; mode?: RoomMode; welcome?: string }) =>
     apiRequest<{ room: Room; credentials: StreamCredentials }>('/api/rooms', { method: 'POST', body }),
 
   get: (roomId: string) =>
