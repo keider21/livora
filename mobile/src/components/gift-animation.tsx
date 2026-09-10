@@ -115,48 +115,42 @@ export function GiftAnimation({
     const tinta = tintaDePremio(times);
     return (
       <Animated.View style={[styles.container, { opacity: progress, transform: [{ translateX }, { scale }] }]}>
-        <View style={styles.banda}>
-          {/* La lámina es un marco. Su altura sale de la proporción, y todo lo
-              que va encima se recorta a la placa: sin eso el texto se salía por
-              arriba y por abajo y quedaba pisando las cintas. */}
-          <Image source={bandaDePremio(times)} style={StyleSheet.absoluteFill} contentFit="fill" />
+        <View style={styles.bandaFila}>
+          <View style={styles.banda}>
+            {/* La lámina es un marco. Su altura sale de la proporción, y lo que
+                va encima se recorta a la placa para que nada pise las cintas. */}
+            <Image source={bandaDePremio(times)} style={StyleSheet.absoluteFill} contentFit="fill" />
 
-          <View style={styles.placa}>
-            <View style={styles.placaFila}>
-              {giftArt(event.gift.image) ? (
-                <Image source={giftArt(event.gift.image)!} style={styles.bandaArte} contentFit="contain" />
-              ) : (
-                <Text style={styles.bandaEmoji}>{event.gift.emoji}</Text>
-              )}
-
-              <View style={styles.placaTextos}>
-                <Text style={styles.bandaEmisor} numberOfLines={1}>
-                  {event.sender.displayName}
+            <View style={styles.placa}>
+              <View style={styles.placaFila}>
+                {giftArt(event.gift.image) ? (
+                  <Image source={giftArt(event.gift.image)!} style={styles.bandaArte} contentFit="contain" />
+                ) : (
+                  <Text style={styles.bandaEmoji}>{event.gift.emoji}</Text>
+                )}
+                <Text style={styles.bandaNombres} numberOfLines={1}>
+                  {event.sender.displayName} › {event.recipient.displayName}
                 </Text>
-                <View style={styles.destino}>
-                  <Avatar uri={event.recipient.avatarUrl} name={event.recipient.displayName} size={11} />
-                  <Text style={styles.bandaDestino} numberOfLines={1}>
-                    {event.recipient.displayName}
-                  </Text>
-                </View>
               </View>
 
-              <Animated.Text style={[styles.bandaCantidad, { transform: [{ scale: pop }] }]}>
-                ×{comboQuantity}
-              </Animated.Text>
-            </View>
-
-            {/* El multiplicador toma el color de la placa: la pastilla morada
-                del contador normal chocaba con el marco dorado. */}
-            <View style={styles.placaPremio}>
-              <Text style={[styles.bandaMultiplicador, { color: tinta }]} numberOfLines={1}>
-                ×{times.toLocaleString('es')}
-              </Text>
-              <Text style={styles.bandaMonedas} numberOfLines={1}>
-                🪙 {coinsRewarded.toLocaleString('es')}
-              </Text>
+              {/* El multiplicador toma el color de la placa: la pastilla morada
+                  del contador normal chocaba con el marco dorado. */}
+              <View style={styles.placaPremio}>
+                <Text style={[styles.bandaMultiplicador, { color: tinta }]} numberOfLines={1}>
+                  ×{times.toLocaleString('es')}
+                </Text>
+                <Text style={styles.bandaMonedas} numberOfLines={1}>
+                  🪙 {coinsRewarded.toLocaleString('es')}
+                </Text>
+              </View>
             </View>
           </View>
+
+          {/* Cuántos van enviados, fuera del marco y a la derecha, como en las
+              apps del sector: dentro competía con el premio y encima no cabía. */}
+          <Animated.Text style={[styles.bandaCombo, { transform: [{ scale: pop }] }]}>
+            ×{comboQuantity}
+          </Animated.Text>
         </View>
       </Animated.View>
     );
@@ -215,11 +209,12 @@ export function GiftAnimation({
  * cualquier cosa más grande se come media pantalla.
  */
 /** Ancho de la banda de premio. La altura sale de la proporción de la lámina. */
-const ANCHO_BANDA = 280;
+const ANCHO_BANDA = 236;
 
 const styles = StyleSheet.create({
   container: { alignSelf: 'flex-start' },
 
+  bandaFila: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   banda: { width: ANCHO_BANDA, height: Math.round(ANCHO_BANDA / PROPORCION_BANDA) },
   // La placa es el hueco liso de la lámina; fuera de él se lo comen las cintas.
   // Va recortada para que ningún nombre largo se salga del marco.
@@ -232,50 +227,45 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
     gap: 1,
-    // La placa se ilumina mucho, sobre todo la dorada, y el texto blanco encima
-    // se perdía. Este velo la baja lo justo para que se lea sin apagar el color.
-    backgroundColor: 'rgba(0,0,0,0.26)',
-    borderRadius: 7,
-    paddingHorizontal: 4,
   },
   placaFila: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  placaTextos: { flex: 1 },
   placaPremio: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  bandaArte: { width: 17, height: 17 },
-  bandaEmoji: { fontSize: 14 },
-  bandaEmisor: {
+  bandaArte: { width: 15, height: 15 },
+  bandaEmoji: { fontSize: 13 },
+  bandaNombres: {
     color: '#FFFFFF',
-    fontWeight: '800',
-    fontSize: 9,
+    fontWeight: '700',
+    fontSize: 8.5,
     lineHeight: 11,
-    textShadowColor: 'rgba(0,0,0,0.8)',
+    flexShrink: 1,
+    textShadowColor: 'rgba(0,0,0,0.85)',
     textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-  bandaDestino: { color: '#FFFFFF', fontSize: 8, fontWeight: '600', flexShrink: 1 },
-  bandaCantidad: {
-    color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 11,
-    textShadowColor: 'rgba(0,0,0,0.8)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    textShadowRadius: 3,
   },
   bandaMultiplicador: {
     fontWeight: '900',
     fontSize: 15,
     // Sobre la placa iluminada, el número necesita sombra para separarse.
-    textShadowColor: 'rgba(0,0,0,0.75)',
+    textShadowColor: 'rgba(0,0,0,0.85)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },
   bandaMonedas: {
     color: '#FFFFFF',
-    fontSize: 9.5,
+    fontSize: 9,
     fontWeight: '800',
-    textShadowColor: 'rgba(0,0,0,0.75)',
+    textShadowColor: 'rgba(0,0,0,0.85)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
+  },
+  bandaCombo: {
+    color: colors.coin,
+    fontSize: 22,
+    fontWeight: '900',
+    fontStyle: 'italic',
+    textShadowColor: 'rgba(0,0,0,0.9)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
 
   badge: {

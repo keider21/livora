@@ -29,7 +29,7 @@ export const PROPORCION_BANDA = 2.78;
  * Dónde cae la placa dentro de la lámina, en tanto por uno. El texto va aquí
  * dentro; fuera se lo comen las cintas y las monedas.
  */
-export const PLACA = { izquierda: 0.31, derecha: 0.1, arriba: 0.34, abajo: 0.2 };
+export const PLACA = { izquierda: 0.33, derecha: 0.1, arriba: 0.31, abajo: 0.18 };
 
 export function nivelDePremio(times: number): NivelDePremio {
   if (times >= 1_000) return 'red';
