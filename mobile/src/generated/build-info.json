@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1046,
-  "commit": "26caa4c",
+  "buildNumber": 1047,
+  "commit": "f52ab52",
   "branch": "main",
-  "builtAt": "2026-09-10T19:54:03.461Z",
+  "builtAt": "2026-09-11T07:31:54.476Z",
   "changes": [
+    "Las cuentas de prueba llevan foto de persona",
     "Tres formatos de sala y mensaje de bienvenida",
     "La banda del premio, más estrecha y con el conteo fuera",
     "Ajusta la banda del premio: cabe todo y el color va a juego",
@@ -18,7 +19,6 @@
     "La racha caliente baja a 1,67 y dura diez segundos",
     "Cofres a ×11 y el chat dice cuánto salió",
     "El salario sigue subiendo pasados los cien millones",
-    "Hasta 9.999 por envío, partículas con la ilustración y sin cifra en el centro",
-    "El retorno baja con el precio del regalo"
+    "Hasta 9.999 por envío, partículas con la ilustración y sin cifra en el centro"
   ]
 }
