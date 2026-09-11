@@ -216,19 +216,24 @@ describe('sorteo de los regalos con premio', () => {
     // siempre vuelve algo, y el caro se paga de verdad. Se comparan las cifras
     // exactas, no redondeadas: ahora el catálogo declara el retorno y lo que se
     // calcula es la probabilidad, así que cualquier desvío es un error real.
-    const esperado: Record<string, number> = {
-      clap: 0.85, wink: 0.85, star: 0.85, candy: 0.85, rose: 0.85, heart: 0.85, beer: 0.85,
-      crown: 0.78, fireworks: 0.78,
-      ferrari: 0.7, yacht: 0.65, castle: 0.58,
-    };
+    // El retorno lo decide el precio, no el regalo: con el catálogo en sesenta
+    // piezas, comprobarlos uno a uno sería una lista que nadie mantiene. Lo que
+    // se vigila es la escalera, que es la decisión de verdad.
+    const esperado: [number, number][] = [
+      [100, 0.85],
+      [999, 0.78],
+      [1_999, 0.7],
+      [4_999, 0.65],
+      [Infinity, 0.58],
+    ];
 
     for (const gift of GIFT_CATALOG) {
-      if (gift.tier === 'chest') continue;
+      if (gift.tier === 'chest' || gift.luckyChance === 0) continue;
       const retorno = expectedReturn(gift.luckyChance, gift.luckyMultipliers);
-      const previsto = esperado[gift.code] ?? 0;
+      const previsto = esperado.find(([hasta]) => gift.priceCoins <= hasta)![1];
       assert.ok(
         Math.abs(retorno - previsto) < 0.005,
-        `${gift.code} devuelve ${retorno.toFixed(3)} y estaba documentado ${previsto}`,
+        `${gift.code} (${gift.priceCoins}) devuelve ${retorno.toFixed(3)} y su tramo dice ${previsto}`,
       );
     }
   });

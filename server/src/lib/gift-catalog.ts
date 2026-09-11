@@ -122,7 +122,7 @@ function probabilidadPara(precio: number): number {
   return tramo.retorno / media;
 }
 
-export const SIN_ILUSTRACION = new Set(['clap', 'wink', 'star', 'candy']);
+export const SIN_ILUSTRACION = new Set(['fan-throne']);
 
 export const GIFT_CATALOG = [
 
@@ -157,23 +157,72 @@ export const GIFT_CATALOG = [
   { code: 'chest-bronze', name: 'Cofre de bronce', emoji: '🎁', priceCoins: 1_000, image: 'chest-bronze', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '3:24000,5:33000,10:52000,14:29500,20:19500,100:1350,200:410', minFanLevel: 0 },
   { code: 'chest-silver', name: 'Cofre de plata', emoji: '🎁', priceCoins: 5_000, image: 'chest-silver', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '4:30000,6:40000,10:44000,14:24000,20:16000,30:6500,50:2300,120:280,300:75', minFanLevel: 0 },
   { code: 'chest-gold', name: 'Cofre de oro', emoji: '🎁', priceCoins: 10_000, image: 'chest-gold', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '4:60000,6:80000,10:88000,14:48000,20:32000,30:13000,50:4600,140:480,400:130', minFanLevel: 0 },
-  // Los de una y cinco monedas: el regalo que se manda por mandar algo, y el
-  // que abre la puerta a los demás. En una sala vacía son los que rompen el
-  // hielo, y de ahí sale el resto.
-  { code: 'clap', name: 'Aplauso', emoji: '👏', priceCoins: 1, image: null, tier: 'basic', animation: 'float', luckyChance: probabilidadPara(1), luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  { code: 'wink', name: 'Guiño', emoji: '😉', priceCoins: 1, image: null, tier: 'basic', animation: 'float', luckyChance: probabilidadPara(1), luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  { code: 'star', name: 'Estrella', emoji: '⭐', priceCoins: 5, image: null, tier: 'basic', animation: 'float', luckyChance: probabilidadPara(5), luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  { code: 'candy', name: 'Caramelo', emoji: '🍬', priceCoins: 5, image: null, tier: 'basic', animation: 'float', luckyChance: probabilidadPara(5), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  // Veinte escalones de precio, tres regalos en cada uno. Tres y no uno porque
+  // con una sola opción por precio la elección es el precio; con tres, cada cual
+  // manda el que le pega, y eso es lo que hace que la caja se mire.
+  //
+  // El orden va de lo cotidiano a lo imposible a propósito: subir de escalón
+  // tiene que sentirse como subir, no como pagar más por lo mismo.
+  { code: 'clap', name: 'Aplauso', emoji: '👏', priceCoins: 1, image: 'clap', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(1), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'wink', name: 'Guiño', emoji: '😉', priceCoins: 1, image: 'wink', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(1), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'thumb', name: 'Pulgar', emoji: '👍', priceCoins: 1, image: 'thumb', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(1), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'smile', name: 'Sonrisa', emoji: '😀', priceCoins: 2, image: 'smile', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(2), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'kiss', name: 'Beso', emoji: '😘', priceCoins: 2, image: 'kiss', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(2), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'wave', name: 'Saludo', emoji: '👋', priceCoins: 2, image: 'wave', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(2), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'star', name: 'Estrella', emoji: '⭐', priceCoins: 5, image: 'star', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(5), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'candy', name: 'Caramelo', emoji: '🍬', priceCoins: 5, image: 'candy', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(5), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'clover', name: 'Trébol', emoji: '🍀', priceCoins: 5, image: 'clover', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(5), luckyMultipliers: PREMIOS, minFanLevel: 0 },
   { code: 'rose', name: 'Rosa', emoji: '🌹', priceCoins: 10, image: 'rose', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(10), luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  { code: 'heart', name: 'Corazón', emoji: '💖', priceCoins: 25, image: 'heart', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(25), luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  { code: 'beer', name: 'Cerveza', emoji: '🍺', priceCoins: 50, image: 'beer', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(50), luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  { code: 'crown', name: 'Corona', emoji: '👑', priceCoins: 199, image: 'crown', tier: 'rare', animation: 'burst', luckyChance: probabilidadPara(199), luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  { code: 'fireworks', name: 'Fuegos artificiales', emoji: '🎆', priceCoins: 499, image: 'fireworks', tier: 'rare', animation: 'burst', luckyChance: probabilidadPara(499), luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  // 0,0148 × 48,28 = 0,71
-  { code: 'ferrari', name: 'Deportivo', emoji: '🏎️', priceCoins: 1299, image: 'ferrari', tier: 'epic', animation: 'fullscreen', luckyChance: probabilidadPara(1299), luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  { code: 'yacht', name: 'Yate', emoji: '🛥️', priceCoins: 2999, image: 'yacht', tier: 'epic', animation: 'fullscreen', luckyChance: probabilidadPara(2999), luckyMultipliers: PREMIOS, minFanLevel: 0 },
-  { code: 'castle', name: 'Castillo', emoji: '🏰', priceCoins: 9999, image: 'castle', tier: 'legendary', animation: 'fullscreen', luckyChance: probabilidadPara(9999), luckyMultipliers: PREMIOS, minFanLevel: 0 },
-
+  { code: 'balloon', name: 'Globo', emoji: '🎈', priceCoins: 10, image: 'balloon', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(10), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'icecream', name: 'Helado', emoji: '🍦', priceCoins: 10, image: 'icecream', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(10), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'heart', name: 'Corazón', emoji: '💖', priceCoins: 20, image: 'heart', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(20), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'cupcake', name: 'Cupcake', emoji: '🧁', priceCoins: 20, image: 'cupcake', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(20), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'sunflower', name: 'Girasol', emoji: '🌻', priceCoins: 20, image: 'sunflower', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(20), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'coffee', name: 'Café', emoji: '☕', priceCoins: 25, image: 'coffee', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(25), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'butterfly', name: 'Mariposa', emoji: '🦋', priceCoins: 25, image: 'butterfly', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(25), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'ribbon', name: 'Lazo', emoji: '🎀', priceCoins: 25, image: 'ribbon', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(25), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'beer', name: 'Cerveza', emoji: '🍺', priceCoins: 30, image: 'beer', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(30), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'pizza', name: 'Pizza', emoji: '🍕', priceCoins: 30, image: 'pizza', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(30), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'donut', name: 'Dona', emoji: '🍩', priceCoins: 30, image: 'donut', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(30), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'cocktail', name: 'Cóctel', emoji: '🍹', priceCoins: 40, image: 'cocktail', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(40), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'popcorn', name: 'Palomitas', emoji: '🍿', priceCoins: 40, image: 'popcorn', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(40), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'teddy', name: 'Peluche', emoji: '🧸', priceCoins: 40, image: 'teddy', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(40), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'bouquet', name: 'Ramo', emoji: '💐', priceCoins: 50, image: 'bouquet', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(50), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'mic', name: 'Micrófono', emoji: '🎤', priceCoins: 50, image: 'mic', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(50), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'cake', name: 'Pastel', emoji: '🎂', priceCoins: 50, image: 'cake', tier: 'basic', animation: 'float', luckyChance: probabilidadPara(50), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'guitar', name: 'Guitarra', emoji: '🎸', priceCoins: 100, image: 'guitar', tier: 'rare', animation: 'burst', luckyChance: probabilidadPara(100), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'champagne', name: 'Champán', emoji: '🍾', priceCoins: 100, image: 'champagne', tier: 'rare', animation: 'burst', luckyChance: probabilidadPara(100), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'sparkler', name: 'Bengala', emoji: '🎇', priceCoins: 100, image: 'sparkler', tier: 'rare', animation: 'burst', luckyChance: probabilidadPara(100), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'crown', name: 'Corona', emoji: '👑', priceCoins: 200, image: 'crown', tier: 'rare', animation: 'burst', luckyChance: probabilidadPara(200), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'watch', name: 'Reloj', emoji: '⌚', priceCoins: 200, image: 'watch', tier: 'rare', animation: 'burst', luckyChance: probabilidadPara(200), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'camera', name: 'Cámara', emoji: '📸', priceCoins: 200, image: 'camera', tier: 'rare', animation: 'burst', luckyChance: probabilidadPara(200), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'fireworks', name: 'Fuegos artificiales', emoji: '🎆', priceCoins: 400, image: 'fireworks', tier: 'rare', animation: 'burst', luckyChance: probabilidadPara(400), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'ring', name: 'Anillo', emoji: '💍', priceCoins: 400, image: 'ring', tier: 'rare', animation: 'burst', luckyChance: probabilidadPara(400), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'sax', name: 'Saxofón', emoji: '🎷', priceCoins: 400, image: 'sax', tier: 'rare', animation: 'burst', luckyChance: probabilidadPara(400), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'motorbike', name: 'Moto', emoji: '🏍️', priceCoins: 600, image: 'motorbike', tier: 'rare', animation: 'burst', luckyChance: probabilidadPara(600), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'telescope', name: 'Telescopio', emoji: '🔭', priceCoins: 600, image: 'telescope', tier: 'rare', animation: 'burst', luckyChance: probabilidadPara(600), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'vinyl', name: 'Vinilo', emoji: '💿', priceCoins: 600, image: 'vinyl', tier: 'rare', animation: 'burst', luckyChance: probabilidadPara(600), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'piano', name: 'Piano', emoji: '🎹', priceCoins: 800, image: 'piano', tier: 'rare', animation: 'burst', luckyChance: probabilidadPara(800), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'perfume', name: 'Perfume', emoji: '🧴', priceCoins: 800, image: 'perfume', tier: 'rare', animation: 'burst', luckyChance: probabilidadPara(800), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'bike', name: 'Bicicleta', emoji: '🚲', priceCoins: 800, image: 'bike', tier: 'rare', animation: 'burst', luckyChance: probabilidadPara(800), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'ferrari', name: 'Deportivo', emoji: '🏎️', priceCoins: 1_000, image: 'ferrari', tier: 'epic', animation: 'fullscreen', luckyChance: probabilidadPara(1000), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'diamond', name: 'Diamante', emoji: '💎', priceCoins: 1_000, image: 'diamond', tier: 'epic', animation: 'fullscreen', luckyChance: probabilidadPara(1000), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'trophy', name: 'Trofeo', emoji: '🏆', priceCoins: 1_000, image: 'trophy', tier: 'epic', animation: 'fullscreen', luckyChance: probabilidadPara(1000), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'speedboat', name: 'Lancha', emoji: '🚤', priceCoins: 2_000, image: 'speedboat', tier: 'epic', animation: 'fullscreen', luckyChance: probabilidadPara(2000), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'helicopter', name: 'Helicóptero', emoji: '🚁', priceCoins: 2_000, image: 'helicopter', tier: 'epic', animation: 'fullscreen', luckyChance: probabilidadPara(2000), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'carousel', name: 'Carrusel', emoji: '🎠', priceCoins: 2_000, image: 'carousel', tier: 'epic', animation: 'fullscreen', luckyChance: probabilidadPara(2000), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'yacht', name: 'Yate', emoji: '🛥️', priceCoins: 3_000, image: 'yacht', tier: 'epic', animation: 'fullscreen', luckyChance: probabilidadPara(3000), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'plane', name: 'Avioneta', emoji: '✈️', priceCoins: 3_000, image: 'plane', tier: 'epic', animation: 'fullscreen', luckyChance: probabilidadPara(3000), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'limo', name: 'Limusina', emoji: '🚘', priceCoins: 3_000, image: 'limo', tier: 'epic', animation: 'fullscreen', luckyChance: probabilidadPara(3000), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'island', name: 'Isla', emoji: '🏝️', priceCoins: 5_000, image: 'island', tier: 'epic', animation: 'fullscreen', luckyChance: probabilidadPara(5000), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'bullettrain', name: 'Tren bala', emoji: '🚄', priceCoins: 5_000, image: 'bullettrain', tier: 'epic', animation: 'fullscreen', luckyChance: probabilidadPara(5000), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'mansion', name: 'Mansión', emoji: '🏡', priceCoins: 5_000, image: 'mansion', tier: 'epic', animation: 'fullscreen', luckyChance: probabilidadPara(5000), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'castle', name: 'Castillo', emoji: '🏰', priceCoins: 10_000, image: 'castle', tier: 'legendary', animation: 'fullscreen', luckyChance: probabilidadPara(10000), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'rocket', name: 'Cohete', emoji: '🚀', priceCoins: 10_000, image: 'rocket', tier: 'legendary', animation: 'fullscreen', luckyChance: probabilidadPara(10000), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'tiger', name: 'Tigre', emoji: '🐯', priceCoins: 10_000, image: 'tiger', tier: 'legendary', animation: 'fullscreen', luckyChance: probabilidadPara(10000), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'volcano', name: 'Volcán', emoji: '🌋', priceCoins: 20_000, image: 'volcano', tier: 'legendary', animation: 'fullscreen', luckyChance: probabilidadPara(20000), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'aurora', name: 'Aurora', emoji: '🌠', priceCoins: 20_000, image: 'aurora', tier: 'legendary', animation: 'fullscreen', luckyChance: probabilidadPara(20000), luckyMultipliers: PREMIOS, minFanLevel: 0 },
+  { code: 'pharaoh', name: 'Faraón', emoji: '🗿', priceCoins: 20_000, image: 'pharaoh', tier: 'legendary', animation: 'fullscreen', luckyChance: probabilidadPara(20000), luckyMultipliers: PREMIOS, minFanLevel: 0 },
   // Exclusivos: sin premio, solo espectáculo, y el 75% en diamantes para quien
   // los recibe. Se envían de uno en uno.
   //
@@ -194,7 +243,7 @@ export const GIFT_CATALOG = [
 
   // Club de fans: se desbloquean por lo gastado con ese anfitrión, así que solo
   // los ve quien ya lleva tiempo con él. Como los exclusivos, dejan el 75%.
-  { code: 'fan-bracelet', name: 'Pulsera de fan', emoji: '📿', priceCoins: 500, image: null, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 1 },
-  { code: 'fan-jacket', name: 'Chaqueta del club', emoji: '🧥', priceCoins: 5_000, image: null, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 3 },
+  { code: 'fan-bracelet', name: 'Pulsera de fan', emoji: '📿', priceCoins: 500, image: 'fan-bracelet', tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 1 },
+  { code: 'fan-jacket', name: 'Chaqueta del club', emoji: '🧥', priceCoins: 5_000, image: 'fan-jacket', tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 3 },
   { code: 'fan-throne', name: 'Trono del club', emoji: '🪑', priceCoins: 40_000, image: null, tier: 'exclusive', animation: 'aura', luckyChance: 0, luckyMultipliers: '', minFanLevel: 5 },
 ];
