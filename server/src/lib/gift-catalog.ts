@@ -131,32 +131,30 @@ export const GIFT_CATALOG = [
   // recibe, así que el multiplicador medio puede pasar de 1 sin que eso
   // fabrique monedas: es valor que cambia de manos, no que aparece.
   //
-  //   bronce  ×11,12 (11.100)   plata  ×11,17 (55.800)   oro  ×11,19 (111.900)
+  //   bronce  ×8,50 (8.500)   plata  ×8,50 (42.500)   oro  ×8,50 (85.000)
   //
-  // Los escalones de ×10 para arriba salen ahora más de la mitad de las veces:
-  // 64% en el bronce y 57% en los otros dos.
+  // Los escalones de ×10 para arriba salen el 37-46% de las veces, así que en
+  // diez cofres cae alguno prácticamente siempre.
   //
-  // **Los dos primeros niveles del salario se subvencionan a propósito.**
+  // **×8,50 es el techo, y no es un número elegido a ojo.**
   //
   // Llenar una meta a base de cofres ingresa `meta / media` y paga
-  // `salario + 5% de la meta`. A ×11 eso sale a cuenta del nivel 3 en adelante,
-  // pero no en los dos primeros:
+  // `salario + 5% de la meta`, así que el tope de cada nivel es
+  // `1 / (salario/meta + 5%)`. El más estrecho es el nivel 1 —10.000 diamantes
+  // por una meta de 150.000— y deja ×8,571; los de arriba aguantan hasta ×16.
   //
-  //   nivel 1: ingresa 13.636, paga 17.500  → pierde 3.864
-  //   nivel 2: ingresa 27.273, paga 28.000  → pierde 727
-  //   nivel 3: ingresa 54.545, paga 48.000  → gana
+  // Estuvo en ×11 unas horas, con los dos primeros niveles pagándose a pérdida a
+  // sabiendas. Vuelve a ×8,50 porque esa pérdida traía algo peor que el coste:
+  // un anfitrión que se autorregalase cofres para cerrar el nivel 1 ganaba unos
+  // 3.900 diamantes al día, y eso es farmeable con muchas cuentas. A ×8,50 los
+  // trece niveles vuelven a salir a cuenta y la puerta se cierra sola.
   //
-  // El usuario lo decidió así el 2026-09-09 sabiendo la cuenta: el cofre tenía
-  // que sentirse generoso y los primeros niveles son baratos de subvencionar.
-  // El efecto secundario es que **un anfitrión que se autorregale cofres para
-  // cerrar el nivel 1 gana unos 3.900 diamantes al día**, y eso es farmeable con
-  // muchas cuentas. La vigilancia (`audit.service`) es lo que tiene que cazarlo.
-  //
-  // Para quitar la subvención habría que bajar el salario del nivel 1 a 4.500 y
-  // el del 2 a 9.000, o subir sus metas.
-  { code: 'chest-bronze', name: 'Cofre de bronce', emoji: '🎁', priceCoins: 1_000, image: 'chest-bronze', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '3:24000,5:33000,10:52000,14:29500,20:19500,100:1350,200:410', minFanLevel: 0 },
-  { code: 'chest-silver', name: 'Cofre de plata', emoji: '🎁', priceCoins: 5_000, image: 'chest-silver', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '4:30000,6:40000,10:44000,14:24000,20:16000,30:6500,50:2300,120:280,300:75', minFanLevel: 0 },
-  { code: 'chest-gold', name: 'Cofre de oro', emoji: '🎁', priceCoins: 10_000, image: 'chest-gold', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '4:60000,6:80000,10:88000,14:48000,20:32000,30:13000,50:4600,140:480,400:130', minFanLevel: 0 },
+  // Para pasar de aquí habría que bajar el salario del nivel 1 o subir su meta.
+  // La prueba «los cofres siempre premian» calcula el tope desde la tabla de
+  // salarios, así que se mueve solo si la tabla cambia.
+  { code: 'chest-bronze', name: 'Cofre de bronce', emoji: '🎁', priceCoins: 1_000, image: 'chest-bronze', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '3:49168,5:46000,10:46000,14:20000,20:12800,100:700,200:215', minFanLevel: 0 },
+  { code: 'chest-silver', name: 'Cofre de plata', emoji: '🎁', priceCoins: 5_000, image: 'chest-silver', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '4:64062,6:51000,10:38000,14:16000,20:9700,30:3700,50:1250,120:150,300:38', minFanLevel: 0 },
+  { code: 'chest-gold', name: 'Cofre de oro', emoji: '🎁', priceCoins: 10_000, image: 'chest-gold', tier: GIFT_TIER_CHEST, animation: 'chest', luckyChance: 1, luckyMultipliers: '4:128130,6:102000,10:76000,14:32000,20:19200,30:7400,50:2500,140:250,400:64', minFanLevel: 0 },
   // Veinte escalones de precio, tres regalos en cada uno. Tres y no uno porque
   // con una sola opción por precio la elección es el precio; con tres, cada cual
   // manda el que le pega, y eso es lo que hace que la caja se mire.

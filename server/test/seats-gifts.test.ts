@@ -355,15 +355,13 @@ describe('economía de los regalos', () => {
       // Es el coste real de la mecánica: el anfitrión recibe esa cifra en valor
       // de regalo, y con ella su 5% en diamantes y su avance hacia la meta.
       //
-      // A ×11 los dos primeros niveles del salario se pagan a pérdida, y está
-      // decidido así: son baratos de subvencionar y el cofre tiene que sentirse
-      // generoso. Lo que sí se vigila es que la subvención no se extienda a los
-      // niveles de arriba, que son los que mueven dinero de verdad: del 3 en
-      // adelante llenar la meta con cofres tiene que seguir saliendo a cuenta.
-      const nivelesQueDebenCubrirse = NIVELES.filter((nivel) => nivel.nivel >= 3);
-      const tope = Math.min(
-        ...nivelesQueDebenCubrirse.map((n) => 1 / (n.salario / n.meta + DIAMONDS_PER_COIN)),
-      );
+      // El tope sale de la tabla de salarios y no de un número elegido a mano:
+      // llenar una meta a base de cofres ingresa `meta / media` y paga
+      // `salario + 5% de la meta`, así que por encima de
+      // `1 / (salario/meta + 5%)` la plataforma pone dinero. Se exige de **todos**
+      // los niveles: dejar los dos primeros a pérdida abría la puerta a
+      // autorregalarse cofres para cerrar el nivel 1 y salir ganando.
+      const tope = Math.min(...NIVELES.map((n) => 1 / (n.salario / n.meta + DIAMONDS_PER_COIN)));
       assert.ok(media > 3 && media < tope, `${cofre.code} entrega ×${media.toFixed(2)} y el tope es ×${tope.toFixed(2)}`);
 
       const menor = Math.min(...escalones.map((e) => e.multiplier));
@@ -372,7 +370,7 @@ describe('economía de los regalos', () => {
       // Diez cofres seguidos sin pasar del segundo peldaño es lo que hace que
       // el cofre deje de tener gracia, y ya pasó una vez.
       const altos = escalones.filter((e) => e.multiplier >= 10).reduce((t, e) => t + e.weight, 0) / pesos;
-      assert.ok(altos > 0.5, `${cofre.code} solo sube de ×10 el ${(altos * 100).toFixed(1)}% de las veces`);
+      assert.ok(altos > 0.35, `${cofre.code} solo sube de ×10 el ${(altos * 100).toFixed(1)}% de las veces`);
     }
   });
 
