@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1045,
-  "commit": "aa5442d",
+  "buildNumber": 1046,
+  "commit": "26caa4c",
   "branch": "main",
-  "builtAt": "2026-09-10T06:13:31.264Z",
+  "builtAt": "2026-09-10T19:54:03.461Z",
   "changes": [
+    "Tres formatos de sala y mensaje de bienvenida",
     "La banda del premio, más estrecha y con el conteo fuera",
     "Ajusta la banda del premio: cabe todo y el color va a juego",
     "El premio sale enmarcado en la banda, con su color según lo gordo",
@@ -18,7 +19,6 @@
     "Cofres a ×11 y el chat dice cuánto salió",
     "El salario sigue subiendo pasados los cien millones",
     "Hasta 9.999 por envío, partículas con la ilustración y sin cifra en el centro",
-    "El retorno baja con el precio del regalo",
-    "Otra subida: retorno 0,88 y cofres a ×8,3, que es donde topa"
+    "El retorno baja con el precio del regalo"
   ]
 }
