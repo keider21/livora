@@ -1,10 +1,12 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1047,
-  "commit": "f52ab52",
+  "buildNumber": 1048,
+  "commit": "32c8e22",
   "branch": "main",
-  "builtAt": "2026-09-11T07:31:54.476Z",
+  "builtAt": "2026-09-11T17:20:00.073Z",
   "changes": [
+    "Sesenta regalos con su ilustración, tres por cada precio",
+    "Banner de recompensa nuevo, dibujado en vez de pintado",
     "Las cuentas de prueba llevan foto de persona",
     "Tres formatos de sala y mensaje de bienvenida",
     "La banda del premio, más estrecha y con el conteo fuera",
@@ -17,8 +19,6 @@
     "Simulador de sesiones reales, para medir lo que se siente",
     "El suelo de la suerte sube a 0,7: en frío se perdía demasiado",
     "La racha caliente baja a 1,67 y dura diez segundos",
-    "Cofres a ×11 y el chat dice cuánto salió",
-    "El salario sigue subiendo pasados los cien millones",
-    "Hasta 9.999 por envío, partículas con la ilustración y sin cifra en el centro"
+    "Cofres a ×11 y el chat dice cuánto salió"
   ]
 }

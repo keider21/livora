@@ -35,6 +35,7 @@ const user = {
   displayName: 'Luna',
   avatarUrl: null,
   bio: null,
+  status: null,
   country: 'CO',
   gender: 'female',
   level: 1,

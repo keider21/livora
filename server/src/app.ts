@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import { env, isProduction } from './config/env';
 import { errorHandler, notFoundHandler } from './middleware/error';
 import { authRouter } from './modules/auth/auth.routes';
+import { CARPETA_SUBIDAS } from './modules/users/uploads.service';
 import { usersRouter } from './modules/users/users.routes';
 import { roomsRouter } from './modules/rooms/rooms.routes';
 import { giftsRouter } from './modules/gifts/gifts.routes';
@@ -24,7 +25,12 @@ export function createApp() {
       credentials: true,
     }),
   );
-  app.use(express.json({ limit: '1mb' }));
+  // 6 MB porque las fotos de perfil llegan en base64 dentro del JSON, y base64
+  // engorda un tercio lo que ocupa el archivo.
+  app.use(express.json({ limit: '6mb' }));
+  // Las imágenes subidas se sirven como archivos estáticos: meterlas en la base
+  // haría que cada consulta de usuario las arrastrara consigo.
+  app.use('/uploads', express.static(CARPETA_SUBIDAS, { maxAge: '30d', immutable: true }));
   app.use(morgan(isProduction ? 'combined' : 'dev'));
 
   app.get('/health', (_req, res) => {

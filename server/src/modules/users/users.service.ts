@@ -92,7 +92,7 @@ export async function listFollowing(username: string) {
 
 export async function updateProfile(
   userId: string,
-  data: { displayName?: string; bio?: string; avatarUrl?: string; country?: string },
+  data: { displayName?: string; bio?: string; avatarUrl?: string; country?: string; status?: string },
 ) {
   const user = await prisma.user.update({
     where: { id: userId },

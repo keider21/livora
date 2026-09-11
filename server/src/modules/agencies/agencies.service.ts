@@ -2,6 +2,7 @@ import type { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
 import { HttpError } from '../../lib/http-error';
 import { CURRENCY, TRANSACTION_TYPE } from '../../lib/constants';
+import { progresoDelDia } from '../hosts/salary.service';
 
 /**
  * Agencias: quien capta y forma anfitriones, y cobra por lo que generan.
@@ -144,10 +145,17 @@ export async function pagarComision(
 }
 
 /**
- * El panel de la agencia: quién está dentro y cuánto ha generado cada uno.
+ * El panel de la agencia: quién está dentro, cuánto lleva hoy y cómo va de meta.
  *
- * Se ordena por lo que ha aportado, que es como se mira: la agencia quiere saber
- * a quién cuidar y quién se ha apagado.
+ * No basta con lo que han generado desde siempre. Lo que decide el trabajo de
+ * una agencia es **hoy**: quién va corto de horas y no va a cobrar por mucho que
+ * le regalen, y a quién le falta poco para el siguiente escalón y merece un
+ * empujón. Sin esas dos cifras, el panel dice quién fue bueno el mes pasado y
+ * no qué hacer esta tarde.
+ *
+ * El progreso de cada anfitrión se pide por separado porque sale de sus regalos
+ * y sus transmisiones, no de una columna guardada. Con agencias grandes eso son
+ * muchas consultas, así que van en paralelo y limitadas a los que están dentro.
  */
 export async function panelDeAgencia(ownerId: string) {
   const agencia = await prisma.agency.findFirst({ where: { ownerId } });
@@ -168,6 +176,12 @@ export async function panelDeAgencia(ownerId: string) {
 
   const porId = new Map(porHost.map((fila) => [fila.hostId, fila]));
 
+  // El día de cada uno: lo que lleva de meta y de horas en directo.
+  const hoy = await Promise.all(
+    hosts.map(async (host) => [host.id, await progresoDelDia(host.id)] as const),
+  );
+  const delDia = new Map(hoy);
+
   return {
     agencia: {
       id: agencia.id,
@@ -178,13 +192,27 @@ export async function panelDeAgencia(ownerId: string) {
       cobrado: total._sum.diamonds ?? 0,
     },
     hosts: hosts
-      .map((host) => ({
-        ...host,
-        /** Lo que ha ganado el anfitrión y sobre lo que se cobró comisión. */
-        generado: porId.get(host.id)?._sum.base ?? 0,
-        comision: porId.get(host.id)?._sum.diamonds ?? 0,
-      }))
-      .sort((a, b) => b.generado - a.generado),
+      .map((host) => {
+        const dia = delDia.get(host.id);
+        return {
+          ...host,
+          /** Lo que ha ganado el anfitrión y sobre lo que se cobró comisión. */
+          generado: porId.get(host.id)?._sum.base ?? 0,
+          comision: porId.get(host.id)?._sum.diamonds ?? 0,
+          /** Cómo va hoy: es lo que dice si hay que hacer algo con esta persona. */
+          hoy: {
+            luckyCoins: dia?.luckyCoins ?? 0,
+            nivel: dia?.nivel ?? 0,
+            siguiente: dia?.siguiente ?? null,
+            liveSeconds: dia?.liveSeconds ?? 0,
+            segundosMinimos: dia?.segundosMinimos ?? 0,
+            cumpleHoras: dia?.cumpleHoras ?? false,
+            salarioEstimado: dia?.salarioEstimado ?? 0,
+          },
+        };
+      })
+      // Primero quien más lleva hoy: es a quien hay que acompañar ahora.
+      .sort((a, b) => b.hoy.luckyCoins - a.hoy.luckyCoins || b.generado - a.generado),
   };
 }
 

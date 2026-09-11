@@ -119,8 +119,16 @@ export const users = {
     apiRequest<{ following: boolean; followers: number }>(`/api/users/${username}/follow`, { method: 'POST' }),
   unfollow: (username: string) =>
     apiRequest<{ following: boolean; followers: number }>(`/api/users/${username}/follow`, { method: 'DELETE' }),
-  updateProfile: (body: { displayName?: string; bio?: string; avatarUrl?: string; country?: string }) =>
-    apiRequest<{ user: PublicUser }>('/api/users/me', { method: 'PATCH', body }),
+  updateProfile: (body: {
+    displayName?: string;
+    bio?: string;
+    avatarUrl?: string;
+    country?: string;
+    status?: string;
+  }) => apiRequest<{ user: PublicUser }>('/api/users/me', { method: 'PATCH', body }),
+  /** Sube la foto en `data:image/jpeg;base64,...` y la deja puesta. */
+  uploadAvatar: (image: string) =>
+    apiRequest<{ user: PublicUser }>('/api/users/me/avatar', { method: 'POST', body: { image } }),
 };
 
 export const wallet = {

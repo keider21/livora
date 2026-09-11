@@ -8,6 +8,7 @@ export const publicUserSelect = {
   displayName: true,
   avatarUrl: true,
   bio: true,
+  status: true,
   country: true,
   gender: true,
   level: true,
@@ -24,6 +25,8 @@ export interface PublicUser {
   displayName: string;
   avatarUrl: string | null;
   bio: string | null;
+  /** Línea corta de estado, aparte de la biografía. */
+  status: string | null;
   country: string | null;
   gender: string;
   level: number;
@@ -39,6 +42,7 @@ export function toPublicUser(user: PublicUserRow): PublicUser {
     displayName: user.displayName,
     avatarUrl: user.avatarUrl,
     bio: user.bio,
+    status: user.status,
     country: user.country,
     gender: user.gender,
     level: user.level,

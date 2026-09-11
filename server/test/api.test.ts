@@ -319,6 +319,35 @@ describe('perfil propio', () => {
     assert.equal(profile.data.user.country, 'CO');
   });
 
+  it('sube una foto y la deja puesta', async () => {
+    // Un PNG de un píxel: lo que se comprueba es el camino entero —llega en
+    // base64, se guarda con nombre de hash y el perfil sale ya con la ruta—, no
+    // la imagen.
+    const user = await createUser();
+    const png =
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
+    const { status, data } = await api.request('POST', '/api/users/me/avatar', {
+      token: user.token,
+      body: { image: png },
+    });
+
+    assert.equal(status, 200);
+    assert.match(data.user.avatarUrl, /^\/uploads\/avatar-.+\.png$/);
+
+    const perfil = await api.request('GET', `/api/users/${user.username}`);
+    assert.equal(perfil.data.user.avatarUrl, data.user.avatarUrl, 'y queda guardada');
+  });
+
+  it('rechaza lo que no sea una imagen', async () => {
+    const user = await createUser();
+    const { status } = await api.request('POST', '/api/users/me/avatar', {
+      token: user.token,
+      body: { image: 'data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==' },
+    });
+    assert.equal(status, 400, 'solo JPG, PNG o WebP');
+  });
+
   it('rechaza un país que no sea código de 2 letras y señala el campo', async () => {
     const user = await createUser();
     const { status, data } = await api.request('PATCH', '/api/users/me', {

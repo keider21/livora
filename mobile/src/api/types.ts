@@ -4,6 +4,8 @@ export interface PublicUser {
   displayName: string;
   avatarUrl: string | null;
   bio: string | null;
+  /** Línea corta de estado, aparte de la biografía. */
+  status: string | null;
   country: string | null;
   gender: string;
   level: number;
@@ -285,6 +287,16 @@ export interface AgencyHost {
   /** Lo que ha ganado y sobre lo que se cobró comisión. */
   generado: number;
   comision: number;
+  /** Cómo va hoy: es lo que dice si hay que hacer algo con esta persona. */
+  hoy: {
+    luckyCoins: number;
+    nivel: number;
+    siguiente: SalaryLevel | null;
+    liveSeconds: number;
+    segundosMinimos: number;
+    cumpleHoras: boolean;
+    salarioEstimado: number;
+  };
 }
 
 export interface AgencyPanel {

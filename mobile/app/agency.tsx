@@ -122,18 +122,47 @@ export default function AgencyScreen() {
                 Todavía no hay nadie. Reparte el código y quien lo use quedará bajo tu agencia.
               </Text>
             ) : (
-              (panel.hosts ?? []).map((host) => (
-                <View key={host.id} style={styles.host}>
-                  <Avatar uri={host.avatarUrl} name={host.displayName} size={34} />
-                  <View style={styles.hostTextos}>
-                    <Text style={styles.hostNombre} numberOfLines={1}>
-                      {host.displayName}
+              (panel.hosts ?? []).map((host) => {
+                const meta = host.hoy.siguiente;
+                const avance = meta ? Math.min(1, host.hoy.luckyCoins / Math.max(1, meta.meta)) : 1;
+                const horas = host.hoy.liveSeconds / 3600;
+                const minimas = host.hoy.segundosMinimos / 3600;
+
+                return (
+                  <View key={host.id} style={styles.host}>
+                    <View style={styles.hostCabecera}>
+                      <Avatar uri={host.avatarUrl} name={host.displayName} size={34} />
+                      <View style={styles.hostTextos}>
+                        <Text style={styles.hostNombre} numberOfLines={1}>
+                          {host.displayName}
+                        </Text>
+                        <Text style={styles.hostDetalle}>
+                          generó 💎 {formatCount(host.generado)} · te dio {formatCount(host.comision)}
+                        </Text>
+                      </View>
+                      {/* Las horas primero y con color: sin ellas no cobra por
+                          mucho que le regalen, y eso es lo que hay que ver. */}
+                      <Text style={[styles.hostHoras, host.hoy.cumpleHoras && styles.hostHorasOk]}>
+                        {horas.toFixed(1)} / {minimas} h
+                      </Text>
+                    </View>
+
+                    <View style={styles.barra}>
+                      <View style={[styles.barraLlena, { width: `${avance * 100}%` }]} />
+                    </View>
+                    <Text style={styles.hostMeta}>
+                      {meta
+                        ? `🪙 ${formatCount(host.hoy.luckyCoins)} de ${formatCount(meta.meta)} · nivel ${meta.nivel}`
+                        : `🪙 ${formatCount(host.hoy.luckyCoins)} · nivel máximo`}
+                      {host.hoy.salarioEstimado > 0
+                        ? ` · cobra 💎 ${formatCount(host.hoy.salarioEstimado)}`
+                        : host.hoy.nivel > 0
+                          ? ' · le faltan horas'
+                          : ' · sin meta aún'}
                     </Text>
-                    <Text style={styles.hostDetalle}>generó 💎 {formatCount(host.generado)}</Text>
                   </View>
-                  <Text style={styles.hostComision}>+{formatCount(host.comision)}</Text>
-                </View>
-              ))
+                );
+              })
             )}
           </>
         ) : mia.agencia ? (
@@ -243,19 +272,22 @@ const styles = StyleSheet.create({
   vacio: { color: colors.textFaint, fontSize: 12, lineHeight: 17 },
 
   host: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
+    gap: 5,
   },
+  hostCabecera: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  hostHoras: { color: colors.accent, fontSize: 12, fontWeight: '800' },
+  hostHorasOk: { color: colors.success },
+  hostMeta: { color: colors.textMuted, fontSize: 10, fontWeight: '600' },
+  barra: { height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.12)', overflow: 'hidden' },
+  barraLlena: { height: '100%', backgroundColor: colors.coin },
   hostTextos: { flex: 1, gap: 1 },
   hostNombre: { color: colors.text, fontSize: 14, fontWeight: '700' },
   hostDetalle: { color: colors.textMuted, fontSize: 11 },
-  hostComision: { color: colors.success, fontSize: 14, fontWeight: '800' },
 
   entrada: {
     backgroundColor: colors.surfaceAlt,

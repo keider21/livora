@@ -19,6 +19,9 @@ model User {
   displayName  String
   avatarUrl    String?
   bio          String?
+  /// Una línea corta de estado, aparte de la biografía: lo que se está haciendo
+  /// ahora, no quién se es. Sale junto al nombre, así que es lo que más se lee.
+  status       String?
   country      String?
   gender       String    @default("unspecified") // male | female | unspecified
   birthDate    DateTime?

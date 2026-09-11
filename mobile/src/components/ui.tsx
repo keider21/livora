@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -10,6 +10,7 @@ import {
   type TextInputProps,
   type ViewStyle,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, gradients, radius, spacing, typography } from '../theme';
 
@@ -94,19 +95,52 @@ export function Button({
   );
 }
 
+/**
+ * Campo de formulario.
+ *
+ * Con `secureTextEntry` aparece el ojo para ver lo que se escribe. Teclear una
+ * contraseña a ciegas en un teléfono es donde más gente se equivoca y se queda
+ * fuera sin saber por qué, y el error que sale después —«contraseña
+ * incorrecta»— no dice que sea una errata.
+ */
 export function Field({
   label,
   error,
   ...inputProps
 }: TextInputProps & { label: string; error?: string | null }) {
+  const esClave = Boolean(inputProps.secureTextEntry);
+  const [visible, setVisible] = useState(false);
+
   return (
     <View style={styles.field}>
       <Text style={typography.label}>{label}</Text>
-      <TextInput
-        placeholderTextColor={colors.textFaint}
-        {...inputProps}
-        style={[styles.input, error ? styles.inputError : null, inputProps.style]}
-      />
+      <View>
+        <TextInput
+          placeholderTextColor={colors.textFaint}
+          {...inputProps}
+          secureTextEntry={esClave && !visible}
+          style={[
+            styles.input,
+            error ? styles.inputError : null,
+            esClave ? styles.inputConOjo : null,
+            inputProps.style,
+          ]}
+        />
+        {esClave ? (
+          <Pressable
+            onPress={() => setVisible((actual: boolean) => !actual)}
+            style={styles.ojo}
+            hitSlop={10}
+            accessibilityLabel={visible ? 'Ocultar la contraseña' : 'Ver la contraseña'}
+          >
+            <Ionicons
+              name={visible ? 'eye-off-outline' : 'eye-outline'}
+              size={20}
+              color={colors.textMuted}
+            />
+          </Pressable>
+        ) : null}
+      </View>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
@@ -162,6 +196,8 @@ const styles = StyleSheet.create({
   buttonLabelAlt: { color: colors.text },
   dim: { opacity: 0.5 },
 
+  inputConOjo: { paddingRight: 46 },
+  ojo: { position: 'absolute', right: 0, top: 0, bottom: 0, width: 44, alignItems: 'center', justifyContent: 'center' },
   field: { gap: spacing.xs },
   input: {
     backgroundColor: colors.surface,
