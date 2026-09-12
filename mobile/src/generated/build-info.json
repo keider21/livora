@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1049,
-  "commit": "e09a294",
+  "buildNumber": 1050,
+  "commit": "1774276",
   "branch": "main",
-  "builtAt": "2026-09-11T21:37:29.359Z",
+  "builtAt": "2026-09-11T22:18:03.522Z",
   "changes": [
+    "Los cofres bajan a ×8,50, que es el techo real",
     "Foto de perfil, estado, ojo en la contraseña y agencia con horas",
     "Sesenta regalos con su ilustración, tres por cada precio",
     "Banner de recompensa nuevo, dibujado en vez de pintado",
@@ -18,7 +19,6 @@
     "Anota agencias y sorteos en el plan, que los pidió el usuario",
     "El simulador mide el margen, no si la gente gana",
     "Simulador de sesiones reales, para medir lo que se siente",
-    "El suelo de la suerte sube a 0,7: en frío se perdía demasiado",
-    "La racha caliente baja a 1,67 y dura diez segundos"
+    "El suelo de la suerte sube a 0,7: en frío se perdía demasiado"
   ]
 }

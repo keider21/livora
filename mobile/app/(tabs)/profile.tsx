@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ApiError, hosts as hostsApi, wallet as walletApi } from '../../src/api';
 import { SalaryGoal } from '../../src/components/salary-goal';
 import { PlatformStatsCard } from '../../src/components/platform-stats';
+import { ProfileMenu } from '../../src/components/profile-menu';
 import type { CoinPackage, PlatformStats, SalaryProgress, Transaction } from '../../src/api/types';
 import { useAuthStore } from '../../src/store/auth-store';
 import { Avatar, Button, Card } from '../../src/components/ui';
@@ -205,40 +206,84 @@ export default function ProfileScreen() {
           </>
         ) : null}
 
-        <Button label="Editar perfil" variant="ghost" onPress={() => router.push('/edit-profile')} />
-        <Button label="🤝 Agencia" variant="ghost" onPress={() => router.push('/agency')} />
-        <Button label={`Novedades · ${versionLabel()}`} variant="ghost" onPress={() => router.push('/whats-new')} />
-        <Button label="Servidor" variant="ghost" onPress={() => router.push('/server-settings')} />
-        <Button
-          label="Ver mi perfil público"
-          variant="ghost"
-          onPress={() => router.push(`/user/${user.username}`)}
+        {/* Los accesos, en rejilla: en pila ocupaban seis botones de ancho
+            completo y todos pesaban lo mismo, aunque «Servidor» se toque una vez
+            en la vida y «Editar perfil» a diario. */}
+        <ProfileMenu
+          opciones={[
+            {
+              key: 'editar',
+              label: 'Editar perfil',
+              icon: 'person',
+              onPress: () => router.push('/edit-profile'),
+            },
+            {
+              key: 'publico',
+              label: 'Mi perfil',
+              icon: 'eye',
+              onPress: () => router.push(`/user/${user.username}`),
+            },
+            {
+              key: 'agencia',
+              label: 'Agencia',
+              icon: 'people',
+              tinte: colors.diamond,
+              onPress: () => router.push('/agency'),
+            },
+            {
+              key: 'novedades',
+              label: 'Novedades',
+              icon: 'sparkles',
+              tinte: colors.accent,
+              insignia: versionLabel(),
+              onPress: () => router.push('/whats-new'),
+            },
+            {
+              key: 'servidor',
+              label: 'Servidor',
+              icon: 'cloud',
+              tinte: colors.textMuted,
+              onPress: () => router.push('/server-settings'),
+            },
+            // Las dos de la cuenta de pruebas van al final, detrás de lo que usa
+            // todo el mundo.
+            ...(stats
+              ? [
+                  {
+                    key: 'vigilancia',
+                    label: 'Vigilancia',
+                    icon: 'shield-checkmark' as const,
+                    tinte: colors.danger,
+                    onPress: () => router.push('/audit'),
+                  },
+                ]
+              : []),
+            ...(user.username === 'luna'
+              ? [
+                  {
+                    key: 'reiniciar',
+                    // La rejilla no tiene hueco para un girito de carga, así que
+                    // lo dice la etiqueta: el reinicio tarda y sin aviso se
+                    // vuelve a pulsar.
+                    label: busy === 'reset' ? 'Reiniciando…' : 'Reiniciar datos',
+                    icon: 'refresh' as const,
+                    tinte: colors.danger,
+                    onPress: () =>
+                      Alert.alert(
+                        'Reiniciar datos',
+                        'Borra los regalos, las metas, los diamantes y los movimientos de todas las cuentas, y deja 5.000 monedas en cada una. Las sesiones no se cierran.',
+                        [
+                          { text: 'Cancelar', style: 'cancel' as const },
+                          { text: 'Reiniciar', style: 'destructive' as const, onPress: () => void reiniciar() },
+                        ],
+                      ),
+                  },
+                ]
+              : []),
+          ]}
         />
+
         {stats ? <PlatformStatsCard stats={stats} /> : null}
-
-        {stats ? (
-          <Button label="🔎 Vigilancia y fraude" variant="ghost" onPress={() => router.push('/audit')} />
-        ) : null}
-
-        {/* Solo la cuenta de pruebas: el servidor lo vuelve a comprobar, esto
-            es únicamente para no enseñar un botón que va a dar 403. */}
-        {user.username === 'luna' ? (
-          <Button
-            label="Reiniciar metas y monedas"
-            variant="ghost"
-            loading={busy === 'reset'}
-            onPress={() =>
-              Alert.alert(
-                'Reiniciar datos',
-                'Borra los regalos, las metas, los diamantes y los movimientos de todas las cuentas, y deja 5.000 monedas en cada una. Las sesiones no se cierran.',
-                [
-                  { text: 'Cancelar', style: 'cancel' },
-                  { text: 'Reiniciar', style: 'destructive', onPress: () => void reiniciar() },
-                ],
-              )
-            }
-          />
-        ) : null}
 
         <Button label="Cerrar sesión" variant="danger" onPress={() => void logout()} />
       </ScrollView>
