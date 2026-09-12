@@ -547,6 +547,24 @@ export default function RoomScreen() {
       ? ultimoAnuncio
       : null;
 
+  // Los anuncios se montan una vez y cambian de sitio, no de contenido.
+  const anuncios = (
+    <View style={styles.giftLayer} pointerEvents="none">
+      {announcements.map((item) => (
+        <GiftAnimation
+          key={item.key}
+          event={item.event}
+          comboQuantity={item.quantity}
+          comboKey={item.round}
+          coinsRewarded={item.coins}
+          times={item.times}
+          luckyRound={item.luckyRound}
+          onDone={() => setAnnouncements((current) => current.filter((one) => one.key !== item.key))}
+        />
+      ))}
+    </View>
+  );
+
   return (
     <View style={styles.fill}>
       {esAudio ? (
@@ -690,23 +708,10 @@ export default function RoomScreen() {
             },
           ]}
         >
-          {/* Los anuncios de regalo van justo encima del chat, pequeños: en el
-              centro tapaban el vídeo, que es lo que la gente ha venido a ver.
-              Como mucho tres a la vez, uno por cada remitente y destinatario. */}
-          <View style={styles.giftLayer} pointerEvents="none">
-            {announcements.map((item) => (
-              <GiftAnimation
-                key={item.key}
-                event={item.event}
-                comboQuantity={item.quantity}
-                comboKey={item.round}
-                coinsRewarded={item.coins}
-                times={item.times}
-                luckyRound={item.luckyRound}
-                onDone={() => hideAnnouncement(item.key)}
-              />
-            ))}
-          </View>
+          {/* Con la caja abierta los anuncios suben: la caja tapa la mitad de
+              abajo y ahí no se vería si el regalo explotó, que es justo lo que
+              se está mirando mientras se manda. */}
+          {pickerOpen ? null : anuncios}
 
           {chatHidden ? null : <ChatOverlay messages={messages} />}
 
@@ -810,13 +815,22 @@ export default function RoomScreen() {
           todo lo demás hasta que termina. Tiene su propia cola y decide cuándo
           acaba: el vídeo avisa al final, la animación por código al cerrar su
           ciclo. No recoge toques, así que los botones siguen respondiendo. */}
+      {/* Con la caja abierta la escena también sube: centrada caería justo
+          detrás del borde de la caja y no se vería abrirse el cofre. */}
       {scene ? (
-        scene.gift.animation === 'chest' ? (
-          <ChestOpen key={scene.id} event={scene} onDone={nextScene} />
-        ) : (
-          <GiftAura key={scene.id} event={scene} onDone={nextScene} />
-        )
+        <View
+          style={[StyleSheet.absoluteFill, pickerOpen && styles.escenaArriba]}
+          pointerEvents="none"
+        >
+          {scene.gift.animation === 'chest' ? (
+            <ChestOpen key={scene.id} event={scene} onDone={nextScene} />
+          ) : (
+            <GiftAura key={scene.id} event={scene} onDone={nextScene} />
+          )}
+        </View>
       ) : null}
+
+      {pickerOpen ? <View style={styles.anunciosArriba} pointerEvents="none">{anuncios}</View> : null}
 
       <GiftPicker
         visible={pickerOpen}
@@ -966,6 +980,10 @@ const styles = StyleSheet.create({
   // Los anuncios se apilan de abajo arriba, alineados a la izquierda como el
   // chat que tienen debajo.
   giftLayer: { gap: 3, alignItems: 'flex-start' },
+  // Con la caja abierta solo se ve la mitad de arriba de la pantalla, así que
+  // ahí es donde tienen que ir los anuncios y las escenas.
+  anunciosArriba: { position: 'absolute', left: spacing.md, right: spacing.md, top: '30%' },
+  escenaArriba: { transform: [{ translateY: -140 }] },
   /** Hueco a la izquierda para que la tira de invitados siga a la derecha. */
   middleHueco: { flex: 1 },
 

@@ -1,10 +1,11 @@
 {
   "version": "1.0.0",
-  "buildNumber": 1050,
-  "commit": "1774276",
+  "buildNumber": 1051,
+  "commit": "127f274",
   "branch": "main",
-  "builtAt": "2026-09-11T22:18:03.522Z",
+  "builtAt": "2026-09-12T03:40:38.274Z",
   "changes": [
+    "Los accesos del perfil pasan a rejilla de iconos",
     "Los cofres bajan a ×8,50, que es el techo real",
     "Foto de perfil, estado, ojo en la contraseña y agencia con horas",
     "Sesenta regalos con su ilustración, tres por cada precio",
@@ -18,7 +19,6 @@
     "quien capta anfitriones cobra por lo que generan",
     "Anota agencias y sorteos en el plan, que los pidió el usuario",
     "El simulador mide el margen, no si la gente gana",
-    "Simulador de sesiones reales, para medir lo que se siente",
-    "El suelo de la suerte sube a 0,7: en frío se perdía demasiado"
+    "Simulador de sesiones reales, para medir lo que se siente"
   ]
 }

@@ -197,7 +197,7 @@ export function GiftPicker({
           keyExtractor={(item) => item.code}
           numColumns={4}
           columnWrapperStyle={{ gap: spacing.sm }}
-          contentContainerStyle={{ gap: spacing.sm, paddingBottom: spacing.md }}
+          contentContainerStyle={{ gap: spacing.sm, paddingBottom: spacing.sm }}
           ListEmptyComponent={
             <Text style={styles.empty}>
               {tab === 'fanclub'
@@ -341,9 +341,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
-    padding: spacing.lg,
-    gap: spacing.md,
-    maxHeight: '82%',
+    padding: spacing.md,
+    gap: spacing.sm,
+    // La caja tapaba casi toda la pantalla, y con el candado echado se envía sin
+    // cerrarla: no se veía si el regalo explotaba, que es lo único que importa
+    // mientras se manda. A poco más de la mitad, la rejilla se desplaza pero la
+    // sala se ve.
+    maxHeight: '56%',
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm },
   headerTexts: { flexShrink: 1 },
